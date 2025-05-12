@@ -1,0 +1,377 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { insertDestinationSchema, insertActivitySchema, insertAccommodationSchema, insertTripSchema, insertTripDestinationSchema } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Destinations
+  app.get("/api/destinations", async (req, res) => {
+    try {
+      const destinations = await storage.getDestinations();
+      res.json(destinations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch destinations" });
+    }
+  });
+  
+  app.get("/api/destinations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const destination = await storage.getDestination(id);
+      
+      if (!destination) {
+        return res.status(404).json({ message: "Destination not found" });
+      }
+      
+      res.json(destination);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch destination" });
+    }
+  });
+  
+  app.post("/api/destinations", async (req, res) => {
+    try {
+      const destinationData = insertDestinationSchema.parse(req.body);
+      const newDestination = await storage.createDestination(destinationData);
+      res.status(201).json(newDestination);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid destination data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create destination" });
+    }
+  });
+  
+  app.put("/api/destinations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const destinationData = insertDestinationSchema.partial().parse(req.body);
+      
+      const updatedDestination = await storage.updateDestination(id, destinationData);
+      
+      if (!updatedDestination) {
+        return res.status(404).json({ message: "Destination not found" });
+      }
+      
+      res.json(updatedDestination);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid destination data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update destination" });
+    }
+  });
+  
+  app.delete("/api/destinations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDestination(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Destination not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete destination" });
+    }
+  });
+  
+  // Activities
+  app.get("/api/activities", async (req, res) => {
+    try {
+      const { destinationId } = req.query;
+      let activities;
+      
+      if (destinationId) {
+        activities = await storage.getActivitiesByDestination(parseInt(destinationId as string));
+      } else {
+        activities = await storage.getActivities();
+      }
+      
+      res.json(activities);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+  
+  app.get("/api/activities/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const activity = await storage.getActivity(id);
+      
+      if (!activity) {
+        return res.status(404).json({ message: "Activity not found" });
+      }
+      
+      res.json(activity);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch activity" });
+    }
+  });
+  
+  app.post("/api/activities", async (req, res) => {
+    try {
+      const activityData = insertActivitySchema.parse(req.body);
+      const newActivity = await storage.createActivity(activityData);
+      res.status(201).json(newActivity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid activity data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create activity" });
+    }
+  });
+  
+  app.put("/api/activities/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const activityData = insertActivitySchema.partial().parse(req.body);
+      
+      const updatedActivity = await storage.updateActivity(id, activityData);
+      
+      if (!updatedActivity) {
+        return res.status(404).json({ message: "Activity not found" });
+      }
+      
+      res.json(updatedActivity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid activity data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update activity" });
+    }
+  });
+  
+  app.delete("/api/activities/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteActivity(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Activity not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete activity" });
+    }
+  });
+  
+  // Accommodations
+  app.get("/api/accommodations", async (req, res) => {
+    try {
+      const { destinationId } = req.query;
+      let accommodations;
+      
+      if (destinationId) {
+        accommodations = await storage.getAccommodationsByDestination(parseInt(destinationId as string));
+      } else {
+        accommodations = await storage.getAccommodations();
+      }
+      
+      res.json(accommodations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch accommodations" });
+    }
+  });
+  
+  app.get("/api/accommodations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const accommodation = await storage.getAccommodation(id);
+      
+      if (!accommodation) {
+        return res.status(404).json({ message: "Accommodation not found" });
+      }
+      
+      res.json(accommodation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch accommodation" });
+    }
+  });
+  
+  app.post("/api/accommodations", async (req, res) => {
+    try {
+      const accommodationData = insertAccommodationSchema.parse(req.body);
+      const newAccommodation = await storage.createAccommodation(accommodationData);
+      res.status(201).json(newAccommodation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid accommodation data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create accommodation" });
+    }
+  });
+  
+  app.put("/api/accommodations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const accommodationData = insertAccommodationSchema.partial().parse(req.body);
+      
+      const updatedAccommodation = await storage.updateAccommodation(id, accommodationData);
+      
+      if (!updatedAccommodation) {
+        return res.status(404).json({ message: "Accommodation not found" });
+      }
+      
+      res.json(updatedAccommodation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid accommodation data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update accommodation" });
+    }
+  });
+  
+  app.delete("/api/accommodations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteAccommodation(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Accommodation not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete accommodation" });
+    }
+  });
+  
+  // Trips
+  app.get("/api/trips", async (req, res) => {
+    try {
+      const trips = await storage.getTrips();
+      res.json(trips);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch trips" });
+    }
+  });
+  
+  app.get("/api/trips/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const trip = await storage.getTrip(id);
+      
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+      
+      res.json(trip);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch trip" });
+    }
+  });
+  
+  app.post("/api/trips", async (req, res) => {
+    try {
+      const tripData = insertTripSchema.parse(req.body);
+      const newTrip = await storage.createTrip(tripData);
+      res.status(201).json(newTrip);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid trip data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create trip" });
+    }
+  });
+  
+  app.put("/api/trips/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const tripData = insertTripSchema.partial().parse(req.body);
+      
+      const updatedTrip = await storage.updateTrip(id, tripData);
+      
+      if (!updatedTrip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+      
+      res.json(updatedTrip);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid trip data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update trip" });
+    }
+  });
+  
+  app.delete("/api/trips/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTrip(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete trip" });
+    }
+  });
+  
+  // Trip Destinations
+  app.get("/api/trips/:tripId/destinations", async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.tripId);
+      const tripDestinations = await storage.getTripDestinations(tripId);
+      res.json(tripDestinations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch trip destinations" });
+    }
+  });
+  
+  app.post("/api/trips/:tripId/destinations", async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.tripId);
+      const destinationId = req.body.destinationId;
+      
+      const tripDestinationData = insertTripDestinationSchema.parse({
+        tripId,
+        destinationId,
+      });
+      
+      const newTripDestination = await storage.addDestinationToTrip(tripDestinationData);
+      res.status(201).json(newTripDestination);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid trip destination data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to add destination to trip" });
+    }
+  });
+  
+  app.delete("/api/trips/:tripId/destinations/:destinationId", async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.tripId);
+      const destinationId = parseInt(req.params.destinationId);
+      
+      const success = await storage.removeDestinationFromTrip(tripId, destinationId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Trip destination not found" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove destination from trip" });
+    }
+  });
+  
+  // Dashboard Stats
+  app.get("/api/dashboard/stats", async (req, res) => {
+    try {
+      const stats = await storage.getDashboardStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+  
+  const httpServer = createServer(app);
+  
+  return httpServer;
+}

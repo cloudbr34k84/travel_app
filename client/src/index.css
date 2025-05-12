@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 20% 97%; /* #f0f4f8 */
+  --foreground: 222 47% 11%; /* #111827 */
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --border: 220 13% 91%; /* #e5e7eb */
+  --input: 220 13% 91%;
+  --primary: 222 85% 53%; /* #2563eb */
+  --primary-foreground: 211 100% 99%;
+  --secondary: 210 20% 97%; /* #f0f4f8 */
+  --secondary-foreground: 222 47% 11%;
+  --accent: 45 96% 56%; /* #fcd34d */
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 222 47% 11%;
+  --radius: 0.5rem;
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-primary: 222 85% 53%;
+  --sidebar-primary-foreground: 211 100% 99%;
+  --sidebar-accent: 210 20% 97%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 222 47% 11%;
+  --chart-1: 222 85% 53%;
+  --chart-2: 45 96% 56%;
+  --chart-3: 142 76% 36%;
+  --chart-4: 262 83% 58%;
+  --chart-5: 0 84% 60%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 222 85% 53%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 45 96% 56%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+.sidebar-link.active {
+  @apply bg-primary text-white;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    @apply w-20;
+  }
+  .sidebar .sidebar-text {
+    @apply hidden;
+  }
+  .main-content {
+    @apply ml-20;
+  }
+}
+
+@media (max-width: 640px) {
+  .sidebar {
+    @apply w-full h-auto fixed bottom-0 left-0 z-50;
+  }
+  .sidebar-container {
+    @apply flex-row justify-around;
+  }
+  .sidebar-logo {
+    @apply hidden;
+  }
+  .main-content {
+    @apply ml-0 mb-16;
+  }
+}

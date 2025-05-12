@@ -1,0 +1,346 @@
+import { useState } from "react";
+import { PageHeader } from "@/components/ui/page-header";
+import { SearchFilter } from "@/components/ui/search-filter";
+import { ActivityCard } from "@/components/ui/activity-card";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
+import { Activity, Destination } from "@shared/schema";
+import { ActivityForm } from "@/components/forms/activity-form";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+export default function Activities() {
+  const { toast } = useToast();
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [destinationFilter, setDestinationFilter] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<number | null>(null);
+  const [activityDetailOpen, setActivityDetailOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+
+  // Fetch activities
+  const { data: activities, isLoading } = useQuery({
+    queryKey: ["/api/activities"],
+  });
+
+  // Fetch destinations
+  const { data: destinations } = useQuery({
+    queryKey: ["/api/destinations"],
+  });
+
+  // Create activity mutation
+  const createActivity = useMutation({
+    mutationFn: (newActivity: any) => apiRequest("POST", "/api/activities", newActivity),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      toast({
+        title: "Success",
+        description: "Activity created successfully",
+      });
+      setFormOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create activity",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update activity mutation
+  const updateActivity = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest("PUT", `/api/activities/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      toast({
+        title: "Success",
+        description: "Activity updated successfully",
+      });
+      setEditingActivity(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update activity",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete activity mutation
+  const deleteActivity = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/activities/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      toast({
+        title: "Success",
+        description: "Activity deleted successfully",
+      });
+      setDeleteDialogOpen(false);
+      setActivityToDelete(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete activity",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateOrUpdateActivity = (values: any) => {
+    if (editingActivity) {
+      updateActivity.mutate({ id: editingActivity.id, data: values });
+    } else {
+      createActivity.mutate(values);
+    }
+  };
+
+  const handleEdit = (activity: Activity) => {
+    setEditingActivity(activity);
+    setFormOpen(true);
+  };
+
+  const handleDelete = (id: number) => {
+    setActivityToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (activityToDelete !== null) {
+      deleteActivity.mutate(activityToDelete);
+    }
+  };
+
+  const handleFormOpenChange = (open: boolean) => {
+    setFormOpen(open);
+    if (!open) {
+      setEditingActivity(null);
+    }
+  };
+
+  const handleViewActivity = (activity: Activity) => {
+    setSelectedActivity(activity);
+    setActivityDetailOpen(true);
+  };
+
+  // Filter activities based on search and filters
+  const filteredActivities = activities?.filter((activity: Activity) => {
+    const matchesSearch = search === "" || 
+      activity.name.toLowerCase().includes(search.toLowerCase()) ||
+      activity.description.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesCategory = categoryFilter === "" || activity.category === categoryFilter;
+    const matchesDestination = destinationFilter === "" || activity.destinationId.toString() === destinationFilter;
+    
+    return matchesSearch && matchesCategory && matchesDestination;
+  });
+
+  // Get destination for an activity
+  const getDestinationForActivity = (destinationId: number) => {
+    return destinations?.find((dest: Destination) => dest.id === destinationId);
+  };
+
+  const categoryOptions = [
+    { value: "", label: "All Categories" },
+    { value: "Sightseeing", label: "Sightseeing" },
+    { value: "Adventure", label: "Adventure" },
+    { value: "Culture", label: "Culture" },
+    { value: "Relaxation", label: "Relaxation" },
+    { value: "Food", label: "Food" },
+    { value: "Shopping", label: "Shopping" },
+    { value: "Nature", label: "Nature" },
+    { value: "History", label: "History" },
+  ];
+
+  const destinationOptions = [
+    { value: "", label: "All Destinations" },
+    ...(destinations?.map((dest: Destination) => ({
+      value: dest.id.toString(),
+      label: `${dest.name}, ${dest.country}`,
+    })) || []),
+  ];
+
+  return (
+    <div className="p-6">
+      <PageHeader
+        title="Activities"
+        description="Explore and manage activities for your trips"
+        buttonLabel="Add Activity"
+        buttonIcon={<Plus className="h-4 w-4" />}
+        onButtonClick={() => setFormOpen(true)}
+      />
+
+      <SearchFilter
+        searchPlaceholder="Search activities..."
+        onSearchChange={setSearch}
+        filters={[
+          {
+            name: "Categories",
+            options: categoryOptions,
+            value: categoryFilter,
+            onChange: setCategoryFilter,
+          },
+          {
+            name: "Destinations",
+            options: destinationOptions,
+            value: destinationFilter,
+            onChange: setDestinationFilter,
+          },
+        ]}
+      />
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white rounded-lg shadow h-72 animate-pulse">
+              <div className="h-44 bg-gray-200 rounded-t-lg"></div>
+              <div className="p-4">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-full"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredActivities?.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredActivities.map((activity: Activity) => {
+            const destination = getDestinationForActivity(activity.destinationId);
+            return destination ? (
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                destination={destination}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onView={handleViewActivity}
+              />
+            ) : null;
+          })}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <p className="text-gray-500">No activities found</p>
+          <Button
+            className="mt-4 bg-primary hover:bg-primary-800"
+            onClick={() => setFormOpen(true)}
+          >
+            Add Your First Activity
+          </Button>
+        </div>
+      )}
+
+      {/* Create/Edit Activity Form */}
+      <ActivityForm
+        open={formOpen}
+        onOpenChange={handleFormOpenChange}
+        onSubmit={handleCreateOrUpdateActivity}
+        defaultValues={editingActivity || undefined}
+        isEditing={!!editingActivity}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Activity</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this activity? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activity Detail Dialog */}
+      <Dialog open={activityDetailOpen} onOpenChange={setActivityDetailOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          {selectedActivity && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedActivity.name}</DialogTitle>
+              </DialogHeader>
+              
+              <div className="mt-2">
+                {selectedActivity.image && (
+                  <div className="w-full h-56 mb-4 overflow-hidden rounded-md">
+                    <img 
+                      src={selectedActivity.image} 
+                      alt={selectedActivity.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                    <p className="mt-1">{selectedActivity.description}</p>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Category</h3>
+                      <p className="mt-1">{selectedActivity.category}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Destination</h3>
+                      {destinations && (
+                        <p className="mt-1">
+                          {getDestinationForActivity(selectedActivity.destinationId)?.name}, 
+                          {getDestinationForActivity(selectedActivity.destinationId)?.country}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setActivityDetailOpen(false);
+                    setSelectedActivity(null);
+                  }}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setActivityDetailOpen(false);
+                    handleEdit(selectedActivity);
+                  }}
+                >
+                  Edit
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
