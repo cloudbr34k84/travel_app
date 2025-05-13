@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
-interface AccommodationFormProps {
+export interface AccommodationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
@@ -25,7 +25,7 @@ interface AccommodationFormProps {
   isEditing?: boolean;
 }
 
-const formSchema = insertAccommodationSchema.extend({
+export const formSchema = insertAccommodationSchema.extend({
   image: z.string().url("Please enter a valid image URL").optional(),
 });
 
