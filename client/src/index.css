@@ -74,36 +74,17 @@
   @apply bg-primary text-white;
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    @apply w-20;
-  }
-  .sidebar .sidebar-text {
-    @apply hidden;
-  }
-  .main-content {
-    @apply ml-20;
-  }
+.sidebar-link.active {
+  @apply bg-primary text-white;
 }
 
+/* Dashboard card grid on mobile */
 @media (max-width: 640px) {
-  .sidebar {
-    @apply w-full h-auto fixed bottom-0 left-0 right-0 z-50 border-t border-gray-border;
-  }
-  .sidebar-container {
-    @apply flex-row justify-around items-center py-2;
-  }
-  .sidebar-logo {
-    @apply hidden;
-  }
-  .sidebar-link {
-    @apply flex-col items-center !p-2;
-  }
-  .sidebar .sidebar-text {
-    @apply block text-xs mt-1;
+  .dashboard-grid {
+    @apply grid-cols-1 gap-4;
   }
   .main-content {
-    @apply ml-0 mb-20 pb-4;
+    @apply ml-0 mb-20;
   }
 }
 
