@@ -78,7 +78,7 @@
   @apply bg-primary text-white;
 }
 
-/* Dashboard card grid on mobile */
+/* Mobile layout adjustments */
 @media (max-width: 640px) {
   .dashboard-grid {
     @apply grid-cols-1 gap-4;
@@ -88,9 +88,16 @@
   }
 }
 
-/* Fix the dashboard card grid on mobile */
-@media (max-width: 640px) {
-  .dashboard-grid {
-    @apply grid-cols-1 gap-4;
+/* Tablet layout adjustments */
+@media (min-width: 641px) and (max-width: 768px) {
+  .main-content {
+    @apply sm:ml-20;
+  }
+}
+
+/* Desktop layout adjustments */
+@media (min-width: 769px) {
+  .main-content {
+    @apply md:ml-64;
   }
 }
