@@ -4,7 +4,7 @@ import { SearchFilter } from "@/components/ui/search-filter";
 import { ActivityCard } from "@/components/activities/activity-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { Activity, Destination } from "@shared/schema";
+import { Activity, Destination, InsertActivity } from "@shared/schema";
 import { ActivityForm } from "@/components/forms/activity-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -36,7 +36,7 @@ export default function Activities() {
 
   // Create activity mutation
   const createActivity = useMutation({
-    mutationFn: (newActivity: any) => apiRequest("POST", "/api/activities", newActivity),
+    mutationFn: (newActivity: InsertActivity) => apiRequest("POST", "/api/activities", newActivity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       toast({
@@ -56,7 +56,7 @@ export default function Activities() {
 
   // Update activity mutation
   const updateActivity = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest("PUT", `/api/activities/${id}`, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<InsertActivity> }) => apiRequest("PUT", `/api/activities/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       toast({
@@ -95,7 +95,7 @@ export default function Activities() {
     },
   });
 
-  const handleCreateOrUpdateActivity = (values: any) => {
+  const handleCreateOrUpdateActivity = (values: InsertActivity) => {
     if (editingActivity) {
       updateActivity.mutate({ id: editingActivity.id, data: values });
     } else {

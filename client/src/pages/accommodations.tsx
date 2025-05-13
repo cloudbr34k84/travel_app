@@ -4,7 +4,7 @@ import { SearchFilter } from "@/components/ui/search-filter";
 import { AccommodationCard } from "@/components/accommodations/accommodation-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { Accommodation, Destination } from "@shared/schema";
+import { Accommodation, Destination, InsertAccommodation } from "@shared/schema";
 import { AccommodationForm } from "@/components/forms/accommodation-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -36,7 +36,7 @@ export default function Accommodations() {
 
   // Create accommodation mutation
   const createAccommodation = useMutation({
-    mutationFn: (newAccommodation: any) => apiRequest("POST", "/api/accommodations", newAccommodation),
+    mutationFn: (newAccommodation: InsertAccommodation) => apiRequest("POST", "/api/accommodations", newAccommodation),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/accommodations"] });
       toast({
