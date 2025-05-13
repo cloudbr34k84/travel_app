@@ -18,17 +18,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
+/**
+ * Extended schema for activity form with additional fields and validations
+ */
+export const activityFormSchema = insertActivitySchema.extend({
+  image: z.string().url("Please enter a valid image URL").optional(),
+});
+
+/**
+ * Type definition for activity form values based on the schema
+ */
+export type ActivityFormValues = z.infer<typeof activityFormSchema>;
+
+/**
+ * Type definition for activity form submission values
+ */
+export type ActivityApiValues = {
+  name: string;
+  description: string;
+  category: string;
+  destinationId: number;
+  image?: string;
+  id?: number;
+};
+
+/**
+ * Props interface for the ActivityForm component
+ */
 export interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: any) => void;  // Using 'any' here because the form might need to convert some values
+  onSubmit: (values: ActivityApiValues) => void;
   defaultValues?: Partial<Activity>;
   isEditing?: boolean;
 }
-
-export const formSchema = insertActivitySchema.extend({
-  image: z.string().url("Please enter a valid image URL").optional(),
-});
 
 export function ActivityForm({
   open,
@@ -37,16 +60,10 @@ export function ActivityForm({
   defaultValues,
   isEditing = false,
 }: ActivityFormProps) {
-  // Define an interface for the form values that matches our schema
-  interface ActivityFormValues {
-    name: string;
-    description: string;
-    category: string;
-    destinationId: number;
-    image?: string;
-  }
-
-  // Prepare default values with proper type conversion
+  /**
+   * Prepares default values for the form with proper type conversion
+   * @returns Properly typed form values 
+   */
   const prepareDefaultValues = (): ActivityFormValues => {
     if (defaultValues) {
       return {
@@ -69,8 +86,11 @@ export function ActivityForm({
     };
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  /**
+   * Initialize the form with typesafe validation using Zod schema
+   */
+  const form = useForm<ActivityFormValues>({
+    resolver: zodResolver(activityFormSchema),
     defaultValues: prepareDefaultValues(),
   });
 
@@ -97,7 +117,15 @@ export function ActivityForm({
           <DialogTitle>{isEditing ? "Edit Activity" : "Add New Activity"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit((values: ActivityFormValues) => {
+            // Convert form values to API values
+            const apiValues: ActivityApiValues = {
+              ...values,
+              // Include id if we're editing
+              ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
+            };
+            onSubmit(apiValues);
+          })} className="space-y-4">
             <FormField
               control={form.control}
               name="name"

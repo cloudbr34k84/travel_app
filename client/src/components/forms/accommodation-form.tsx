@@ -17,17 +17,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
+/**
+ * Extended schema for accommodation form with additional fields and validations
+ */
+export const accommodationFormSchema = insertAccommodationSchema.extend({
+  image: z.string().url("Please enter a valid image URL").optional(),
+});
+
+/**
+ * Type definition for accommodation form values based on the schema
+ */
+export type AccommodationFormValues = z.infer<typeof accommodationFormSchema>;
+
+/**
+ * Type definition for accommodation form submission values
+ */
+export type AccommodationApiValues = {
+  name: string;
+  type: string;
+  destinationId: number;
+  image?: string;
+  id?: number;
+};
+
+/**
+ * Props interface for the AccommodationForm component
+ */
 export interface AccommodationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: any) => void;  // Using 'any' here because the form might need to convert some values
+  onSubmit: (values: AccommodationApiValues) => void;
   defaultValues?: Partial<Accommodation>;
   isEditing?: boolean;
 }
-
-export const formSchema = insertAccommodationSchema.extend({
-  image: z.string().url("Please enter a valid image URL").optional(),
-});
 
 export function AccommodationForm({
   open,
@@ -36,15 +58,10 @@ export function AccommodationForm({
   defaultValues,
   isEditing = false,
 }: AccommodationFormProps) {
-  // Define an interface for the form values that matches our schema
-  interface AccommodationFormValues {
-    name: string;
-    type: string;
-    destinationId: number;
-    image?: string;
-  }
-
-  // Prepare default values with proper type conversion
+  /**
+   * Prepares default values for the form with proper type conversion
+   * @returns Properly typed form values
+   */
   const prepareDefaultValues = (): AccommodationFormValues => {
     if (defaultValues) {
       return {
@@ -65,8 +82,11 @@ export function AccommodationForm({
     };
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  /**
+   * Initialize the form with typesafe validation using Zod schema
+   */
+  const form = useForm<AccommodationFormValues>({
+    resolver: zodResolver(accommodationFormSchema),
     defaultValues: prepareDefaultValues(),
   });
 

@@ -16,18 +16,41 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export interface DestinationFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (values: any) => void;  // Using 'any' here because the form might need to convert some values
-  defaultValues?: Partial<Destination>;
-  isEditing?: boolean;
-}
-
-export const formSchema = insertDestinationSchema.extend({
+/**
+ * Extended schema for destination form with additional fields and validations
+ */
+export const destinationFormSchema = insertDestinationSchema.extend({
   image: z.string().url("Please enter a valid image URL").default(""),
   status: z.enum(["visited", "planned", "wishlist"]).default("wishlist"),
 });
+
+/**
+ * Type definition for destination form values based on the schema
+ */
+export type DestinationFormValues = z.infer<typeof destinationFormSchema>;
+
+/**
+ * Type definition for destination form submission values
+ */
+export type DestinationApiValues = {
+  name: string;
+  country: string;
+  region: string;
+  image: string;
+  status: "visited" | "planned" | "wishlist";
+  id?: number;
+};
+
+/**
+ * Props interface for the DestinationForm component
+ */
+export interface DestinationFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (values: DestinationApiValues) => void;
+  defaultValues?: Partial<Destination>;
+  isEditing?: boolean;
+}
 
 export function DestinationForm({
   open,
@@ -36,16 +59,10 @@ export function DestinationForm({
   defaultValues,
   isEditing = false,
 }: DestinationFormProps) {
-  // Define an interface for the form values that matches our schema
-  interface DestinationFormValues {
-    name: string;
-    country: string;
-    region: string;
-    image: string;
-    status: "wishlist" | "planned" | "visited";
-  }
-
-  // Prepare default values with proper type conversion
+  /**
+   * Prepares default values for the form with proper type conversion
+   * @returns Properly typed form values
+   */
   const prepareDefaultValues = (): DestinationFormValues => {
     if (defaultValues) {
       return {
@@ -68,8 +85,11 @@ export function DestinationForm({
     };
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  /**
+   * Initialize the form with typesafe validation using Zod schema
+   */
+  const form = useForm<DestinationFormValues>({
+    resolver: zodResolver(destinationFormSchema),
     defaultValues: prepareDefaultValues(),
   });
 
@@ -96,7 +116,15 @@ export function DestinationForm({
           <DialogTitle>{isEditing ? "Edit Destination" : "Add New Destination"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit((values: DestinationFormValues) => {
+            // Convert form values to API values
+            const apiValues: DestinationApiValues = {
+              ...values,
+              // Include id if we're editing
+              ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
+            };
+            onSubmit(apiValues);
+          })} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
