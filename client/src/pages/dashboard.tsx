@@ -18,18 +18,26 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [tripFormOpen, setTripFormOpen] = useState(false);
 
+  // Define interface for dashboard stats
+  interface DashboardStats {
+    upcomingTripsCount: number;
+    destinationsCount: number;
+    activitiesCount: number;
+    accommodationsCount: number;
+  }
+
   // Fetch dashboard stats
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
+  const { data: stats, isLoading: isLoadingStats } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
   });
 
   // Fetch trips
-  const { data: trips, isLoading: isLoadingTrips } = useQuery({
+  const { data: trips, isLoading: isLoadingTrips } = useQuery<Trip[]>({
     queryKey: ["/api/trips"],
   });
 
   // Fetch destinations
-  const { data: destinations, isLoading: isLoadingDestinations } = useQuery({
+  const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 

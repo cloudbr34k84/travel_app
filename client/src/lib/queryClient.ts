@@ -7,10 +7,10 @@ async function throwIfResNotOk(res: Response): Promise<void> {
   }
 }
 
-export async function apiRequest(
+export async function apiRequest<TRequestData = unknown, TResponseData = unknown>(
   method: string,
   url: string,
-  data?: unknown | undefined,
+  data?: TRequestData,
 ): Promise<Response> {
   const res: Response = await fetch(url, {
     method,
@@ -23,17 +23,26 @@ export async function apiRequest(
   return res;
 }
 
+export async function apiRequestWithJson<TRequestData = unknown, TResponseData = unknown>(
+  method: string,
+  url: string,
+  data?: TRequestData,
+): Promise<TResponseData> {
+  const res: Response = await apiRequest<TRequestData, TResponseData>(method, url, data);
+  return await res.json() as TResponseData;
+}
+
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn = <TData>(options: {
   on401: UnauthorizedBehavior;
 }): QueryFunction<TData> => {
-  return async ({ queryKey }): Promise<TData | null> => {
+  return async ({ queryKey }): Promise<TData> => {
     const res: Response = await fetch(queryKey[0] as string, {
       credentials: "include",
     });
 
     if (options.on401 === "returnNull" && res.status === 401) {
-      return null;
+      return null as unknown as TData; // Null cast as TData to satisfy the QueryFunction type
     }
 
     await throwIfResNotOk(res);
