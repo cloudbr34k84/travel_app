@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, date, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Destination table
 export const destinations = pgTable("destinations", {
@@ -11,6 +12,12 @@ export const destinations = pgTable("destinations", {
   image: text("image").notNull(),
   status: text("status").notNull().default("wishlist"), // wishlist, planned, visited
 });
+
+export const destinationsRelations = relations(destinations, ({ many }) => ({
+  activities: many(activities),
+  accommodations: many(accommodations),
+  tripDestinations: many(tripDestinations),
+}));
 
 export const insertDestinationSchema = createInsertSchema(destinations).omit({
   id: true,
@@ -29,6 +36,13 @@ export const activities = pgTable("activities", {
   image: text("image"),
 });
 
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  destination: one(destinations, {
+    fields: [activities.destinationId],
+    references: [destinations.id],
+  }),
+}));
+
 export const insertActivitySchema = createInsertSchema(activities).omit({
   id: true,
 });
@@ -44,6 +58,13 @@ export const accommodations = pgTable("accommodations", {
   destinationId: integer("destination_id").notNull(),
   image: text("image"),
 });
+
+export const accommodationsRelations = relations(accommodations, ({ one }) => ({
+  destination: one(destinations, {
+    fields: [accommodations.destinationId],
+    references: [destinations.id],
+  }),
+}));
 
 export const insertAccommodationSchema = createInsertSchema(accommodations).omit({
   id: true,
@@ -61,6 +82,10 @@ export const trips = pgTable("trips", {
   status: text("status").notNull().default("planned"), // planned, completed, cancelled
 });
 
+export const tripsRelations = relations(trips, ({ many }) => ({
+  tripDestinations: many(tripDestinations),
+}));
+
 export const insertTripSchema = createInsertSchema(trips).omit({
   id: true,
 });
@@ -74,6 +99,17 @@ export const tripDestinations = pgTable("trip_destinations", {
   tripId: integer("trip_id").notNull(),
   destinationId: integer("destination_id").notNull(),
 });
+
+export const tripDestinationsRelations = relations(tripDestinations, ({ one }) => ({
+  trip: one(trips, {
+    fields: [tripDestinations.tripId],
+    references: [trips.id],
+  }),
+  destination: one(destinations, {
+    fields: [tripDestinations.destinationId],
+    references: [destinations.id],
+  }),
+}));
 
 export const insertTripDestinationSchema = createInsertSchema(tripDestinations).omit({
   id: true,
