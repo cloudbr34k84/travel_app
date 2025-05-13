@@ -12,6 +12,11 @@ import { queryClient } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
 export default function Accommodations() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -25,12 +30,12 @@ export default function Accommodations() {
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
 
   // Fetch accommodations
-  const { data: accommodations, isLoading } = useQuery({
+  const { data: accommodations, isLoading } = useQuery<Accommodation[]>({
     queryKey: ["/api/accommodations"],
   });
 
   // Fetch destinations
-  const { data: destinations } = useQuery({
+  const { data: destinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
@@ -95,7 +100,7 @@ export default function Accommodations() {
     },
   });
 
-  const handleCreateOrUpdateAccommodation = (values: InsertAccommodation) => {
+  const handleCreateOrUpdateAccommodation = (values: InsertAccommodation): void => {
     if (editingAccommodation) {
       updateAccommodation.mutate({ id: editingAccommodation.id, data: values });
     } else {
@@ -103,36 +108,36 @@ export default function Accommodations() {
     }
   };
 
-  const handleEdit = (accommodation: Accommodation) => {
+  const handleEdit = (accommodation: Accommodation): void => {
     setEditingAccommodation(accommodation);
     setFormOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number): void => {
     setAccommodationToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = (): void => {
     if (accommodationToDelete !== null) {
       deleteAccommodation.mutate(accommodationToDelete);
     }
   };
 
-  const handleFormOpenChange = (open: boolean) => {
+  const handleFormOpenChange = (open: boolean): void => {
     setFormOpen(open);
     if (!open) {
       setEditingAccommodation(null);
     }
   };
 
-  const handleViewAccommodation = (accommodation: Accommodation) => {
+  const handleViewAccommodation = (accommodation: Accommodation): void => {
     setSelectedAccommodation(accommodation);
     setAccommodationDetailOpen(true);
   };
 
   // Filter accommodations based on search and filters
-  const filteredAccommodations = accommodations?.filter((accommodation: Accommodation) => {
+  const filteredAccommodations: Accommodation[] = accommodations?.filter((accommodation: Accommodation): boolean => {
     const matchesSearch = search === "" || 
       accommodation.name.toLowerCase().includes(search.toLowerCase());
     
@@ -140,14 +145,14 @@ export default function Accommodations() {
     const matchesDestination = destinationFilter === "all" || accommodation.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesType && matchesDestination;
-  });
+  }) || [];
 
   // Get destination for an accommodation
-  const getDestinationForAccommodation = (destinationId: number) => {
+  const getDestinationForAccommodation = (destinationId: number): Destination | undefined => {
     return destinations?.find((dest: Destination) => dest.id === destinationId);
   };
 
-  const typeOptions = [
+  const typeOptions: FilterOption[] = [
     { value: "all", label: "All Types" },
     { value: "Hotel", label: "Hotel" },
     { value: "Resort", label: "Resort" },
@@ -159,9 +164,9 @@ export default function Accommodations() {
     { value: "Camping", label: "Camping" },
   ];
 
-  const destinationOptions = [
+  const destinationOptions: FilterOption[] = [
     { value: "all", label: "All Destinations" },
-    ...(destinations?.map((dest: Destination) => ({
+    ...(destinations?.map((dest: Destination): FilterOption => ({
       value: dest.id.toString(),
       label: `${dest.name}, ${dest.country}`,
     })) || []),

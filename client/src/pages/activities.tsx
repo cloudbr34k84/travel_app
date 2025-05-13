@@ -12,6 +12,11 @@ import { queryClient } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
 export default function Activities() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -95,7 +100,7 @@ export default function Activities() {
     },
   });
 
-  const handleCreateOrUpdateActivity = (values: InsertActivity) => {
+  const handleCreateOrUpdateActivity = (values: InsertActivity): void => {
     if (editingActivity) {
       updateActivity.mutate({ id: editingActivity.id, data: values });
     } else {
@@ -103,36 +108,36 @@ export default function Activities() {
     }
   };
 
-  const handleEdit = (activity: Activity) => {
+  const handleEdit = (activity: Activity): void => {
     setEditingActivity(activity);
     setFormOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number): void => {
     setActivityToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = (): void => {
     if (activityToDelete !== null) {
       deleteActivity.mutate(activityToDelete);
     }
   };
 
-  const handleFormOpenChange = (open: boolean) => {
+  const handleFormOpenChange = (open: boolean): void => {
     setFormOpen(open);
     if (!open) {
       setEditingActivity(null);
     }
   };
 
-  const handleViewActivity = (activity: Activity) => {
+  const handleViewActivity = (activity: Activity): void => {
     setSelectedActivity(activity);
     setActivityDetailOpen(true);
   };
 
   // Filter activities based on search and filters
-  const filteredActivities = activities?.filter((activity: Activity) => {
+  const filteredActivities: Activity[] = activities?.filter((activity: Activity): boolean => {
     const matchesSearch = search === "" || 
       activity.name.toLowerCase().includes(search.toLowerCase()) ||
       activity.description.toLowerCase().includes(search.toLowerCase());
@@ -141,14 +146,14 @@ export default function Activities() {
     const matchesDestination = destinationFilter === "all" || activity.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesCategory && matchesDestination;
-  });
+  }) || [];
 
   // Get destination for an activity
-  const getDestinationForActivity = (destinationId: number) => {
+  const getDestinationForActivity = (destinationId: number): Destination | undefined => {
     return destinations?.find((dest: Destination) => dest.id === destinationId);
   };
 
-  const categoryOptions = [
+  const categoryOptions: FilterOption[] = [
     { value: "all", label: "All Categories" },
     { value: "Sightseeing", label: "Sightseeing" },
     { value: "Adventure", label: "Adventure" },
@@ -160,9 +165,9 @@ export default function Activities() {
     { value: "History", label: "History" },
   ];
 
-  const destinationOptions = [
+  const destinationOptions: FilterOption[] = [
     { value: "all", label: "All Destinations" },
-    ...(destinations?.map((dest: Destination) => ({
+    ...(destinations?.map((dest: Destination): FilterOption => ({
       value: dest.id.toString(),
       label: `${dest.name}, ${dest.country}`,
     })) || []),
