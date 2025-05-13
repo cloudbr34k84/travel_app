@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-interface StatCardProps {
+export interface StatCardProps {
   icon: ReactNode;
   iconColor: string;
   iconBgColor: string;

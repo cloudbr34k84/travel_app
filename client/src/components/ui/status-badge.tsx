@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
-type StatusType = "visited" | "planned" | "wishlist" | "completed" | "cancelled" | "upcoming";
+export type StatusType = "visited" | "planned" | "wishlist" | "completed" | "cancelled" | "upcoming";
 
-interface StatusBadgeProps {
+export interface StatusBadgeProps {
   status: StatusType;
   className?: string;
 }

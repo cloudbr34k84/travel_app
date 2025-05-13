@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
-interface PageHeaderProps {
+export interface PageHeaderProps {
   title: string;
   description?: string;
   buttonLabel?: string;

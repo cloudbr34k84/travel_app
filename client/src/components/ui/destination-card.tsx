@@ -5,7 +5,7 @@ import { MoreHorizontal, MapPin, Smile, Building } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Destination } from "@shared/schema";
 
-interface DestinationCardProps {
+export interface DestinationCardProps {
   destination: Destination;
   activityCount: number;
   accommodationCount: number;
