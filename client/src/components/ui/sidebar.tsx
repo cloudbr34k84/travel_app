@@ -45,8 +45,8 @@ export function Sidebar() {
           <nav className="px-4 space-y-1">
             {links.slice(0, 6).map((link) => (
               <Link key={link.path} href={link.path}>
-                <a
-                  className={`sidebar-link flex items-center px-4 py-3 text-sm rounded-md ${
+                <div
+                  className={`sidebar-link flex items-center px-4 py-3 text-sm rounded-md cursor-pointer ${
                     location === link.path
                       ? "active"
                       : "text-gray-text hover:bg-gray-bg"
@@ -54,7 +54,7 @@ export function Sidebar() {
                 >
                   <link.icon className="h-5 w-5 mr-3" />
                   <span className="sidebar-text">{link.label}</span>
-                </a>
+                </div>
               </Link>
             ))}
           </nav>
@@ -63,8 +63,8 @@ export function Sidebar() {
           <div className="px-4">
             {links.slice(6).map((link) => (
               <Link key={link.path} href={link.path}>
-                <a
-                  className={`sidebar-link flex items-center px-4 py-3 text-sm rounded-md ${
+                <div
+                  className={`sidebar-link flex items-center px-4 py-3 text-sm rounded-md cursor-pointer ${
                     location === link.path
                       ? "active"
                       : "text-gray-text hover:bg-gray-bg"
@@ -72,7 +72,7 @@ export function Sidebar() {
                 >
                   <link.icon className="h-5 w-5 mr-3" />
                   <span className="sidebar-text">{link.label}</span>
-                </a>
+                </div>
               </Link>
             ))}
           </div>
