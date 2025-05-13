@@ -78,24 +78,35 @@
   @apply bg-primary text-white;
 }
 
-/* Mobile layout adjustments */
+/* Responsive layout utilities */
+@layer utilities {
+  .content-safe-area {
+    @apply pb-20 sm:pb-0; /* Bottom padding to avoid content being hidden by mobile nav */
+  }
+  
+  .mobile-nav-height {
+    @apply h-16; /* Standard height for mobile bottom navigation */
+  }
+}
+
+/* Mobile layout adjustments - matches Tailwind's sm breakpoint (max-width: 640px) */
 @media (max-width: 640px) {
   .dashboard-grid {
     @apply grid-cols-1 gap-4;
   }
   .main-content {
-    @apply ml-0 mb-20;
+    @apply ml-0 mb-20; /* Space for fixed bottom navigation */
   }
 }
 
-/* Tablet layout adjustments */
+/* Tablet layout adjustments - matches Tailwind's md breakpoint (min-width: 641px, max-width: 768px) */
 @media (min-width: 641px) and (max-width: 768px) {
   .main-content {
     @apply sm:ml-20;
   }
 }
 
-/* Desktop layout adjustments */
+/* Desktop layout adjustments - after Tailwind's md breakpoint (min-width: 769px) */
 @media (min-width: 769px) {
   .main-content {
     @apply md:ml-64;

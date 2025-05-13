@@ -78,15 +78,15 @@ export function Sidebar() {
       </div>
 
       {/* Mobile bottom navigation */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 w-full h-auto bg-white border-t border-gray-200 shadow-lg z-10">
-        <nav className="flex justify-around items-center py-2">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 w-full mobile-nav-height bg-white border-t border-gray-200 shadow-lg z-30">
+        <nav className="flex justify-around items-center h-full">
           {mobileNavLinks.map((link) => (
             <Link key={link.path} href={link.path}>
               <div
                 className={`flex flex-col items-center p-2 text-xs cursor-pointer ${
                   location === link.path
                     ? "text-primary"
-                    : "text-gray-700"
+                    : "text-gray-700 hover:text-primary"
                 }`}
               >
                 <link.icon className="h-6 w-6 mb-1" />
