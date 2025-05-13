@@ -25,7 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 export interface TripFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: any) => void;  // Using 'any' here because the form converts dates to strings
   defaultValues?: Partial<Trip>;
   isEditing?: boolean;
 }
@@ -43,24 +43,49 @@ export function TripForm({
   defaultValues,
   isEditing = false,
 }: TripFormProps) {
+  // Define an interface for the formatted values that will be sent to the API
+  interface FormattedTripValues {
+    name: string;
+    startDate: string;
+    endDate: string;
+    status: "planned" | "completed" | "cancelled";
+    id?: number;
+  }
+
   // Create a wrapper function to convert Date objects to strings in the format expected by the API
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    const formattedValues = {
+  const handleSubmit = (values: z.infer<typeof formSchema>): void => {
+    const formattedValues: FormattedTripValues = {
       ...values,
       startDate: format(values.startDate, 'yyyy-MM-dd'),
       endDate: format(values.endDate, 'yyyy-MM-dd')
     };
     
-    onSubmit(formattedValues as any);
+    onSubmit(formattedValues);
   };
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: defaultValues || {
+  // Convert any string dates from default values into Date objects
+  const prepareDefaultValues = (): z.infer<typeof formSchema> => {
+    if (defaultValues) {
+      return {
+        name: defaultValues.name || "",
+        // Convert string dates to Date objects if they exist
+        startDate: defaultValues.startDate ? new Date(defaultValues.startDate) : new Date(),
+        endDate: defaultValues.endDate ? new Date(defaultValues.endDate) : new Date(new Date().setDate(new Date().getDate() + 7)),
+        status: (defaultValues.status as "planned" | "completed" | "cancelled") || "planned",
+      };
+    }
+    
+    // Default values for new trip
+    return {
       name: "",
       startDate: new Date(),
       endDate: new Date(new Date().setDate(new Date().getDate() + 7)),
       status: "planned",
-    },
+    };
+  };
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: prepareDefaultValues(),
   });
   
   const statuses = [

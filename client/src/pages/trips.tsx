@@ -142,14 +142,14 @@ export default function Trips() {
   };
 
   // Filter trips based on search and filters
-  const filteredTrips: Trip[] = trips?.filter((trip: Trip): boolean => {
+  const filteredTrips: Trip[] = trips ? trips.filter((trip: Trip): boolean => {
     const matchesSearch = search === "" || 
       trip.name.toLowerCase().includes(search.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || trip.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  }) || [];
+  }) : [];
 
   // Sort trips by date (upcoming first)
   const sortedTrips: Trip[] = [...filteredTrips].sort((a: Trip, b: Trip): number => {
@@ -166,6 +166,7 @@ export default function Trips() {
   };
 
   // Calculate days to trip
+  // The function returns either a number (days to trip) or a status message string
   const getDaysToTrip = (trip: Trip): number | string => {
     const today = new Date();
     const startDate = new Date(trip.startDate);
@@ -177,6 +178,7 @@ export default function Trips() {
       return "Cancelled";
     }
     
+    // Return days to trip as a number
     return Math.ceil(timeDiff / (1000 * 3600 * 24));
   };
 
@@ -245,7 +247,10 @@ export default function Trips() {
                 destinations={getTripDestinations(trip)}
                 activitiesCount={8} // This would come from a real count in a full implementation
                 accommodationsCount={3} // This would come from a real count in a full implementation
-                daysToTrip={isUpcoming ? getDaysToTrip(trip) : undefined}
+                daysToTrip={isUpcoming ? 
+                  typeof getDaysToTrip(trip) === 'number' ? getDaysToTrip(trip) as number : undefined
+                  : undefined
+                }
                 onView={(id) => {
                   // This would navigate to trip details
                   toast({

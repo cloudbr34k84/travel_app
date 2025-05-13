@@ -166,10 +166,10 @@ export default function Accommodations() {
 
   const destinationOptions: FilterOption[] = [
     { value: "all", label: "All Destinations" },
-    ...(destinations?.map((dest: Destination): FilterOption => ({
+    ...(destinations ? destinations.map((dest: Destination): FilterOption => ({
       value: dest.id.toString(),
       label: `${dest.name}, ${dest.country}`,
-    })) || []),
+    })) : []),
   ];
 
   return (
@@ -308,8 +308,10 @@ export default function Accommodations() {
                       <h3 className="text-sm font-medium text-gray-500">Destination</h3>
                       {destinations && (
                         <p className="mt-1">
-                          {getDestinationForAccommodation(selectedAccommodation.destinationId)?.name}, 
-                          {getDestinationForAccommodation(selectedAccommodation.destinationId)?.country}
+                          {(() => {
+                            const dest = getDestinationForAccommodation(selectedAccommodation.destinationId);
+                            return dest ? `${dest.name}, ${dest.country}` : 'Unknown destination';
+                          })()}
                         </p>
                       )}
                     </div>
