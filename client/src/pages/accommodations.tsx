@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/common/page-header";
 import { SearchFilter } from "@/components/ui/search-filter";
-import { AccommodationCard } from "@/components/ui/accommodation-card";
+import { AccommodationCard } from "@/components/accommodations/accommodation-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Accommodation, Destination } from "@shared/schema";

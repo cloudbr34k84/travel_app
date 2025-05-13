@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { StatCard } from "@/components/ui/stat-card";
+import { PageHeader } from "@/components/common/page-header";
+import { StatCard } from "@/components/common/stat-card";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge } from "@/components/common/status-badge";
 import { Building, MapPin, Smile, Calendar, Clock, Plus } from "lucide-react";
 import { Trip, Destination } from "@shared/schema";
 import { Button } from "@/components/ui/button";

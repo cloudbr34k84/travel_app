@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/common/page-header";
 import { SearchFilter } from "@/components/ui/search-filter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Calendar } from "lucide-react";
@@ -10,10 +10,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge } from "@/components/common/status-badge";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
-import { TripCard } from "@/components/ui/trip-card";
+import { TripCard } from "@/components/trips/trip-card";
 
 export default function Trips() {
   const { toast } = useToast();
