@@ -36,17 +36,42 @@ export function AccommodationForm({
   defaultValues,
   isEditing = false,
 }: AccommodationFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: defaultValues || {
+  // Define an interface for the form values that matches our schema
+  interface AccommodationFormValues {
+    name: string;
+    type: string;
+    destinationId: number;
+    image?: string;
+  }
+
+  // Prepare default values with proper type conversion
+  const prepareDefaultValues = (): AccommodationFormValues => {
+    if (defaultValues) {
+      return {
+        name: defaultValues.name || "",
+        type: defaultValues.type || "",
+        destinationId: defaultValues.destinationId || 0,
+        // Handle null image values by converting to undefined
+        image: defaultValues.image === null ? undefined : defaultValues.image,
+      };
+    }
+    
+    // Default values for new accommodation
+    return {
       name: "",
       type: "",
       destinationId: 0,
       image: "",
-    },
+    };
+  };
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: prepareDefaultValues(),
   });
 
-  const { data: destinations, isLoading: isLoadingDestinations } = useQuery({
+  // Use explicit typing for the destinations query
+  const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
@@ -126,7 +151,7 @@ export function AccommodationForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {destinations?.map((destination: Destination) => (
+                      {destinations && destinations.map((destination: Destination) => (
                         <SelectItem key={destination.id} value={destination.id.toString()}>
                           {destination.name}, {destination.country}
                         </SelectItem>
