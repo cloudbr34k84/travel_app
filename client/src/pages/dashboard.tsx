@@ -62,7 +62,7 @@ export default function Dashboard() {
   };
 
   // Get next upcoming trip
-  const getNextTrip = () => {
+  const getNextTrip = (): Trip | null => {
     if (!trips || trips.length === 0) return null;
     
     const today = new Date();
@@ -82,7 +82,7 @@ export default function Dashboard() {
   };
 
   // Get recent completed trips
-  const getRecentTrips = () => {
+  const getRecentTrips = (): Trip[] => {
     if (!trips || trips.length === 0) return [];
     
     const completedTrips = trips.filter((trip: Trip) => trip.status === "completed");
@@ -96,7 +96,7 @@ export default function Dashboard() {
   };
 
   // Get destinations for a trip
-  const getTripDestinations = (trip: Trip) => {
+  const getTripDestinations = (trip: Trip): string[] => {
     // This would normally use the trip-destinations relationship,
     // but for simplicity in this example, we'll just return the first destination
     if (!destinations || destinations.length === 0) return [];
@@ -104,7 +104,7 @@ export default function Dashboard() {
   };
 
   // Calculate days to next trip
-  const getDaysToTrip = (trip: Trip) => {
+  const getDaysToTrip = (trip: Trip): number => {
     const today = new Date();
     const startDate = new Date(trip.startDate);
     const timeDiff = startDate.getTime() - today.getTime();
@@ -131,28 +131,28 @@ export default function Dashboard() {
           iconColor="text-primary"
           iconBgColor="bg-blue-100"
           label="Upcoming Trips"
-          value={isLoadingStats ? "..." : stats?.upcomingTripsCount}
+          value={isLoadingStats ? "..." : stats?.upcomingTripsCount || 0}
         />
         <StatCard
           icon={<MapPin />}
           iconColor="text-accent-400"
           iconBgColor="bg-amber-100"
           label="Destinations"
-          value={isLoadingStats ? "..." : stats?.destinationsCount}
+          value={isLoadingStats ? "..." : stats?.destinationsCount || 0}
         />
         <StatCard
           icon={<Smile />}
           iconColor="text-green-600"
           iconBgColor="bg-green-100"
           label="Activities"
-          value={isLoadingStats ? "..." : stats?.activitiesCount}
+          value={isLoadingStats ? "..." : stats?.activitiesCount || 0}
         />
         <StatCard
           icon={<Building />}
           iconColor="text-purple-600"
           iconBgColor="bg-purple-100"
           label="Accommodations"
-          value={isLoadingStats ? "..." : stats?.accommodationsCount}
+          value={isLoadingStats ? "..." : stats?.accommodationsCount || 0}
         />
       </div>
 
