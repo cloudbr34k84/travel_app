@@ -127,10 +127,10 @@ export class MemStorage implements IStorage {
     twoMonthsAgo.setMonth(today.getMonth() - 2);
     
     const sampleTrips: InsertTrip[] = [
-      { name: "Japan Adventure", startDate: nextMonth, endDate: new Date(nextMonth.getTime() + 14 * 24 * 60 * 60 * 1000), status: "planned" },
-      { name: "Bali Getaway", startDate: twoMonthsAgo, endDate: new Date(twoMonthsAgo.getTime() + 10 * 24 * 60 * 60 * 1000), status: "completed" },
-      { name: "Swiss Alps Adventure", startDate: lastMonth, endDate: new Date(lastMonth.getTime() + 8 * 24 * 60 * 60 * 1000), status: "completed" },
-      { name: "New York City Trip", startDate: new Date(lastMonth.getTime() - 30 * 24 * 60 * 60 * 1000), endDate: new Date(lastMonth.getTime() - 24 * 24 * 60 * 60 * 1000), status: "completed" },
+      { name: "Japan Adventure", startDate: nextMonth.toISOString().split('T')[0], endDate: new Date(nextMonth.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "planned" },
+      { name: "Bali Getaway", startDate: twoMonthsAgo.toISOString().split('T')[0], endDate: new Date(twoMonthsAgo.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "completed" },
+      { name: "Swiss Alps Adventure", startDate: lastMonth.toISOString().split('T')[0], endDate: new Date(lastMonth.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "completed" },
+      { name: "New York City Trip", startDate: new Date(lastMonth.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], endDate: new Date(lastMonth.getTime() - 24 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "completed" },
     ];
     
     sampleTrips.forEach(trip => this.createTrip(trip));
@@ -153,7 +153,9 @@ export class MemStorage implements IStorage {
   
   async createDestination(destination: InsertDestination): Promise<Destination> {
     const id = this.destinationId++;
-    const newDestination: Destination = { ...destination, id };
+    // Ensure status is always a string (not undefined)
+    const status = destination.status || "wishlist";
+    const newDestination: Destination = { ...destination, id, status };
     this.destinations.set(id, newDestination);
     return newDestination;
   }
@@ -186,7 +188,9 @@ export class MemStorage implements IStorage {
   
   async createActivity(activity: InsertActivity): Promise<Activity> {
     const id = this.activityId++;
-    const newActivity: Activity = { ...activity, id };
+    // Ensure image is always a string or null (not undefined)
+    const image = activity.image ?? null;
+    const newActivity: Activity = { ...activity, id, image };
     this.activities.set(id, newActivity);
     return newActivity;
   }
@@ -219,7 +223,9 @@ export class MemStorage implements IStorage {
   
   async createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation> {
     const id = this.accommodationId++;
-    const newAccommodation: Accommodation = { ...accommodation, id };
+    // Ensure image is always a string or null (not undefined)
+    const image = accommodation.image ?? null;
+    const newAccommodation: Accommodation = { ...accommodation, id, image };
     this.accommodations.set(id, newAccommodation);
     return newAccommodation;
   }
@@ -248,7 +254,9 @@ export class MemStorage implements IStorage {
   
   async createTrip(trip: InsertTrip): Promise<Trip> {
     const id = this.tripId++;
-    const newTrip: Trip = { ...trip, id };
+    // Ensure status is always a string (not undefined)
+    const status = trip.status || "planned";
+    const newTrip: Trip = { ...trip, id, status };
     this.trips.set(id, newTrip);
     return newTrip;
   }
