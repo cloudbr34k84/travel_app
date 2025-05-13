@@ -39,7 +39,7 @@ export default function Destinations() {
 
   // Create destination mutation
   const createDestination = useMutation({
-    mutationFn: (newDestination: any) => apiRequest("POST", "/api/destinations", newDestination),
+    mutationFn: (newDestination: InsertDestination) => apiRequest("POST", "/api/destinations", newDestination),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/destinations"] });
       toast({

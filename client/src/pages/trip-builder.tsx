@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-import { Trip, Destination, Activity, Accommodation } from "@shared/schema";
+import { Trip, Destination, Activity, Accommodation, InsertTrip } from "@shared/schema";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,7 @@ export default function TripBuilder() {
 
   // Create trip mutation
   const createTrip = useMutation({
-    mutationFn: (newTrip: any) => apiRequest("POST", "/api/trips", newTrip),
+    mutationFn: (newTrip: InsertTrip) => apiRequest("POST", "/api/trips", newTrip),
     onSuccess: async (data) => {
       const tripId = data.id;
       
