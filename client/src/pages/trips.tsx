@@ -15,6 +15,11 @@ import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { TripCard } from "@/components/trips/trip-card";
 
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
 export default function Trips() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
@@ -105,7 +110,7 @@ export default function Trips() {
     },
   });
 
-  const handleCreateOrUpdateTrip = (values: InsertTrip) => {
+  const handleCreateOrUpdateTrip = (values: InsertTrip): void => {
     if (editingTrip) {
       updateTrip.mutate({ id: editingTrip.id, data: values });
     } else {
@@ -113,23 +118,23 @@ export default function Trips() {
     }
   };
 
-  const handleEdit = (trip: Trip) => {
+  const handleEdit = (trip: Trip): void => {
     setEditingTrip(trip);
     setFormOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: number): void => {
     setTripToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = (): void => {
     if (tripToDelete !== null) {
       deleteTrip.mutate(tripToDelete);
     }
   };
 
-  const handleFormOpenChange = (open: boolean) => {
+  const handleFormOpenChange = (open: boolean): void => {
     setFormOpen(open);
     if (!open) {
       setEditingTrip(null);
@@ -137,45 +142,52 @@ export default function Trips() {
   };
 
   // Filter trips based on search and filters
-  const filteredTrips = trips?.filter((trip: Trip) => {
+  const filteredTrips: Trip[] = trips?.filter((trip: Trip): boolean => {
     const matchesSearch = search === "" || 
       trip.name.toLowerCase().includes(search.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || trip.status === statusFilter;
     
     return matchesSearch && matchesStatus;
-  });
+  }) || [];
 
   // Sort trips by date (upcoming first)
-  const sortedTrips = filteredTrips?.sort((a: Trip, b: Trip) => {
+  const sortedTrips: Trip[] = [...filteredTrips].sort((a: Trip, b: Trip): number => {
     const dateA = new Date(a.startDate).getTime();
     const dateB = new Date(b.startDate).getTime();
     return dateA - dateB;
   });
 
   // Get trip destinations for a trip
-  const getTripDestinations = (trip: Trip) => {
+  const getTripDestinations = (trip: Trip): string[] => {
     // In a real implementation, we'd fetch the trip-destinations relationship
     // For now, just return a placeholder destination
     return ["Tokyo", "Kyoto", "Osaka"];
   };
 
   // Calculate days to trip
-  const getDaysToTrip = (trip: Trip) => {
+  const getDaysToTrip = (trip: Trip): number | string => {
     const today = new Date();
     const startDate = new Date(trip.startDate);
     const timeDiff = startDate.getTime() - today.getTime();
+    
+    if (trip.status === "completed") {
+      return "Completed";
+    } else if (trip.status === "cancelled") {
+      return "Cancelled";
+    }
+    
     return Math.ceil(timeDiff / (1000 * 3600 * 24));
   };
 
   // Get trip image
-  const getTripImage = (trip: Trip) => {
+  const getTripImage = (trip: Trip): string => {
     // In a real implementation, we'd get an image from the trip's destinations
     // For now, return a placeholder image
     return "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e";
   };
 
-  const statusOptions = [
+  const statusOptions: FilterOption[] = [
     { value: "all", label: "All Status" },
     { value: "planned", label: "Planned" },
     { value: "completed", label: "Completed" },
