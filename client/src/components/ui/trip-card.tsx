@@ -6,7 +6,7 @@ import { Trip } from "@shared/schema";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { Building, Smile } from "lucide-react";
 
-interface TripCardProps {
+export interface TripCardProps {
   trip: Trip;
   image: string;
   destinations: string[];

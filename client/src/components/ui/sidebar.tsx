@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Globe, Building, Plus, MapPin, Smile, Home, User, Settings } from "lucide-react";
 
-export function Sidebar() {
+export interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className }: SidebarProps = {}) {
   const [location] = useLocation();
   const [isMobile, setIsMobile] = useState(false);
 
@@ -31,7 +35,7 @@ export function Sidebar() {
   ];
 
   return (
-    <div className="sidebar bg-white w-64 h-full shadow-lg fixed left-0 top-0 z-10">
+    <div className={`sidebar bg-white w-64 h-full shadow-lg fixed left-0 top-0 z-10 ${className || ''}`}>
       <div className="sidebar-container flex flex-col h-full">
         <div className="sidebar-logo flex items-center justify-center h-16 border-b border-gray-border">
           <div className="flex items-center space-x-2">
