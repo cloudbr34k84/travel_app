@@ -318,27 +318,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Trip Destinations
-  app.get("/api/trips/:tripId/destinations", async (req, res) => {
+  app.get("/api/trips/:tripId/destinations", async (req: Request, res: Response): Promise<void> => {
     try {
-      const tripId = parseInt(req.params.tripId);
-      const tripDestinations = await storage.getTripDestinations(tripId);
+      const tripId: number = parseInt(req.params.tripId);
+      const tripDestinations: TripDestination[] = await storage.getTripDestinations(tripId);
       res.json(tripDestinations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch trip destinations" });
     }
   });
   
-  app.post("/api/trips/:tripId/destinations", async (req, res) => {
+  app.post("/api/trips/:tripId/destinations", async (req: Request, res: Response): Promise<void> => {
     try {
-      const tripId = parseInt(req.params.tripId);
-      const destinationId = req.body.destinationId;
+      const tripId: number = parseInt(req.params.tripId);
+      const destinationId: number = req.body.destinationId;
       
       const tripDestinationData = insertTripDestinationSchema.parse({
         tripId,
         destinationId,
       });
       
-      const newTripDestination = await storage.addDestinationToTrip(tripDestinationData);
+      const newTripDestination: TripDestination = await storage.addDestinationToTrip(tripDestinationData);
       res.status(201).json(newTripDestination);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -348,12 +348,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/trips/:tripId/destinations/:destinationId", async (req, res) => {
+  app.delete("/api/trips/:tripId/destinations/:destinationId", async (req: Request, res: Response): Promise<void> => {
     try {
-      const tripId = parseInt(req.params.tripId);
-      const destinationId = parseInt(req.params.destinationId);
+      const tripId: number = parseInt(req.params.tripId);
+      const destinationId: number = parseInt(req.params.destinationId);
       
-      const success = await storage.removeDestinationFromTrip(tripId, destinationId);
+      const success: boolean = await storage.removeDestinationFromTrip(tripId, destinationId);
       
       if (!success) {
         return res.status(404).json({ message: "Trip destination not found" });
@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Dashboard Stats
-  app.get("/api/dashboard/stats", async (req, res) => {
+  app.get("/api/dashboard/stats", async (req: Request, res: Response): Promise<void> => {
     try {
       const stats = await storage.getDashboardStats();
       res.json(stats);
