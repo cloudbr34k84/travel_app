@@ -22,7 +22,9 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
-// Define a type for the API submission values
+/**
+ * Type definition for trip form submission values to be sent to the API
+ */
 export type TripApiValues = {
   name: string;
   startDate: string; // Format: 'yyyy-MM-dd'
@@ -31,6 +33,9 @@ export type TripApiValues = {
   id?: number;
 };
 
+/**
+ * Props interface for the TripForm component
+ */
 export interface TripFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,8 +44,11 @@ export interface TripFormProps {
   isEditing?: boolean;
 }
 
-// Extend the original schema to use proper date objects in the form
-export const formSchema = insertTripSchema.extend({
+/**
+ * Extended schema for trip form with additional fields and validations
+ * Converts string dates from the API to Date objects for the form
+ */
+export const tripFormSchema = insertTripSchema.extend({
   // Override the date fields to use z.date() for form handling
   startDate: z.date({
     required_error: "Start date is required",
@@ -51,8 +59,10 @@ export const formSchema = insertTripSchema.extend({
   status: z.enum(["planned", "completed", "cancelled"]).default("planned"),
 });
 
-// Define a type for the form values to be used throughout the component
-export type TripFormValues = z.infer<typeof formSchema>;
+/**
+ * Type definition for trip form values based on the schema
+ */
+export type TripFormValues = z.infer<typeof tripFormSchema>;
 
 export function TripForm({
   open,
@@ -71,7 +81,9 @@ export function TripForm({
     const formattedValues: TripApiValues = {
       ...values,
       startDate: format(values.startDate, 'yyyy-MM-dd'),
-      endDate: format(values.endDate, 'yyyy-MM-dd')
+      endDate: format(values.endDate, 'yyyy-MM-dd'),
+      // Include id if we're editing
+      ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
     };
     
     onSubmit(formattedValues);
@@ -101,9 +113,11 @@ export function TripForm({
     };
   };
 
-  // Initialize the form with proper typing
+  /**
+   * Initialize the form with typesafe validation using Zod schema
+   */
   const form = useForm<TripFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(tripFormSchema),
     defaultValues: prepareDefaultValues(),
   });
   

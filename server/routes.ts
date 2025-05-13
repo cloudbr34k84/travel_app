@@ -10,7 +10,7 @@ import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Destinations
-  app.get("/api/destinations", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/destinations", async (req: Request, res: Response) => {
     try {
       const destinations: Destination[] = await storage.getDestinations();
       res.json(destinations);
@@ -19,7 +19,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/destinations/:id", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/destinations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const destination: Destination | undefined = await storage.getDestination(id);
@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/destinations", async (req: Request, res: Response): Promise<void> => {
+  app.post("/api/destinations", async (req: Request, res: Response) => {
     try {
       const destinationData = insertDestinationSchema.parse(req.body);
       const newDestination: Destination = await storage.createDestination(destinationData);

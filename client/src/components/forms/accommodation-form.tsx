@@ -113,7 +113,15 @@ export function AccommodationForm({
           <DialogTitle>{isEditing ? "Edit Accommodation" : "Add New Accommodation"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit((values: AccommodationFormValues) => {
+            // Convert form values to API values
+            const apiValues: AccommodationApiValues = {
+              ...values,
+              // Include id if we're editing
+              ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
+            };
+            onSubmit(apiValues);
+          })} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
