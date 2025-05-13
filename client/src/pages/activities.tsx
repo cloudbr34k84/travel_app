@@ -30,12 +30,12 @@ export default function Activities() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
   // Fetch activities
-  const { data: activities, isLoading } = useQuery({
+  const { data: activities, isLoading } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
   });
 
   // Fetch destinations
-  const { data: destinations } = useQuery({
+  const { data: destinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
@@ -137,7 +137,7 @@ export default function Activities() {
   };
 
   // Filter activities based on search and filters
-  const filteredActivities: Activity[] = activities?.filter((activity: Activity): boolean => {
+  const filteredActivities: Activity[] = activities ? activities.filter((activity: Activity): boolean => {
     const matchesSearch = search === "" || 
       activity.name.toLowerCase().includes(search.toLowerCase()) ||
       activity.description.toLowerCase().includes(search.toLowerCase());
@@ -146,11 +146,11 @@ export default function Activities() {
     const matchesDestination = destinationFilter === "all" || activity.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesCategory && matchesDestination;
-  }) || [];
+  }) : [];
 
   // Get destination for an activity
   const getDestinationForActivity = (destinationId: number): Destination | undefined => {
-    return destinations?.find((dest: Destination) => dest.id === destinationId);
+    return destinations ? destinations.find((dest: Destination): boolean => dest.id === destinationId) : undefined;
   };
 
   const categoryOptions: FilterOption[] = [
@@ -167,10 +167,10 @@ export default function Activities() {
 
   const destinationOptions: FilterOption[] = [
     { value: "all", label: "All Destinations" },
-    ...(destinations?.map((dest: Destination): FilterOption => ({
+    ...(destinations ? destinations.map((dest: Destination): FilterOption => ({
       value: dest.id.toString(),
       label: `${dest.name}, ${dest.country}`,
-    })) || []),
+    })) : []),
   ];
 
   return (
@@ -314,8 +314,10 @@ export default function Activities() {
                       <h3 className="text-sm font-medium text-gray-500">Destination</h3>
                       {destinations && (
                         <p className="mt-1">
-                          {getDestinationForActivity(selectedActivity.destinationId)?.name}, 
-                          {getDestinationForActivity(selectedActivity.destinationId)?.country}
+                          {(() => {
+                            const dest = getDestinationForActivity(selectedActivity.destinationId);
+                            return dest ? `${dest.name}, ${dest.country}` : 'Unknown destination';
+                          })()}
                         </p>
                       )}
                     </div>

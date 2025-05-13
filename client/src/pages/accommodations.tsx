@@ -137,7 +137,7 @@ export default function Accommodations() {
   };
 
   // Filter accommodations based on search and filters
-  const filteredAccommodations: Accommodation[] = accommodations?.filter((accommodation: Accommodation): boolean => {
+  const filteredAccommodations: Accommodation[] = accommodations ? accommodations.filter((accommodation: Accommodation): boolean => {
     const matchesSearch = search === "" || 
       accommodation.name.toLowerCase().includes(search.toLowerCase());
     
@@ -145,11 +145,11 @@ export default function Accommodations() {
     const matchesDestination = destinationFilter === "all" || accommodation.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesType && matchesDestination;
-  }) || [];
+  }) : [];
 
   // Get destination for an accommodation
   const getDestinationForAccommodation = (destinationId: number): Destination | undefined => {
-    return destinations?.find((dest: Destination) => dest.id === destinationId);
+    return destinations ? destinations.find((dest: Destination): boolean => dest.id === destinationId) : undefined;
   };
 
   const typeOptions: FilterOption[] = [
