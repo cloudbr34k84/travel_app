@@ -2,7 +2,7 @@ import { useState } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, apiRequestWithJson } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Trip, Destination, Activity, Accommodation, InsertTrip } from "@shared/schema";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,8 +43,8 @@ export default function TripBuilder() {
   });
 
   // Create trip mutation
-  const createTrip = useMutation({
-    mutationFn: (newTrip: InsertTrip) => apiRequest<InsertTrip, Trip>("POST", "/api/trips", newTrip),
+  const createTrip = useMutation<Trip, Error, InsertTrip>({
+    mutationFn: (newTrip: InsertTrip): Promise<Trip> => apiRequestWithJson<InsertTrip, Trip>("POST", "/api/trips", newTrip),
     onSuccess: async (data: Trip) => {
       const tripId = data.id;
       
@@ -275,7 +275,7 @@ export default function TripBuilder() {
                 <p className="text-sm text-gray-500">No destinations selected</p>
               ) : (
                 <div className="space-y-2">
-                  {selectedDestinations.map((destId) => {
+                  {selectedDestinations.map((destId: number): JSX.Element | null => {
                     const destination = getDestinationById(destId);
                     return destination ? (
                       <div key={destId} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
@@ -287,15 +287,15 @@ export default function TripBuilder() {
                           variant="ghost" 
                           size="sm"
                           onClick={() => {
-                            setSelectedDestinations(selectedDestinations.filter(id => id !== destId));
+                            setSelectedDestinations(selectedDestinations.filter((id: number): boolean => id !== destId));
                             // Also remove any activities or accommodations from this destination
-                            setSelectedActivities(selectedActivities.filter(actId => {
+                            setSelectedActivities(selectedActivities.filter((actId: number): boolean => {
                               const activity = getActivityById(actId);
-                              return activity && activity.destinationId !== destId;
+                              return activity ? activity.destinationId !== destId : false;
                             }));
-                            setSelectedAccommodations(selectedAccommodations.filter(accId => {
+                            setSelectedAccommodations(selectedAccommodations.filter((accId: number): boolean => {
                               const accommodation = getAccommodationById(accId);
-                              return accommodation && accommodation.destinationId !== destId;
+                              return accommodation ? accommodation.destinationId !== destId : false;
                             }));
                           }}
                         >
@@ -354,7 +354,7 @@ export default function TripBuilder() {
                   <p className="text-sm text-gray-500">No activities selected</p>
                 ) : (
                   <div className="space-y-2">
-                    {selectedActivities.map((actId) => {
+                    {selectedActivities.map((actId: number): JSX.Element | null => {
                       const activity = getActivityById(actId);
                       return activity ? (
                         <div key={actId} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
@@ -366,7 +366,7 @@ export default function TripBuilder() {
                             variant="ghost" 
                             size="sm"
                             onClick={() => {
-                              setSelectedActivities(selectedActivities.filter(id => id !== actId));
+                              setSelectedActivities(selectedActivities.filter((id: number): boolean => id !== actId));
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-gray-500" />
@@ -397,7 +397,7 @@ export default function TripBuilder() {
                       <SelectValue placeholder="Add an accommodation" />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableAccommodations.map((accommodation: Accommodation) => (
+                      {availableAccommodations.map((accommodation: Accommodation): JSX.Element => (
                         <SelectItem 
                           key={accommodation.id} 
                           value={accommodation.id.toString()}
@@ -417,7 +417,7 @@ export default function TripBuilder() {
                   <p className="text-sm text-gray-500">No accommodations selected</p>
                 ) : (
                   <div className="space-y-2">
-                    {selectedAccommodations.map((accId) => {
+                    {selectedAccommodations.map((accId: number): JSX.Element | null => {
                       const accommodation = getAccommodationById(accId);
                       return accommodation ? (
                         <div key={accId} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
@@ -429,7 +429,7 @@ export default function TripBuilder() {
                             variant="ghost" 
                             size="sm"
                             onClick={() => {
-                              setSelectedAccommodations(selectedAccommodations.filter(id => id !== accId));
+                              setSelectedAccommodations(selectedAccommodations.filter((id: number): boolean => id !== accId));
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-gray-500" />
