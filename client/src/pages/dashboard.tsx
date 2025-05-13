@@ -237,9 +237,9 @@ export default function Dashboard() {
           <div className="p-6 border-b border-gray-border flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-text">Recent Trips</h2>
             <Link href="/trips">
-              <a className="text-primary text-sm font-medium hover:text-primary-800">
+              <div className="text-primary text-sm font-medium hover:text-primary-800 cursor-pointer">
                 View All
-              </a>
+              </div>
             </Link>
           </div>
           <div className="divide-y divide-gray-border">
