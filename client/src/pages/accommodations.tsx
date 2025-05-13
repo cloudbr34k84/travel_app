@@ -39,9 +39,10 @@ export default function Accommodations() {
     queryKey: ["/api/destinations"],
   });
 
-  // Create accommodation mutation
+  // Create accommodation mutation with proper type handling
   const createAccommodation = useMutation({
-    mutationFn: (newAccommodation: InsertAccommodation) => apiRequest("POST", "/api/accommodations", newAccommodation),
+    mutationFn: (newAccommodation: InsertAccommodation) => 
+      apiRequestWithJson<InsertAccommodation, Accommodation>("POST", "/api/accommodations", newAccommodation),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/accommodations"] });
       toast({
@@ -59,9 +60,15 @@ export default function Accommodations() {
     },
   });
 
-  // Update accommodation mutation
+  // Update accommodation mutation with proper type for payload
+  interface UpdateAccommodationParams {
+    id: number;
+    data: Partial<InsertAccommodation>;
+  }
+  
   const updateAccommodation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<InsertAccommodation> }) => apiRequest("PUT", `/api/accommodations/${id}`, data),
+    mutationFn: ({ id, data }: UpdateAccommodationParams) => 
+      apiRequestWithJson<Partial<InsertAccommodation>, Accommodation>("PUT", `/api/accommodations/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/accommodations"] });
       toast({
@@ -79,9 +86,10 @@ export default function Accommodations() {
     },
   });
 
-  // Delete accommodation mutation
+  // Delete accommodation mutation with proper return type
   const deleteAccommodation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/accommodations/${id}`),
+    mutationFn: (id: number) => 
+      apiRequestWithJson<null, void>("DELETE", `/api/accommodations/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/accommodations"] });
       toast({
@@ -136,20 +144,33 @@ export default function Accommodations() {
     setAccommodationDetailOpen(true);
   };
 
-  // Filter accommodations based on search and filters
+  /**
+   * Filter accommodations based on search and filter criteria
+   * @returns Array of filtered accommodations or empty array if no accommodations exist
+   */
   const filteredAccommodations: Accommodation[] = accommodations ? accommodations.filter((accommodation: Accommodation): boolean => {
-    const matchesSearch = search === "" || 
+    // Search matching - check if search term appears in name
+    const matchesSearch: boolean = search === "" || 
       accommodation.name.toLowerCase().includes(search.toLowerCase());
     
-    const matchesType = typeFilter === "all" || accommodation.type === typeFilter;
-    const matchesDestination = destinationFilter === "all" || accommodation.destinationId.toString() === destinationFilter;
+    // Type filtering
+    const matchesType: boolean = typeFilter === "all" || accommodation.type === typeFilter;
+    
+    // Destination filtering
+    const matchesDestination: boolean = destinationFilter === "all" || 
+      accommodation.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesType && matchesDestination;
   }) : [];
 
-  // Get destination for an accommodation
+  /**
+   * Get destination for an accommodation by ID with proper null handling
+   * @param destinationId The ID of the destination to find
+   * @returns The destination or undefined if not found
+   */
   const getDestinationForAccommodation = (destinationId: number): Destination | undefined => {
-    return destinations ? destinations.find((dest: Destination): boolean => dest.id === destinationId) : undefined;
+    if (!destinations) return undefined;
+    return destinations.find((dest: Destination): boolean => dest.id === destinationId);
   };
 
   const typeOptions: FilterOption[] = [
@@ -164,12 +185,19 @@ export default function Accommodations() {
     { value: "Camping", label: "Camping" },
   ];
 
+  /**
+   * Create destination filter options with proper null handling
+   * @returns Array of destination filter options with "All Destinations" as first option
+   */
   const destinationOptions: FilterOption[] = [
     { value: "all", label: "All Destinations" },
-    ...(destinations ? destinations.map((dest: Destination): FilterOption => ({
-      value: dest.id.toString(),
-      label: `${dest.name}, ${dest.country}`,
-    })) : []),
+    ...(destinations 
+      ? destinations.map((dest: Destination): FilterOption => ({
+          value: dest.id.toString(),
+          label: `${dest.name}, ${dest.country}`,
+        })) 
+      : [] // Return empty array if no destinations exist
+    ),
   ];
 
   return (

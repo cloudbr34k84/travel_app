@@ -144,21 +144,34 @@ export default function Activities() {
     setActivityDetailOpen(true);
   };
 
-  // Filter activities based on search and filters
+  /**
+   * Filter activities based on search and filter criteria
+   * @returns Array of filtered activities or empty array if no activities exist
+   */
   const filteredActivities: Activity[] = activities ? activities.filter((activity: Activity): boolean => {
-    const matchesSearch = search === "" || 
+    // Search matching - check if search term appears in name or description
+    const matchesSearch: boolean = search === "" || 
       activity.name.toLowerCase().includes(search.toLowerCase()) ||
       activity.description.toLowerCase().includes(search.toLowerCase());
     
-    const matchesCategory = categoryFilter === "all" || activity.category === categoryFilter;
-    const matchesDestination = destinationFilter === "all" || activity.destinationId.toString() === destinationFilter;
+    // Category filtering
+    const matchesCategory: boolean = categoryFilter === "all" || activity.category === categoryFilter;
+    
+    // Destination filtering
+    const matchesDestination: boolean = destinationFilter === "all" || 
+      activity.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesCategory && matchesDestination;
   }) : [];
 
-  // Get destination for an activity
+  /**
+   * Get destination for an activity by ID with proper null handling
+   * @param destinationId The ID of the destination to find
+   * @returns The destination or undefined if not found
+   */
   const getDestinationForActivity = (destinationId: number): Destination | undefined => {
-    return destinations ? destinations.find((dest: Destination): boolean => dest.id === destinationId) : undefined;
+    if (!destinations) return undefined;
+    return destinations.find((dest: Destination): boolean => dest.id === destinationId);
   };
 
   const categoryOptions: FilterOption[] = [
@@ -173,12 +186,19 @@ export default function Activities() {
     { value: "History", label: "History" },
   ];
 
+  /**
+   * Create destination filter options with proper null handling
+   * @returns Array of destination filter options with "All Destinations" as first option
+   */
   const destinationOptions: FilterOption[] = [
     { value: "all", label: "All Destinations" },
-    ...(destinations ? destinations.map((dest: Destination): FilterOption => ({
-      value: dest.id.toString(),
-      label: `${dest.name}, ${dest.country}`,
-    })) : []),
+    ...(destinations 
+      ? destinations.map((dest: Destination): FilterOption => ({
+          value: dest.id.toString(),
+          label: `${dest.name}, ${dest.country}`,
+        })) 
+      : [] // Return empty array if no destinations exist
+    ),
   ];
 
   return (
