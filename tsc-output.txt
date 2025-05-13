@@ -1,0 +1,27 @@
+server/storage.ts(130,34): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(130,56): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(131,31): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(131,56): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(132,39): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(132,61): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(133,37): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(133,106): error TS2322: Type 'Date' is not assignable to type 'string'.
+server/storage.ts(156,11): error TS2322: Type '{ id: number; image: string; name: string; region: string; country: string; status?: string | undefined; }' is not assignable to type '{ image: string; id: number; name: string; region: string; status: string; country: string; }'.
+  Types of property 'status' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+server/storage.ts(189,11): error TS2322: Type '{ id: number; name: string; description: string; category: string; destinationId: number; image?: string | null | undefined; }' is not assignable to type '{ image: string | null; id: number; name: string; description: string; category: string; destinationId: number; }'.
+  Types of property 'image' are incompatible.
+    Type 'string | null | undefined' is not assignable to type 'string | null'.
+      Type 'undefined' is not assignable to type 'string | null'.
+server/storage.ts(222,11): error TS2322: Type '{ id: number; type: string; name: string; destinationId: number; image?: string | null | undefined; }' is not assignable to type '{ image: string | null; type: string; id: number; name: string; destinationId: number; }'.
+  Types of property 'image' are incompatible.
+    Type 'string | null | undefined' is not assignable to type 'string | null'.
+      Type 'undefined' is not assignable to type 'string | null'.
+server/storage.ts(251,11): error TS2322: Type '{ id: number; name: string; startDate: string; endDate: string; status?: string | undefined; }' is not assignable to type '{ id: number; name: string; status: string; startDate: string; endDate: string; }'.
+  Types of property 'status' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+server/vite.ts(39,5): error TS2322: Type '{ middlewareMode: boolean; hmr: { server: Server<typeof IncomingMessage, typeof ServerResponse>; }; allowedHosts: boolean; }' is not assignable to type 'ServerOptions'.
+  Types of property 'allowedHosts' are incompatible.
+    Type 'boolean' is not assignable to type 'true | string[] | undefined'.
