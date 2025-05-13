@@ -151,50 +151,83 @@ export default function Trips() {
     }
   };
 
-  // Filter trips based on search and filters
+  /**
+   * Filter trips based on search term and status filter
+   * @returns Array of filtered Trip objects or empty array if no trips exist
+   */
   const filteredTrips: Trip[] = trips ? trips.filter((trip: Trip): boolean => {
-    const matchesSearch = search === "" || 
+    // Match trip name against search term (case-insensitive)
+    const matchesSearch: boolean = search === "" || 
       trip.name.toLowerCase().includes(search.toLowerCase());
     
-    const matchesStatus = statusFilter === "all" || trip.status === statusFilter;
+    // Match trip status against selected status filter
+    const matchesStatus: boolean = statusFilter === "all" || trip.status === statusFilter;
     
+    // Trip must match both conditions to be included
     return matchesSearch && matchesStatus;
   }) : [];
 
-  // Sort trips by date (upcoming first)
+  /**
+   * Sort trips chronologically by start date (upcoming first)
+   * @returns New array with sorted Trip objects
+   */
   const sortedTrips: Trip[] = [...filteredTrips].sort((a: Trip, b: Trip): number => {
-    const dateA = new Date(a.startDate).getTime();
-    const dateB = new Date(b.startDate).getTime();
+    // Convert string dates to timestamps for comparison
+    const dateA: number = new Date(a.startDate).getTime();
+    const dateB: number = new Date(b.startDate).getTime();
+    
+    // Sort ascending by date (earlier dates first)
     return dateA - dateB;
   });
 
-  // Get trip destinations for a trip
+  /**
+   * Get destination names for a trip
+   * In a production app, this would fetch actual trip-destination relationships
+   * from the database using the tripId
+   * 
+   * @param trip The trip object to get destinations for
+   * @returns Array of destination name strings
+   */
   const getTripDestinations = (trip: Trip): string[] => {
     // In a real implementation, we'd fetch the trip-destinations relationship
-    // For now, just return a placeholder destination
+    // using the TripDestination table and join with Destination
+    
+    // For now, return placeholder destinations
+    // This would be replaced with actual destination data in production
     return ["Tokyo", "Kyoto", "Osaka"];
   };
 
-  // Calculate days to trip
-  // The function returns either a number (days to trip) or a status message string
+  /**
+   * Calculate days until trip starts or return status message
+   * @param trip The trip object containing dates and status
+   * @returns A number for days remaining or string for completed/cancelled status
+   */
   const getDaysToTrip = (trip: Trip): number | string => {
-    const today = new Date();
-    const startDate = new Date(trip.startDate);
-    const timeDiff = startDate.getTime() - today.getTime();
-    
+    // Handle completed or cancelled trips with status strings
     if (trip.status === "completed") {
       return "Completed";
     } else if (trip.status === "cancelled") {
       return "Cancelled";
     }
     
-    // Return days to trip as a number
+    // For active trips, calculate days remaining
+    const today: Date = new Date();
+    const startDate: Date = new Date(trip.startDate);
+    const timeDiff: number = startDate.getTime() - today.getTime();
+    
+    // Return days to trip as a number (milliseconds to days)
     return Math.ceil(timeDiff / (1000 * 3600 * 24));
   };
 
-  // Get trip image
+  /**
+   * Get a representative image for a trip
+   * @param trip The trip object to get an image for
+   * @returns URL string for the trip's representative image
+   */
   const getTripImage = (trip: Trip): string => {
-    // In a real implementation, we'd get an image from the trip's destinations
+    // In a real implementation, we'd get an image based on the trip's destinations
+    // This would typically come from a destination's image property or an image service
+    
     // For now, return a placeholder image
     return "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e";
   };
