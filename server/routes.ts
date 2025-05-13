@@ -67,10 +67,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/destinations/:id", async (req, res) => {
+  app.delete("/api/destinations/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteDestination(id);
+      const id: number = parseInt(req.params.id);
+      const success: boolean = await storage.deleteDestination(id);
       
       if (!success) {
         return res.status(404).json({ message: "Destination not found" });
@@ -83,10 +83,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Activities
-  app.get("/api/activities", async (req, res) => {
+  app.get("/api/activities", async (req: Request, res: Response): Promise<void> => {
     try {
       const { destinationId } = req.query;
-      let activities;
+      let activities: Activity[];
       
       if (destinationId) {
         activities = await storage.getActivitiesByDestination(parseInt(destinationId as string));
@@ -100,10 +100,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/activities/:id", async (req, res) => {
+  app.get("/api/activities/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const activity = await storage.getActivity(id);
+      const id: number = parseInt(req.params.id);
+      const activity: Activity | undefined = await storage.getActivity(id);
       
       if (!activity) {
         return res.status(404).json({ message: "Activity not found" });
@@ -115,10 +115,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/activities", async (req, res) => {
+  app.post("/api/activities", async (req: Request, res: Response): Promise<void> => {
     try {
       const activityData = insertActivitySchema.parse(req.body);
-      const newActivity = await storage.createActivity(activityData);
+      const newActivity: Activity = await storage.createActivity(activityData);
       res.status(201).json(newActivity);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -128,12 +128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/activities/:id", async (req, res) => {
+  app.put("/api/activities/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id: number = parseInt(req.params.id);
       const activityData = insertActivitySchema.partial().parse(req.body);
       
-      const updatedActivity = await storage.updateActivity(id, activityData);
+      const updatedActivity: Activity | undefined = await storage.updateActivity(id, activityData);
       
       if (!updatedActivity) {
         return res.status(404).json({ message: "Activity not found" });
@@ -148,10 +148,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/activities/:id", async (req, res) => {
+  app.delete("/api/activities/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteActivity(id);
+      const id: number = parseInt(req.params.id);
+      const success: boolean = await storage.deleteActivity(id);
       
       if (!success) {
         return res.status(404).json({ message: "Activity not found" });
@@ -164,10 +164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Accommodations
-  app.get("/api/accommodations", async (req, res) => {
+  app.get("/api/accommodations", async (req: Request, res: Response): Promise<void> => {
     try {
       const { destinationId } = req.query;
-      let accommodations;
+      let accommodations: Accommodation[];
       
       if (destinationId) {
         accommodations = await storage.getAccommodationsByDestination(parseInt(destinationId as string));
@@ -181,10 +181,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/accommodations/:id", async (req, res) => {
+  app.get("/api/accommodations/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const accommodation = await storage.getAccommodation(id);
+      const id: number = parseInt(req.params.id);
+      const accommodation: Accommodation | undefined = await storage.getAccommodation(id);
       
       if (!accommodation) {
         return res.status(404).json({ message: "Accommodation not found" });
@@ -196,10 +196,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/accommodations", async (req, res) => {
+  app.post("/api/accommodations", async (req: Request, res: Response): Promise<void> => {
     try {
       const accommodationData = insertAccommodationSchema.parse(req.body);
-      const newAccommodation = await storage.createAccommodation(accommodationData);
+      const newAccommodation: Accommodation = await storage.createAccommodation(accommodationData);
       res.status(201).json(newAccommodation);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -209,12 +209,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/accommodations/:id", async (req, res) => {
+  app.put("/api/accommodations/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id: number = parseInt(req.params.id);
       const accommodationData = insertAccommodationSchema.partial().parse(req.body);
       
-      const updatedAccommodation = await storage.updateAccommodation(id, accommodationData);
+      const updatedAccommodation: Accommodation | undefined = await storage.updateAccommodation(id, accommodationData);
       
       if (!updatedAccommodation) {
         return res.status(404).json({ message: "Accommodation not found" });
