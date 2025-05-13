@@ -141,7 +141,7 @@ export default function Trips() {
     const matchesSearch = search === "" || 
       trip.name.toLowerCase().includes(search.toLowerCase());
     
-    const matchesStatus = statusFilter === "" || trip.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || trip.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
@@ -176,7 +176,7 @@ export default function Trips() {
   };
 
   const statusOptions = [
-    { value: "", label: "All Status" },
+    { value: "all", label: "All Status" },
     { value: "planned", label: "Planned" },
     { value: "completed", label: "Completed" },
     { value: "cancelled", label: "Cancelled" },

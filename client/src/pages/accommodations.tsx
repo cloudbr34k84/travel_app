@@ -136,8 +136,8 @@ export default function Accommodations() {
     const matchesSearch = search === "" || 
       accommodation.name.toLowerCase().includes(search.toLowerCase());
     
-    const matchesType = typeFilter === "" || accommodation.type === typeFilter;
-    const matchesDestination = destinationFilter === "" || accommodation.destinationId.toString() === destinationFilter;
+    const matchesType = typeFilter === "all" || accommodation.type === typeFilter;
+    const matchesDestination = destinationFilter === "all" || accommodation.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesType && matchesDestination;
   });

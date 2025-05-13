@@ -137,8 +137,8 @@ export default function Activities() {
       activity.name.toLowerCase().includes(search.toLowerCase()) ||
       activity.description.toLowerCase().includes(search.toLowerCase());
     
-    const matchesCategory = categoryFilter === "" || activity.category === categoryFilter;
-    const matchesDestination = destinationFilter === "" || activity.destinationId.toString() === destinationFilter;
+    const matchesCategory = categoryFilter === "all" || activity.category === categoryFilter;
+    const matchesDestination = destinationFilter === "all" || activity.destinationId.toString() === destinationFilter;
     
     return matchesSearch && matchesCategory && matchesDestination;
   });
@@ -149,7 +149,7 @@ export default function Activities() {
   };
 
   const categoryOptions = [
-    { value: "", label: "All Categories" },
+    { value: "all", label: "All Categories" },
     { value: "Sightseeing", label: "Sightseeing" },
     { value: "Adventure", label: "Adventure" },
     { value: "Culture", label: "Culture" },
@@ -161,7 +161,7 @@ export default function Activities() {
   ];
 
   const destinationOptions = [
-    { value: "", label: "All Destinations" },
+    { value: "all", label: "All Destinations" },
     ...(destinations?.map((dest: Destination) => ({
       value: dest.id.toString(),
       label: `${dest.name}, ${dest.country}`,
