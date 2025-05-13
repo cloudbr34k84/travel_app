@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { SearchFilter } from "@/components/ui/search-filter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Calendar } from "lucide-react";
-import { Trip, Destination, InsertTrip } from "@shared/schema";
+import { Trip, Destination, InsertTrip, Activity, Accommodation } from "@shared/schema";
 import { TripForm } from "@/components/forms/trip-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -25,22 +25,22 @@ export default function Trips() {
   const [tripToDelete, setTripToDelete] = useState<number | null>(null);
 
   // Fetch trips
-  const { data: trips, isLoading } = useQuery({
+  const { data: trips, isLoading } = useQuery<Trip[]>({
     queryKey: ["/api/trips"],
   });
 
   // Fetch destinations
-  const { data: destinations } = useQuery({
+  const { data: destinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
   // Fetch activities
-  const { data: activities } = useQuery({
+  const { data: activities } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
   });
 
   // Fetch accommodations
-  const { data: accommodations } = useQuery({
+  const { data: accommodations } = useQuery<Accommodation[]>({
     queryKey: ["/api/accommodations"],
   });
 
