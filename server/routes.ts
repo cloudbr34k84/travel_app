@@ -1,24 +1,28 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertDestinationSchema, insertActivitySchema, insertAccommodationSchema, insertTripSchema, insertTripDestinationSchema } from "@shared/schema";
+import { 
+  insertDestinationSchema, insertActivitySchema, insertAccommodationSchema, 
+  insertTripSchema, insertTripDestinationSchema,
+  Destination, Activity, Accommodation, Trip, TripDestination
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Destinations
-  app.get("/api/destinations", async (req, res) => {
+  app.get("/api/destinations", async (req: Request, res: Response): Promise<void> => {
     try {
-      const destinations = await storage.getDestinations();
+      const destinations: Destination[] = await storage.getDestinations();
       res.json(destinations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch destinations" });
     }
   });
   
-  app.get("/api/destinations/:id", async (req, res) => {
+  app.get("/api/destinations/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const destination = await storage.getDestination(id);
+      const id: number = parseInt(req.params.id);
+      const destination: Destination | undefined = await storage.getDestination(id);
       
       if (!destination) {
         return res.status(404).json({ message: "Destination not found" });
@@ -30,10 +34,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/destinations", async (req, res) => {
+  app.post("/api/destinations", async (req: Request, res: Response): Promise<void> => {
     try {
       const destinationData = insertDestinationSchema.parse(req.body);
-      const newDestination = await storage.createDestination(destinationData);
+      const newDestination: Destination = await storage.createDestination(destinationData);
       res.status(201).json(newDestination);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -43,12 +47,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/destinations/:id", async (req, res) => {
+  app.put("/api/destinations/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id: number = parseInt(req.params.id);
       const destinationData = insertDestinationSchema.partial().parse(req.body);
       
-      const updatedDestination = await storage.updateDestination(id, destinationData);
+      const updatedDestination: Destination | undefined = await storage.updateDestination(id, destinationData);
       
       if (!updatedDestination) {
         return res.status(404).json({ message: "Destination not found" });
