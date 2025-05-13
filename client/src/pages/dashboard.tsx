@@ -7,7 +7,7 @@ import { Link } from "wouter";
 import { format } from "date-fns";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Building, MapPin, Smile, Calendar, Clock, Plus } from "lucide-react";
-import { Trip, Destination } from "@shared/schema";
+import { Trip, Destination, InsertTrip } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { TripForm } from "@/components/forms/trip-form";
 import { useToast } from "@/hooks/use-toast";
@@ -34,7 +34,7 @@ export default function Dashboard() {
   });
 
   // Handle new trip creation
-  const handleCreateTrip = async (values: any) => {
+  const handleCreateTrip = async (values: InsertTrip) => {
     try {
       await apiRequest("POST", "/api/trips", values);
       toast({

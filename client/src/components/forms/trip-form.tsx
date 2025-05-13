@@ -43,6 +43,16 @@ export function TripForm({
   defaultValues,
   isEditing = false,
 }: TripFormProps) {
+  // Create a wrapper function to convert Date objects to strings in the format expected by the API
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const formattedValues = {
+      ...values,
+      startDate: format(values.startDate, 'yyyy-MM-dd'),
+      endDate: format(values.endDate, 'yyyy-MM-dd')
+    };
+    
+    onSubmit(formattedValues as any);
+  };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues || {
@@ -66,7 +76,7 @@ export function TripForm({
           <DialogTitle>{isEditing ? "Edit Trip" : "Add New Trip"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
