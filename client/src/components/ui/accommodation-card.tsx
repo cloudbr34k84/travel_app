@@ -4,7 +4,7 @@ import { MoreHorizontal, MapPin, Building } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Accommodation, Destination } from "@shared/schema";
 
-interface AccommodationCardProps {
+export interface AccommodationCardProps {
   accommodation: Accommodation;
   destination: Destination;
   onEdit: (accommodation: Accommodation) => void;

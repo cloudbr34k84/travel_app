@@ -4,7 +4,7 @@ import { MoreHorizontal, MapPin } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Activity, Destination } from "@shared/schema";
 
-interface ActivityCardProps {
+export interface ActivityCardProps {
   activity: Activity;
   destination: Destination;
   onEdit: (activity: Activity) => void;

@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-interface DestinationFormProps {
+export interface DestinationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
@@ -24,7 +24,7 @@ interface DestinationFormProps {
   isEditing?: boolean;
 }
 
-const formSchema = insertDestinationSchema.extend({
+export const formSchema = insertDestinationSchema.extend({
   image: z.string().url("Please enter a valid image URL").default(""),
   status: z.enum(["visited", "planned", "wishlist"]).default("wishlist"),
 });

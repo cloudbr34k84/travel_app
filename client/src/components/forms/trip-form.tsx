@@ -22,7 +22,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
-interface TripFormProps {
+export interface TripFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
@@ -30,7 +30,7 @@ interface TripFormProps {
   isEditing?: boolean;
 }
 
-const formSchema = insertTripSchema.extend({
+export const formSchema = insertTripSchema.extend({
   startDate: z.date(),
   endDate: z.date(),
   status: z.enum(["planned", "completed", "cancelled"]).default("planned"),
