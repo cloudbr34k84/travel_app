@@ -2,15 +2,22 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
-interface SearchFilterProps {
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+
+export interface Filter {
+  name: string;
+  options: FilterOption[];
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export interface SearchFilterProps {
   searchPlaceholder?: string;
   onSearchChange: (value: string) => void;
-  filters?: {
-    name: string;
-    options: { value: string; label: string }[];
-    value: string;
-    onChange: (value: string) => void;
-  }[];
+  filters?: Filter[];
 }
 
 export function SearchFilter({
