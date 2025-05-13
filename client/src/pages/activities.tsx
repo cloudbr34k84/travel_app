@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { Activity, Destination, InsertActivity } from "@shared/schema";
 import { ActivityForm } from "@/components/forms/activity-form";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, apiRequestWithJson } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -39,9 +39,10 @@ export default function Activities() {
     queryKey: ["/api/destinations"],
   });
 
-  // Create activity mutation
+  // Create activity mutation with proper response type
   const createActivity = useMutation({
-    mutationFn: (newActivity: InsertActivity) => apiRequest("POST", "/api/activities", newActivity),
+    mutationFn: (newActivity: InsertActivity) => 
+      apiRequestWithJson<InsertActivity, Activity>("POST", "/api/activities", newActivity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       toast({
@@ -59,9 +60,15 @@ export default function Activities() {
     },
   });
 
-  // Update activity mutation
+  // Update activity mutation with proper type for payload
+  interface UpdateActivityParams {
+    id: number;
+    data: Partial<InsertActivity>;
+  }
+  
   const updateActivity = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<InsertActivity> }) => apiRequest("PUT", `/api/activities/${id}`, data),
+    mutationFn: ({ id, data }: UpdateActivityParams) => 
+      apiRequestWithJson<Partial<InsertActivity>, Activity>("PUT", `/api/activities/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       toast({
@@ -81,7 +88,8 @@ export default function Activities() {
 
   // Delete activity mutation
   const deleteActivity = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/activities/${id}`),
+    mutationFn: (id: number) => 
+      apiRequestWithJson<null, void>("DELETE", `/api/activities/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       toast({

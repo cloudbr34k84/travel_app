@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { Accommodation, Destination, InsertAccommodation } from "@shared/schema";
 import { AccommodationForm } from "@/components/forms/accommodation-form";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, apiRequestWithJson } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
