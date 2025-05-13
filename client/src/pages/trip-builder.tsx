@@ -114,18 +114,37 @@ export default function TripBuilder() {
     createTrip.mutate(newTrip);
   };
 
+  /**
+   * Find a destination by its ID
+   * @param id The destination ID to find
+   * @returns The matching destination or undefined if not found
+   */
   const getDestinationById = (id: number): Destination | undefined => {
-    return destinations?.find((destination: Destination) => destination.id === id);
+    return destinations?.find((destination: Destination): boolean => destination.id === id);
   };
 
+  /**
+   * Find an activity by its ID
+   * @param id The activity ID to find
+   * @returns The matching activity or undefined if not found
+   */
   const getActivityById = (id: number): Activity | undefined => {
-    return activities?.find((activity: Activity) => activity.id === id);
+    return activities?.find((activity: Activity): boolean => activity.id === id);
   };
 
+  /**
+   * Find an accommodation by its ID
+   * @param id The accommodation ID to find
+   * @returns The matching accommodation or undefined if not found
+   */
   const getAccommodationById = (id: number): Accommodation | undefined => {
-    return accommodations?.find((accommodation: Accommodation) => accommodation.id === id);
+    return accommodations?.find((accommodation: Accommodation): boolean => accommodation.id === id);
   };
 
+  /**
+   * Filter activities to only include those from selected destinations
+   * @returns Array of available activities for selected destinations
+   */
   const getAvailableActivities = (): Activity[] => {
     if (!activities) return [];
     
@@ -135,6 +154,10 @@ export default function TripBuilder() {
     );
   };
 
+  /**
+   * Filter accommodations to only include those from selected destinations
+   * @returns Array of available accommodations for selected destinations
+   */
   const getAvailableAccommodations = (): Accommodation[] => {
     if (!accommodations) return [];
     
