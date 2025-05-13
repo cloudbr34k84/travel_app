@@ -7,10 +7,14 @@ import { Plus } from "lucide-react";
 import { Destination, InsertDestination, Activity, Accommodation } from "@shared/schema";
 import { DestinationForm } from "@/components/forms/destination-form";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+
+interface FilterOption {
+  value: string;
+  label: string;
+}
 
 export default function Destinations() {
   const { toast } = useToast();
@@ -23,17 +27,17 @@ export default function Destinations() {
   const [destinationToDelete, setDestinationToDelete] = useState<number | null>(null);
 
   // Fetch destinations
-  const { data: destinations, isLoading } = useQuery({
+  const { data: destinations, isLoading } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
   // Fetch activities
-  const { data: activities } = useQuery({
+  const { data: activities } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
   });
 
   // Fetch accommodations
-  const { data: accommodations } = useQuery({
+  const { data: accommodations } = useQuery<Accommodation[]>({
     queryKey: ["/api/accommodations"],
   });
 
@@ -129,7 +133,7 @@ export default function Destinations() {
   };
 
   // Filter destinations based on search and filters
-  const filteredDestinations = destinations?.filter((destination: Destination) => {
+  const filteredDestinations: Destination[] = destinations?.filter((destination: Destination) => {
     const matchesSearch = search === "" || 
       destination.name.toLowerCase().includes(search.toLowerCase()) ||
       destination.country.toLowerCase().includes(search.toLowerCase());
@@ -138,15 +142,15 @@ export default function Destinations() {
     const matchesStatus = statusFilter === "all" || destination.status === statusFilter;
     
     return matchesSearch && matchesRegion && matchesStatus;
-  });
+  }) || [];
 
   // Count activities and accommodations for each destination
-  const getActivityCount = (destinationId: number) => {
+  const getActivityCount = (destinationId: number): number => {
     if (!activities) return 0;
     return activities.filter((activity: Activity) => activity.destinationId === destinationId).length;
   };
 
-  const getAccommodationCount = (destinationId: number) => {
+  const getAccommodationCount = (destinationId: number): number => {
     if (!accommodations) return 0;
     return accommodations.filter((accommodation: Accommodation) => accommodation.destinationId === destinationId).length;
   };
