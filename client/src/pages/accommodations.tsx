@@ -148,7 +148,7 @@ export default function Accommodations() {
   };
 
   const typeOptions = [
-    { value: "", label: "All Types" },
+    { value: "all", label: "All Types" },
     { value: "Hotel", label: "Hotel" },
     { value: "Resort", label: "Resort" },
     { value: "Hostel", label: "Hostel" },
@@ -160,7 +160,7 @@ export default function Accommodations() {
   ];
 
   const destinationOptions = [
-    { value: "", label: "All Destinations" },
+    { value: "all", label: "All Destinations" },
     ...(destinations?.map((dest: Destination) => ({
       value: dest.id.toString(),
       label: `${dest.name}, ${dest.country}`,

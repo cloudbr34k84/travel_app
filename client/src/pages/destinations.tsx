@@ -134,8 +134,8 @@ export default function Destinations() {
       destination.name.toLowerCase().includes(search.toLowerCase()) ||
       destination.country.toLowerCase().includes(search.toLowerCase());
     
-    const matchesRegion = regionFilter === "" || destination.region === regionFilter;
-    const matchesStatus = statusFilter === "" || destination.status === statusFilter;
+    const matchesRegion = regionFilter === "all" || destination.region === regionFilter;
+    const matchesStatus = statusFilter === "all" || destination.status === statusFilter;
     
     return matchesSearch && matchesRegion && matchesStatus;
   });
@@ -152,7 +152,7 @@ export default function Destinations() {
   };
 
   const regionOptions = [
-    { value: "", label: "All Regions" },
+    { value: "all", label: "All Regions" },
     { value: "Africa", label: "Africa" },
     { value: "Asia", label: "Asia" },
     { value: "Europe", label: "Europe" },
@@ -163,7 +163,7 @@ export default function Destinations() {
   ];
 
   const statusOptions = [
-    { value: "", label: "All Status" },
+    { value: "all", label: "All Status" },
     { value: "visited", label: "Visited" },
     { value: "planned", label: "Planned" },
     { value: "wishlist", label: "Wishlist" },
