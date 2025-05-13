@@ -229,10 +229,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/accommodations/:id", async (req, res) => {
+  app.delete("/api/accommodations/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteAccommodation(id);
+      const id: number = parseInt(req.params.id);
+      const success: boolean = await storage.deleteAccommodation(id);
       
       if (!success) {
         return res.status(404).json({ message: "Accommodation not found" });
@@ -245,19 +245,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Trips
-  app.get("/api/trips", async (req, res) => {
+  app.get("/api/trips", async (req: Request, res: Response): Promise<void> => {
     try {
-      const trips = await storage.getTrips();
+      const trips: Trip[] = await storage.getTrips();
       res.json(trips);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch trips" });
     }
   });
   
-  app.get("/api/trips/:id", async (req, res) => {
+  app.get("/api/trips/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const trip = await storage.getTrip(id);
+      const id: number = parseInt(req.params.id);
+      const trip: Trip | undefined = await storage.getTrip(id);
       
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
@@ -269,10 +269,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/trips", async (req, res) => {
+  app.post("/api/trips", async (req: Request, res: Response): Promise<void> => {
     try {
       const tripData = insertTripSchema.parse(req.body);
-      const newTrip = await storage.createTrip(tripData);
+      const newTrip: Trip = await storage.createTrip(tripData);
       res.status(201).json(newTrip);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -282,12 +282,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/trips/:id", async (req, res) => {
+  app.put("/api/trips/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id: number = parseInt(req.params.id);
       const tripData = insertTripSchema.partial().parse(req.body);
       
-      const updatedTrip = await storage.updateTrip(id, tripData);
+      const updatedTrip: Trip | undefined = await storage.updateTrip(id, tripData);
       
       if (!updatedTrip) {
         return res.status(404).json({ message: "Trip not found" });
@@ -302,10 +302,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/trips/:id", async (req, res) => {
+  app.delete("/api/trips/:id", async (req: Request, res: Response): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteTrip(id);
+      const id: number = parseInt(req.params.id);
+      const success: boolean = await storage.deleteTrip(id);
       
       if (!success) {
         return res.status(404).json({ message: "Trip not found" });
