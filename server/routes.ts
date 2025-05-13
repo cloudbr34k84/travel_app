@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/destinations/:id", async (req: Request, res: Response): Promise<void> => {
+  app.put("/api/destinations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const destinationData = insertDestinationSchema.partial().parse(req.body);
@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/destinations/:id", async (req: Request, res: Response): Promise<void> => {
+  app.delete("/api/destinations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const success: boolean = await storage.deleteDestination(id);
@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Activities
-  app.get("/api/activities", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/activities", async (req: Request, res: Response) => {
     try {
       const { destinationId } = req.query;
       let activities: Activity[];
@@ -100,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/activities/:id", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/activities/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const activity: Activity | undefined = await storage.getActivity(id);
@@ -115,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/activities", async (req: Request, res: Response): Promise<void> => {
+  app.post("/api/activities", async (req: Request, res: Response) => {
     try {
       const activityData = insertActivitySchema.parse(req.body);
       const newActivity: Activity = await storage.createActivity(activityData);
@@ -128,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/activities/:id", async (req: Request, res: Response): Promise<void> => {
+  app.put("/api/activities/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const activityData = insertActivitySchema.partial().parse(req.body);
@@ -148,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/activities/:id", async (req: Request, res: Response): Promise<void> => {
+  app.delete("/api/activities/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const success: boolean = await storage.deleteActivity(id);
@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Accommodations
-  app.get("/api/accommodations", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/accommodations", async (req: Request, res: Response) => {
     try {
       const { destinationId } = req.query;
       let accommodations: Accommodation[];
@@ -181,7 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/accommodations/:id", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/accommodations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const accommodation: Accommodation | undefined = await storage.getAccommodation(id);
@@ -196,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/accommodations", async (req: Request, res: Response): Promise<void> => {
+  app.post("/api/accommodations", async (req: Request, res: Response) => {
     try {
       const accommodationData = insertAccommodationSchema.parse(req.body);
       const newAccommodation: Accommodation = await storage.createAccommodation(accommodationData);
@@ -209,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/accommodations/:id", async (req: Request, res: Response): Promise<void> => {
+  app.put("/api/accommodations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const accommodationData = insertAccommodationSchema.partial().parse(req.body);
@@ -229,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/accommodations/:id", async (req: Request, res: Response): Promise<void> => {
+  app.delete("/api/accommodations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const success: boolean = await storage.deleteAccommodation(id);
@@ -245,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Trips
-  app.get("/api/trips", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/trips", async (req: Request, res: Response) => {
     try {
       const trips: Trip[] = await storage.getTrips();
       res.json(trips);
@@ -254,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/trips/:id", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/trips/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const trip: Trip | undefined = await storage.getTrip(id);
@@ -269,7 +269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/trips", async (req: Request, res: Response): Promise<void> => {
+  app.post("/api/trips", async (req: Request, res: Response) => {
     try {
       const tripData = insertTripSchema.parse(req.body);
       const newTrip: Trip = await storage.createTrip(tripData);
@@ -282,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/trips/:id", async (req: Request, res: Response): Promise<void> => {
+  app.put("/api/trips/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const tripData = insertTripSchema.partial().parse(req.body);
@@ -302,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/trips/:id", async (req: Request, res: Response): Promise<void> => {
+  app.delete("/api/trips/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
       const success: boolean = await storage.deleteTrip(id);
@@ -318,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Trip Destinations
-  app.get("/api/trips/:tripId/destinations", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/trips/:tripId/destinations", async (req: Request, res: Response) => {
     try {
       const tripId: number = parseInt(req.params.tripId);
       const tripDestinations: TripDestination[] = await storage.getTripDestinations(tripId);
@@ -328,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/trips/:tripId/destinations", async (req: Request, res: Response): Promise<void> => {
+  app.post("/api/trips/:tripId/destinations", async (req: Request, res: Response) => {
     try {
       const tripId: number = parseInt(req.params.tripId);
       const destinationId: number = req.body.destinationId;
@@ -348,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/trips/:tripId/destinations/:destinationId", async (req: Request, res: Response): Promise<void> => {
+  app.delete("/api/trips/:tripId/destinations/:destinationId", async (req: Request, res: Response) => {
     try {
       const tripId: number = parseInt(req.params.tripId);
       const destinationId: number = parseInt(req.params.destinationId);
@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Dashboard Stats
-  app.get("/api/dashboard/stats", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/dashboard/stats", async (req: Request, res: Response) => {
     try {
       const stats = await storage.getDashboardStats();
       res.json(stats);
