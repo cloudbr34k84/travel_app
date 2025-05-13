@@ -56,7 +56,7 @@ export default function Accommodations() {
 
   // Update accommodation mutation
   const updateAccommodation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest("PUT", `/api/accommodations/${id}`, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<InsertAccommodation> }) => apiRequest("PUT", `/api/accommodations/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/accommodations"] });
       toast({
@@ -95,7 +95,7 @@ export default function Accommodations() {
     },
   });
 
-  const handleCreateOrUpdateAccommodation = (values: any) => {
+  const handleCreateOrUpdateAccommodation = (values: InsertAccommodation) => {
     if (editingAccommodation) {
       updateAccommodation.mutate({ id: editingAccommodation.id, data: values });
     } else {

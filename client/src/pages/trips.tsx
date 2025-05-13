@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { SearchFilter } from "@/components/ui/search-filter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Calendar } from "lucide-react";
-import { Trip, Destination } from "@shared/schema";
+import { Trip, Destination, InsertTrip } from "@shared/schema";
 import { TripForm } from "@/components/forms/trip-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -46,7 +46,7 @@ export default function Trips() {
 
   // Create trip mutation
   const createTrip = useMutation({
-    mutationFn: (newTrip: any) => apiRequest("POST", "/api/trips", newTrip),
+    mutationFn: (newTrip: InsertTrip) => apiRequest("POST", "/api/trips", newTrip),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       toast({
@@ -66,7 +66,7 @@ export default function Trips() {
 
   // Update trip mutation
   const updateTrip = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest("PUT", `/api/trips/${id}`, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<InsertTrip> }) => apiRequest("PUT", `/api/trips/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       toast({
@@ -105,7 +105,7 @@ export default function Trips() {
     },
   });
 
-  const handleCreateOrUpdateTrip = (values: any) => {
+  const handleCreateOrUpdateTrip = (values: InsertTrip) => {
     if (editingTrip) {
       updateTrip.mutate({ id: editingTrip.id, data: values });
     } else {

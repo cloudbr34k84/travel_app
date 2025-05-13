@@ -104,10 +104,10 @@ export default function TripBuilder() {
       return;
     }
 
-    const newTrip = {
+    const newTrip: InsertTrip = {
       name: tripName,
-      startDate,
-      endDate,
+      startDate: startDate ? format(startDate, 'yyyy-MM-dd') : '',
+      endDate: endDate ? format(endDate, 'yyyy-MM-dd') : '',
       status: "planned",
     };
 
