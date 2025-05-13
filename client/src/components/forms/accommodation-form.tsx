@@ -20,7 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 export interface AccommodationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: any) => void;  // Using 'any' here because the form might need to convert some values
   defaultValues?: Partial<Accommodation>;
   isEditing?: boolean;
 }

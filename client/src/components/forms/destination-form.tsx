@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 export interface DestinationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: any) => void;  // Using 'any' here because the form might need to convert some values
   defaultValues?: Partial<Destination>;
   isEditing?: boolean;
 }
@@ -36,15 +36,41 @@ export function DestinationForm({
   defaultValues,
   isEditing = false,
 }: DestinationFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: defaultValues || {
+  // Define an interface for the form values that matches our schema
+  interface DestinationFormValues {
+    name: string;
+    country: string;
+    region: string;
+    image: string;
+    status: "wishlist" | "planned" | "visited";
+  }
+
+  // Prepare default values with proper type conversion
+  const prepareDefaultValues = (): DestinationFormValues => {
+    if (defaultValues) {
+      return {
+        name: defaultValues.name || "",
+        country: defaultValues.country || "",
+        region: defaultValues.region || "",
+        image: defaultValues.image || "",
+        // Convert the string status to our enum type
+        status: (defaultValues.status as "wishlist" | "planned" | "visited") || "wishlist",
+      };
+    }
+    
+    // Default values for new destination
+    return {
       name: "",
       country: "",
       region: "",
       image: "",
       status: "wishlist",
-    },
+    };
+  };
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: prepareDefaultValues(),
   });
 
   const regions = [

@@ -21,7 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 export interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: any) => void;  // Using 'any' here because the form might need to convert some values
   defaultValues?: Partial<Activity>;
   isEditing?: boolean;
 }
@@ -37,18 +37,45 @@ export function ActivityForm({
   defaultValues,
   isEditing = false,
 }: ActivityFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: defaultValues || {
+  // Define an interface for the form values that matches our schema
+  interface ActivityFormValues {
+    name: string;
+    description: string;
+    category: string;
+    destinationId: number;
+    image?: string;
+  }
+
+  // Prepare default values with proper type conversion
+  const prepareDefaultValues = (): ActivityFormValues => {
+    if (defaultValues) {
+      return {
+        name: defaultValues.name || "",
+        description: defaultValues.description || "",
+        category: defaultValues.category || "",
+        destinationId: defaultValues.destinationId || 0,
+        // Handle null image values by converting to undefined
+        image: defaultValues.image === null ? undefined : defaultValues.image,
+      };
+    }
+    
+    // Default values for new activity
+    return {
       name: "",
       description: "",
       category: "",
       destinationId: 0,
       image: "",
-    },
+    };
+  };
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: prepareDefaultValues(),
   });
 
-  const { data: destinations, isLoading: isLoadingDestinations } = useQuery({
+  // Use explicit typing for the destinations query
+  const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
@@ -145,7 +172,7 @@ export function ActivityForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {destinations?.map((destination: Destination) => (
+                      {destinations && destinations.map((destination: Destination) => (
                         <SelectItem key={destination.id} value={destination.id.toString()}>
                           {destination.name}, {destination.country}
                         </SelectItem>
