@@ -12,9 +12,9 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
   const originalResJson = res.json;
-  res.json = function (bodyJson: any, ...args: any[]): Response {
+  res.json = function (bodyJson: any): Response {
     capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+    return originalResJson.call(res, bodyJson);
   };
 
   res.on("finish", (): void => {
@@ -36,12 +36,12 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   next();
 });
 
-(async () => {
+(async (): Promise<void> => {
   const server = await registerRoutes(app);
 
-  app.use((err: Error & { status?: number; statusCode?: number }, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+  app.use((err: Error & { status?: number; statusCode?: number }, _req: Request, res: Response, _next: NextFunction): void => {
+    const status: number = err.status || err.statusCode || 500;
+    const message: string = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
     throw err;
@@ -59,12 +59,12 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
+  const port: number = 5000;
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, (): void => {
     log(`serving on port ${port}`);
   });
 })();
