@@ -4,7 +4,7 @@ import { SearchFilter } from "@/components/ui/search-filter";
 import { DestinationCard } from "@/components/destinations/destination-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { Destination } from "@shared/schema";
+import { Destination, InsertDestination, Activity, Accommodation } from "@shared/schema";
 import { DestinationForm } from "@/components/forms/destination-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -59,7 +59,7 @@ export default function Destinations() {
 
   // Update destination mutation
   const updateDestination = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest("PUT", `/api/destinations/${id}`, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<InsertDestination> }) => apiRequest("PUT", `/api/destinations/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/destinations"] });
       toast({
@@ -98,7 +98,7 @@ export default function Destinations() {
     },
   });
 
-  const handleCreateOrUpdateDestination = (values: any) => {
+  const handleCreateOrUpdateDestination = (values: InsertDestination) => {
     if (editingDestination) {
       updateDestination.mutate({ id: editingDestination.id, data: values });
     } else {
@@ -143,12 +143,12 @@ export default function Destinations() {
   // Count activities and accommodations for each destination
   const getActivityCount = (destinationId: number) => {
     if (!activities) return 0;
-    return activities.filter((activity: any) => activity.destinationId === destinationId).length;
+    return activities.filter((activity: Activity) => activity.destinationId === destinationId).length;
   };
 
   const getAccommodationCount = (destinationId: number) => {
     if (!accommodations) return 0;
-    return accommodations.filter((accommodation: any) => accommodation.destinationId === destinationId).length;
+    return accommodations.filter((accommodation: Accommodation) => accommodation.destinationId === destinationId).length;
   };
 
   const regionOptions = [
