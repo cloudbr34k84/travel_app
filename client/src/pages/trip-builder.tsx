@@ -27,30 +27,43 @@ export default function TripBuilder() {
   const [selectedActivities, setSelectedActivities] = useState<number[]>([]);
   const [selectedAccommodations, setSelectedAccommodations] = useState<number[]>([]);
 
-  // Fetch destinations
-  const { data: destinations } = useQuery<Destination[]>({
+  /**
+   * Fetch all destinations for trip planning
+   */
+  const { data: destinations }: { data: Destination[] | undefined } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
-  // Fetch activities
-  const { data: activities } = useQuery<Activity[]>({
+  /**
+   * Fetch all activities for trip planning
+   */
+  const { data: activities }: { data: Activity[] | undefined } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
   });
 
-  // Fetch accommodations
-  const { data: accommodations } = useQuery<Accommodation[]>({
+  /**
+   * Fetch all accommodations for trip planning
+   */
+  const { data: accommodations }: { data: Accommodation[] | undefined } = useQuery<Accommodation[]>({
     queryKey: ["/api/accommodations"],
   });
 
-  // Create trip mutation
+  /**
+   * Create trip mutation
+   * Handles creation of a new trip and adding selected destinations
+   */
   const createTrip = useMutation<Trip, Error, InsertTrip>({
     mutationFn: (newTrip: InsertTrip): Promise<Trip> => apiRequestWithJson<InsertTrip, Trip>("POST", "/api/trips", newTrip),
-    onSuccess: async (data: Trip) => {
-      const tripId = data.id;
+    onSuccess: async (data: Trip): Promise<void> => {
+      const tripId: number = data.id;
       
       // Add destinations to trip
       for (const destinationId of selectedDestinations) {
-        await apiRequest("POST", `/api/trips/${tripId}/destinations`, { destinationId });
+        await apiRequest<{ destinationId: number }, unknown>(
+          "POST", 
+          `/api/trips/${tripId}/destinations`, 
+          { destinationId }
+        );
       }
       
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
@@ -67,7 +80,7 @@ export default function TripBuilder() {
       setSelectedActivities([]);
       setSelectedAccommodations([]);
     },
-    onError: () => {
+    onError: (error: Error): void => {
       toast({
         title: "Error",
         description: "Failed to create trip",
@@ -76,7 +89,12 @@ export default function TripBuilder() {
     },
   });
 
+  /**
+   * Validates form data and creates a new trip
+   * @returns void
+   */
   const handleCreateTrip = (): void => {
+    // Validate trip name
     if (!tripName) {
       toast({
         title: "Error",
@@ -86,6 +104,7 @@ export default function TripBuilder() {
       return;
     }
 
+    // Validate dates
     if (!startDate || !endDate) {
       toast({
         title: "Error",
@@ -95,6 +114,7 @@ export default function TripBuilder() {
       return;
     }
 
+    // Validate destinations
     if (selectedDestinations.length === 0) {
       toast({
         title: "Error",
@@ -104,6 +124,7 @@ export default function TripBuilder() {
       return;
     }
 
+    // Prepare trip data with proper formatting
     const newTrip: InsertTrip = {
       name: tripName,
       startDate: startDate ? format(startDate, 'yyyy-MM-dd') : '',
@@ -111,6 +132,7 @@ export default function TripBuilder() {
       status: "planned",
     };
 
+    // Submit trip creation request
     createTrip.mutate(newTrip);
   };
 
@@ -167,8 +189,15 @@ export default function TripBuilder() {
     );
   };
 
-  const availableActivities = getAvailableActivities();
-  const availableAccommodations = getAvailableAccommodations();
+  /**
+   * Filtered activities based on selected destinations
+   */
+  const availableActivities: Activity[] = getAvailableActivities();
+  
+  /**
+   * Filtered accommodations based on selected destinations
+   */
+  const availableAccommodations: Accommodation[] = getAvailableAccommodations();
 
   return (
     <div className="p-6">
@@ -279,7 +308,7 @@ export default function TripBuilder() {
                   <SelectValue placeholder="Add a destination" />
                 </SelectTrigger>
                 <SelectContent>
-                  {destinations?.map((destination: Destination): JSX.Element => (
+                  {(destinations || []).map((destination: Destination): JSX.Element => (
                     <SelectItem 
                       key={destination.id} 
                       value={destination.id.toString()}
@@ -287,7 +316,7 @@ export default function TripBuilder() {
                     >
                       {destination.name}, {destination.country}
                     </SelectItem>
-                  )) || []}
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -299,7 +328,8 @@ export default function TripBuilder() {
               ) : (
                 <div className="space-y-2">
                   {selectedDestinations.map((destId: number): JSX.Element | null => {
-                    const destination = getDestinationById(destId);
+                    const destination: Destination | undefined = getDestinationById(destId);
+                    
                     return destination ? (
                       <div key={destId} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
                         <div className="flex items-center">
@@ -309,17 +339,26 @@ export default function TripBuilder() {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => {
-                            setSelectedDestinations(selectedDestinations.filter((id: number): boolean => id !== destId));
-                            // Also remove any activities or accommodations from this destination
-                            setSelectedActivities(selectedActivities.filter((actId: number): boolean => {
-                              const activity = getActivityById(actId);
+                          onClick={(): void => {
+                            // Remove this destination from selected destinations
+                            const filteredDestinations: number[] = selectedDestinations.filter(
+                              (id: number): boolean => id !== destId
+                            );
+                            setSelectedDestinations(filteredDestinations);
+                            
+                            // Also remove any activities from this destination
+                            const filteredActivities: number[] = selectedActivities.filter((actId: number): boolean => {
+                              const activity: Activity | undefined = getActivityById(actId);
                               return activity ? activity.destinationId !== destId : false;
-                            }));
-                            setSelectedAccommodations(selectedAccommodations.filter((accId: number): boolean => {
-                              const accommodation = getAccommodationById(accId);
+                            });
+                            setSelectedActivities(filteredActivities);
+                            
+                            // Also remove any accommodations from this destination
+                            const filteredAccommodations: number[] = selectedAccommodations.filter((accId: number): boolean => {
+                              const accommodation: Accommodation | undefined = getAccommodationById(accId);
                               return accommodation ? accommodation.destinationId !== destId : false;
-                            }));
+                            });
+                            setSelectedAccommodations(filteredAccommodations);
                           }}
                         >
                           <Trash2 className="h-4 w-4 text-gray-500" />
@@ -378,7 +417,7 @@ export default function TripBuilder() {
                 ) : (
                   <div className="space-y-2">
                     {selectedActivities.map((actId: number): JSX.Element | null => {
-                      const activity = getActivityById(actId);
+                      const activity: Activity | undefined = getActivityById(actId);
                       return activity ? (
                         <div key={actId} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
                           <div className="flex items-center">
@@ -388,8 +427,11 @@ export default function TripBuilder() {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => {
-                              setSelectedActivities(selectedActivities.filter((id: number): boolean => id !== actId));
+                            onClick={(): void => {
+                              const filteredActivities: number[] = selectedActivities.filter(
+                                (id: number): boolean => id !== actId
+                              );
+                              setSelectedActivities(filteredActivities);
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-gray-500" />
@@ -441,7 +483,7 @@ export default function TripBuilder() {
                 ) : (
                   <div className="space-y-2">
                     {selectedAccommodations.map((accId: number): JSX.Element | null => {
-                      const accommodation = getAccommodationById(accId);
+                      const accommodation: Accommodation | undefined = getAccommodationById(accId);
                       return accommodation ? (
                         <div key={accId} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
                           <div className="flex items-center">
@@ -451,8 +493,11 @@ export default function TripBuilder() {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => {
-                              setSelectedAccommodations(selectedAccommodations.filter((id: number): boolean => id !== accId));
+                            onClick={(): void => {
+                              const filteredAccommodations: number[] = selectedAccommodations.filter(
+                                (id: number): boolean => id !== accId
+                              );
+                              setSelectedAccommodations(filteredAccommodations);
                             }}
                           >
                             <Trash2 className="h-4 w-4 text-gray-500" />
