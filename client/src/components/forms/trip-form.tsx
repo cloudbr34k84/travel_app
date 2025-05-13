@@ -22,19 +22,37 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
+// Define a type for the API submission values
+export type TripApiValues = {
+  name: string;
+  startDate: string; // Format: 'yyyy-MM-dd'
+  endDate: string;   // Format: 'yyyy-MM-dd'
+  status: "planned" | "completed" | "cancelled";
+  id?: number;
+};
+
 export interface TripFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: any) => void;  // Using 'any' here because the form converts dates to strings
+  onSubmit: (values: TripApiValues) => void;
   defaultValues?: Partial<Trip>;
   isEditing?: boolean;
 }
 
+// Extend the original schema to use proper date objects in the form
 export const formSchema = insertTripSchema.extend({
-  startDate: z.date(),
-  endDate: z.date(),
+  // Override the date fields to use z.date() for form handling
+  startDate: z.date({
+    required_error: "Start date is required",
+  }),
+  endDate: z.date({
+    required_error: "End date is required",
+  }),
   status: z.enum(["planned", "completed", "cancelled"]).default("planned"),
 });
+
+// Define a type for the form values to be used throughout the component
+export type TripFormValues = z.infer<typeof formSchema>;
 
 export function TripForm({
   open,
@@ -43,18 +61,14 @@ export function TripForm({
   defaultValues,
   isEditing = false,
 }: TripFormProps) {
-  // Define an interface for the formatted values that will be sent to the API
-  interface FormattedTripValues {
-    name: string;
-    startDate: string;
-    endDate: string;
-    status: "planned" | "completed" | "cancelled";
-    id?: number;
-  }
-
-  // Create a wrapper function to convert Date objects to strings in the format expected by the API
-  const handleSubmit = (values: z.infer<typeof formSchema>): void => {
-    const formattedValues: FormattedTripValues = {
+  /**
+   * Converts form values with Date objects to API values with string dates
+   * @param values Form values from React Hook Form
+   * @returns Formatted values ready for API submission
+   */
+  const handleSubmit = (values: TripFormValues): void => {
+    // Convert Date objects to strings in the format expected by the API
+    const formattedValues: TripApiValues = {
       ...values,
       startDate: format(values.startDate, 'yyyy-MM-dd'),
       endDate: format(values.endDate, 'yyyy-MM-dd')
@@ -62,12 +76,16 @@ export function TripForm({
     
     onSubmit(formattedValues);
   };
-  // Convert any string dates from default values into Date objects
-  const prepareDefaultValues = (): z.infer<typeof formSchema> => {
+
+  /**
+   * Prepares default values for the form, converting string dates to Date objects
+   * @returns Form values with proper Date objects
+   */
+  const prepareDefaultValues = (): TripFormValues => {
     if (defaultValues) {
       return {
         name: defaultValues.name || "",
-        // Convert string dates to Date objects if they exist
+        // Convert string dates to Date objects
         startDate: defaultValues.startDate ? new Date(defaultValues.startDate) : new Date(),
         endDate: defaultValues.endDate ? new Date(defaultValues.endDate) : new Date(new Date().setDate(new Date().getDate() + 7)),
         status: (defaultValues.status as "planned" | "completed" | "cancelled") || "planned",
@@ -83,7 +101,8 @@ export function TripForm({
     };
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  // Initialize the form with proper typing
+  const form = useForm<TripFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: prepareDefaultValues(),
   });

@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Calendar } from "lucide-react";
 import { Trip, Destination, InsertTrip, Activity, Accommodation } from "@shared/schema";
 import { TripForm } from "@/components/forms/trip-form";
+import { TripApiValues } from "@/components/forms/trip-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -110,11 +111,20 @@ export default function Trips() {
     },
   });
 
-  const handleCreateOrUpdateTrip = (values: InsertTrip): void => {
+  // Use the correct type for the form submission values
+  const handleCreateOrUpdateTrip = (values: TripApiValues): void => {
+    // Convert to InsertTrip format expected by the mutations
+    const tripData: InsertTrip = {
+      name: values.name,
+      startDate: values.startDate,  // Already in the correct string format
+      endDate: values.endDate,      // Already in the correct string format
+      status: values.status,
+    };
+    
     if (editingTrip) {
-      updateTrip.mutate({ id: editingTrip.id, data: values });
+      updateTrip.mutate({ id: editingTrip.id, data: tripData });
     } else {
-      createTrip.mutate(values);
+      createTrip.mutate(tripData);
     }
   };
 

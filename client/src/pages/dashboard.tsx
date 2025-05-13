@@ -10,6 +10,7 @@ import { Building, MapPin, Smile, Calendar, Clock, Plus } from "lucide-react";
 import { Trip, Destination, InsertTrip } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { TripForm } from "@/components/forms/trip-form";
+import { TripApiValues } from "@/components/forms/trip-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -41,14 +42,22 @@ export default function Dashboard() {
     queryKey: ["/api/destinations"],
   });
 
-  // Handle new trip creation
-  const handleCreateTrip = async (values: InsertTrip) => {
+  /**
+   * Handle new trip creation from the form
+   * Converts form values with Date objects to API values with string dates
+   * @param values Form values from TripForm
+   */
+  const handleCreateTrip = async (values: TripApiValues): Promise<void> => {
     try {
+      // No need to format dates as they're already formatted in the form component
       await apiRequest("POST", "/api/trips", values);
+      
       toast({
         title: "Success",
         description: "Trip created successfully",
       });
+      
+      // Refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       setTripFormOpen(false);
