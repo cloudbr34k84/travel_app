@@ -6,14 +6,18 @@ import { Trip } from "@shared/schema";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { Building, Smile } from "lucide-react";
 
+/**
+ * Interface for TripCard component props
+ * Defines the expected shape of data for a trip card display
+ */
 interface TripCardProps {
-  trip: Trip;
-  image: string;
-  destinations: string[];
-  activitiesCount: number;
-  accommodationsCount: number;
-  daysToTrip?: number;
-  onView: (id: number) => void;
+  trip: Trip;                      // Trip data from the API
+  image: string;                   // URL for the trip's primary image
+  destinations: string[];          // Array of destination names
+  activitiesCount: number;         // Count of activities for this trip
+  accommodationsCount: number;     // Count of accommodations for this trip
+  daysToTrip?: number;             // Optional: days until trip starts
+  onView: (id: number) => void;    // Callback for viewing trip details
 }
 
 export function TripCard({
@@ -25,14 +29,21 @@ export function TripCard({
   daysToTrip,
   onView,
 }: TripCardProps) {
-  const formattedStartDate = format(new Date(trip.startDate), "MMM d, yyyy");
-  const formattedEndDate = format(new Date(trip.endDate), "MMM d, yyyy");
+  /**
+   * Format trip dates for display using date-fns
+   * Converting string dates from API to JavaScript Date objects
+   */
+  const formattedStartDate: string = format(new Date(trip.startDate), "MMM d, yyyy");
+  const formattedEndDate: string = format(new Date(trip.endDate), "MMM d, yyyy");
 
-  // Calculate trip duration in days
-  const startDate = new Date(trip.startDate);
-  const endDate = new Date(trip.endDate);
-  const tripDuration = Math.ceil(
-    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+  /**
+   * Calculate trip duration in days
+   * Using Date objects to ensure accurate calculation
+   */
+  const startDate: Date = new Date(trip.startDate);
+  const endDate: Date = new Date(trip.endDate);
+  const tripDuration: number = Math.ceil(
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
   return (

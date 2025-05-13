@@ -91,6 +91,7 @@ export default function TripBuilder() {
 
   /**
    * Validates form data and creates a new trip
+   * Properly formats Date objects to string dates for API submission
    * @returns void
    */
   const handleCreateTrip = (): void => {
@@ -124,12 +125,12 @@ export default function TripBuilder() {
       return;
     }
 
-    // Prepare trip data with proper formatting
+    // Prepare trip data with proper date formatting for API submission
     const newTrip: InsertTrip = {
       name: tripName,
-      startDate: startDate ? format(startDate, 'yyyy-MM-dd') : '',
-      endDate: endDate ? format(endDate, 'yyyy-MM-dd') : '',
-      status: "planned",
+      startDate: format(startDate, 'yyyy-MM-dd'), // Format Date to string
+      endDate: format(endDate, 'yyyy-MM-dd'),     // Format Date to string
+      status: "planned" as const,                 // Type assertion for literal type
     };
 
     // Submit trip creation request
