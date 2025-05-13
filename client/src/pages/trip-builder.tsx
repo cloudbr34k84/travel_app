@@ -28,24 +28,24 @@ export default function TripBuilder() {
   const [selectedAccommodations, setSelectedAccommodations] = useState<number[]>([]);
 
   // Fetch destinations
-  const { data: destinations } = useQuery({
+  const { data: destinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
   // Fetch activities
-  const { data: activities } = useQuery({
+  const { data: activities } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
   });
 
   // Fetch accommodations
-  const { data: accommodations } = useQuery({
+  const { data: accommodations } = useQuery<Accommodation[]>({
     queryKey: ["/api/accommodations"],
   });
 
   // Create trip mutation
   const createTrip = useMutation({
-    mutationFn: (newTrip: InsertTrip) => apiRequest("POST", "/api/trips", newTrip),
-    onSuccess: async (data) => {
+    mutationFn: (newTrip: InsertTrip) => apiRequest<InsertTrip, Trip>("POST", "/api/trips", newTrip),
+    onSuccess: async (data: Trip) => {
       const tripId = data.id;
       
       // Add destinations to trip
@@ -76,7 +76,7 @@ export default function TripBuilder() {
     },
   });
 
-  const handleCreateTrip = () => {
+  const handleCreateTrip = (): void => {
     if (!tripName) {
       toast({
         title: "Error",
@@ -114,32 +114,32 @@ export default function TripBuilder() {
     createTrip.mutate(newTrip);
   };
 
-  const getDestinationById = (id: number) => {
+  const getDestinationById = (id: number): Destination | undefined => {
     return destinations?.find((destination: Destination) => destination.id === id);
   };
 
-  const getActivityById = (id: number) => {
+  const getActivityById = (id: number): Activity | undefined => {
     return activities?.find((activity: Activity) => activity.id === id);
   };
 
-  const getAccommodationById = (id: number) => {
+  const getAccommodationById = (id: number): Accommodation | undefined => {
     return accommodations?.find((accommodation: Accommodation) => accommodation.id === id);
   };
 
-  const getAvailableActivities = () => {
+  const getAvailableActivities = (): Activity[] => {
     if (!activities) return [];
     
     // Filter activities to only include those from selected destinations
-    return activities.filter((activity: Activity) => 
+    return activities.filter((activity: Activity): boolean => 
       selectedDestinations.includes(activity.destinationId)
     );
   };
 
-  const getAvailableAccommodations = () => {
+  const getAvailableAccommodations = (): Accommodation[] => {
     if (!accommodations) return [];
     
     // Filter accommodations to only include those from selected destinations
-    return accommodations.filter((accommodation: Accommodation) => 
+    return accommodations.filter((accommodation: Accommodation): boolean => 
       selectedDestinations.includes(accommodation.destinationId)
     );
   };
@@ -256,7 +256,7 @@ export default function TripBuilder() {
                   <SelectValue placeholder="Add a destination" />
                 </SelectTrigger>
                 <SelectContent>
-                  {destinations?.map((destination: Destination) => (
+                  {destinations?.map((destination: Destination): JSX.Element => (
                     <SelectItem 
                       key={destination.id} 
                       value={destination.id.toString()}
@@ -264,7 +264,7 @@ export default function TripBuilder() {
                     >
                       {destination.name}, {destination.country}
                     </SelectItem>
-                  ))}
+                  )) || []}
                 </SelectContent>
               </Select>
             </div>
@@ -334,7 +334,7 @@ export default function TripBuilder() {
                       <SelectValue placeholder="Add an activity" />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableActivities.map((activity: Activity) => (
+                      {availableActivities.map((activity: Activity): JSX.Element => (
                         <SelectItem 
                           key={activity.id} 
                           value={activity.id.toString()}
