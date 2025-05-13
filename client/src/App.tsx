@@ -19,7 +19,7 @@ function Router() {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <div className="main-content flex-1 ml-64 overflow-y-auto">
+      <div className="main-content flex-1 md:ml-20 lg:ml-64 overflow-y-auto pb-20 sm:pb-0">
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/destinations" component={Destinations} />

@@ -88,15 +88,28 @@
 
 @media (max-width: 640px) {
   .sidebar {
-    @apply w-full h-auto fixed bottom-0 left-0 z-50;
+    @apply w-full h-auto fixed bottom-0 left-0 right-0 z-50 border-t border-gray-border;
   }
   .sidebar-container {
-    @apply flex-row justify-around;
+    @apply flex-row justify-around items-center py-2;
   }
   .sidebar-logo {
     @apply hidden;
   }
+  .sidebar-link {
+    @apply flex-col items-center !p-2;
+  }
+  .sidebar .sidebar-text {
+    @apply block text-xs mt-1;
+  }
   .main-content {
-    @apply ml-0 mb-16;
+    @apply ml-0 mb-20 pb-4;
+  }
+}
+
+/* Fix the dashboard card grid on mobile */
+@media (max-width: 640px) {
+  .dashboard-grid {
+    @apply grid-cols-1 gap-4;
   }
 }
