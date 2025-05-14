@@ -37,19 +37,7 @@ export default function AuthPage() {
   const [_, setLocation] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
   
-  // Use useEffect for handling redirects based on auth state
-  useEffect(() => {
-    if (user) {
-      setLocation("/");
-    }
-  }, [user, setLocation]);
-  
-  // If user is authenticated and redirect is pending, show nothing
-  if (user) {
-    return null;
-  }
-  
-  // Login form
+  // Login form - IMPORTANT: Must be defined before any conditional returns
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -58,7 +46,7 @@ export default function AuthPage() {
     },
   });
   
-  // Registration form
+  // Registration form - IMPORTANT: Must be defined before any conditional returns
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -69,6 +57,19 @@ export default function AuthPage() {
       lastName: "",
     },
   });
+  
+  // Use useEffect for handling redirects based on auth state
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
+  
+  // If user is authenticated and redirect is pending, show nothing
+  // IMPORTANT: This conditional return must come AFTER all hook declarations
+  if (user) {
+    return null;
+  }
   
   const onLoginSubmit = (data: LoginFormValues) => {
     loginMutation.mutate(data);
