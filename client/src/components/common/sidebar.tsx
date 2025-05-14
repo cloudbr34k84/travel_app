@@ -1,9 +1,21 @@
 
 import { Link, useLocation } from "wouter";
-import { Globe, Building, Plus, MapPin, Smile, Home, User, Settings } from "lucide-react";
+import { Globe, Building, Plus, MapPin, Smile, Home, User, Settings, LogOut, LogIn } from "lucide-react";
+import { useAuth } from "@/hooks";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   const [location] = useLocation();
+  const [_, navigate] = useLocation();
+  const { user, logoutMutation } = useAuth();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate('/auth');
+      },
+    });
+  };
 
   const links = [
     { path: "/", label: "Dashboard", icon: Home },
@@ -72,6 +84,31 @@ export function Sidebar() {
                   </div>
                 </Link>
               ))}
+              
+              {/* Login/Logout Button */}
+              <div className="mt-4 px-4">
+                {user ? (
+                  <Button 
+                    variant="destructive" 
+                    className="w-full flex items-center justify-center"
+                    onClick={handleLogout}
+                    disabled={logoutMutation.isPending}
+                  >
+                    <LogOut className="h-5 w-5 sm:mr-0 md:mr-2" />
+                    <span className="hidden md:block">Logout</span>
+                  </Button>
+                ) : (
+                  <Link href="/auth">
+                    <Button 
+                      variant="secondary" 
+                      className="w-full flex items-center justify-center"
+                    >
+                      <LogIn className="h-5 w-5 sm:mr-0 md:mr-2" />
+                      <span className="hidden md:block">Login</span>
+                    </Button>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -94,6 +131,24 @@ export function Sidebar() {
               </div>
             </Link>
           ))}
+          
+          {/* Mobile Login/Logout Button */}
+          {user ? (
+            <div 
+              className="flex flex-col items-center p-2 text-xs cursor-pointer text-red-600"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-6 w-6 mb-1" />
+              <span>Logout</span>
+            </div>
+          ) : (
+            <Link href="/auth">
+              <div className="flex flex-col items-center p-2 text-xs cursor-pointer text-gray-700 hover:text-primary">
+                <LogIn className="h-6 w-6 mb-1" />
+                <span>Login</span>
+              </div>
+            </Link>
+          )}
         </nav>
       </div>
     </>
