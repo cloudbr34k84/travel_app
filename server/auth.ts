@@ -2,8 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { User as UserType } from "@shared/schema";
 import { z } from "zod";
@@ -27,19 +26,15 @@ declare global {
   }
 }
 
-const scryptAsync = promisify(scrypt);
+// Cost factor: higher is more secure but slower
+const SALT_ROUNDS = 12;
 
 async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+  return bcrypt.compare(supplied, stored);
 }
 
 export function setupAuth(app: Express) {
@@ -105,30 +100,30 @@ export function setupAuth(app: Express) {
     try {
       // Validate the request body
       const validatedData = registrationSchema.parse(req.body);
-      
+
       // Check if username or email already exists
       const existingUserByUsername = await storage.getUserByUsername(validatedData.username);
       if (existingUserByUsername) {
         return res.status(400).json({ message: "Username already exists" });
       }
-      
+
       const existingUserByEmail = await storage.getUserByEmail(validatedData.email);
       if (existingUserByEmail) {
         return res.status(400).json({ message: "Email already exists" });
       }
-      
+
       // Hash the password
       const hashedPassword = await hashPassword(validatedData.password);
-      
+
       // Create the user
       const user = await storage.createUser({
         ...validatedData,
         password: hashedPassword
       });
-      
+
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
-      
+
       // Log the user in
       req.login(user, (err) => {
         if (err) return next(err);
@@ -151,10 +146,10 @@ export function setupAuth(app: Express) {
       if (!user) {
         return res.status(401).json({ message: info?.message || "Invalid credentials" });
       }
-      
+
       req.login(user, (err) => {
         if (err) return next(err);
-        
+
         // Remove password from response
         const { password, ...userWithoutPassword } = user;
         res.json(userWithoutPassword);
@@ -173,7 +168,7 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     // Remove password from response
     const { password, ...userWithoutPassword } = req.user as Express.User;
     res.json(userWithoutPassword);
