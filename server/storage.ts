@@ -14,6 +14,17 @@ import { pool } from "./db";
 
 // Define the storage interface
 export interface IStorage {
+  // Session Store
+  sessionStore: session.Store;
+  
+  // Users
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
+  
   // Destinations
   getDestinations(): Promise<Destination[]>;
   getDestination(id: number): Promise<Destination | undefined>;
@@ -39,6 +50,7 @@ export interface IStorage {
   
   // Trips
   getTrips(): Promise<Trip[]>;
+  getTripsByUser(userId: number): Promise<Trip[]>;
   getTrip(id: number): Promise<Trip | undefined>;
   createTrip(trip: InsertTrip): Promise<Trip>;
   updateTrip(id: number, trip: Partial<InsertTrip>): Promise<Trip | undefined>;
@@ -60,6 +72,68 @@ export interface IStorage {
 
 // Database implementation of the storage interface
 export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+  
+  constructor() {
+    const PostgresSessionStore = connectPg(session);
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
+    });
+  }
+  
+  // Users
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+  
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db.insert(users).values(user).returning();
+    return newUser;
+  }
+  
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(userData)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      // First update any trips by this user to remove the userId
+      await db
+        .update(trips)
+        .set({ userId: null })
+        .where(eq(trips.userId, id));
+      
+      // Then delete the user
+      const [deleted] = await db
+        .delete(users)
+        .where(eq(users.id, id))
+        .returning({ id: users.id });
+      
+      return !!deleted;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
+  }
+  
   // Destinations
   async getDestinations(): Promise<Destination[]> {
     return await db.select().from(destinations);
@@ -204,6 +278,10 @@ export class DatabaseStorage implements IStorage {
   // Trips
   async getTrips(): Promise<Trip[]> {
     return await db.select().from(trips);
+  }
+  
+  async getTripsByUser(userId: number): Promise<Trip[]> {
+    return await db.select().from(trips).where(eq(trips.userId, userId));
   }
   
   async getTrip(id: number): Promise<Trip | undefined> {
