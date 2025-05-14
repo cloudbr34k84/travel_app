@@ -2,12 +2,14 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupMiddleware } from "./middleware";
+import cookieParser from "cookie-parser";
 
 const app = express();
+app.use(cookieParser()); // Required for csurf with cookie option
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Set up rate limiting
+// Set up rate limiting and CSRF protection
 setupMiddleware(app);
 
 app.use((req: Request, res: Response, next: NextFunction): void => {
