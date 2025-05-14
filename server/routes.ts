@@ -378,6 +378,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  /**
+   * Global error handler middleware
+   * 
+   * @description Catches all errors that occur during request processing and formats
+   * consistent JSON responses for the client.
+   * 
+   * @param {Error & { status?: number; statusCode?: number }} err - The error object
+   * @param {Request} _req - The Express request object (unused but required)
+   * @param {Response} res - The Express response object used to send the response
+   * @param {NextFunction} _next - The Express next function (unused but required)
+   * 
+   * @returns {void}
+   * 
+   * @behavior
+   * - Logs the error to the console for server-side debugging
+   * - Uses the error's status/statusCode property if available, defaults to 500
+   * - Returns a JSON response with error.message or a default message if not provided
+   * - Format of response: { error: string }
+   */
+  app.use((err: Error & { status?: number; statusCode?: number }, _req: Request, res: Response, _next: NextFunction): void => {
+    console.error(err);
+    res.status(err.status || err.statusCode || 500).json({ error: err.message || 'Internal error' });
+  });
+  
   const httpServer = createServer(app);
   
   return httpServer;
