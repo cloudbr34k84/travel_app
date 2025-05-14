@@ -1,10 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupMiddleware } from "./middleware";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Set up rate limiting
+setupMiddleware(app);
 
 app.use((req: Request, res: Response, next: NextFunction): void => {
   const start: number = Date.now();
