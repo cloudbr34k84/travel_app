@@ -136,6 +136,37 @@ export const users = pgTable("users", {
   phone: text("phone"),
   avatar: text("avatar"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+  /**
+   * Index for fast username lookups used in authentication flows
+   * 
+   * This index significantly improves the performance of queries that filter
+   * or join on the username column, especially for the getUserByUsername function.
+   * 
+   * Without this index, username lookups would require a full table scan, which
+   * becomes increasingly inefficient as the user table grows.
+   * 
+   * Drizzle migrations will automatically generate the appropriate SQL to
+   * create this index in the database.
+   */
+  return {
+    usernameIdx: index("username_idx").on(table.username),
+    
+    /**
+     * Index for fast email lookups used in authentication and user verification
+     * 
+     * This index optimizes queries that search by email address, such as password
+     * reset flows, email verification, and checking for duplicate emails during
+     * registration.
+     * 
+     * Email lookups are common operations in user management workflows, and
+     * this index ensures they remain fast even with large user tables.
+     * 
+     * Drizzle migrations will automatically generate the appropriate SQL to
+     * create this index in the database.
+     */
+    emailIdx: index("email_idx").on(table.email)
+  };
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
