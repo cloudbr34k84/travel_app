@@ -80,10 +80,15 @@ export const trips = pgTable("trips", {
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
   status: text("status").notNull().default("planned"), // planned, completed, cancelled
+  userId: integer("user_id"),
 });
 
-export const tripsRelations = relations(trips, ({ many }) => ({
+export const tripsRelations = relations(trips, ({ many, one }) => ({
   tripDestinations: many(tripDestinations),
+  user: one(users, {
+    fields: [trips.userId],
+    references: [users.id],
+  }),
 }));
 
 export const insertTripSchema = createInsertSchema(trips).omit({
@@ -117,3 +122,30 @@ export const insertTripDestinationSchema = createInsertSchema(tripDestinations).
 
 export type InsertTripDestination = z.infer<typeof insertTripDestinationSchema>;
 export type TripDestination = typeof tripDestinations.$inferSelect;
+
+// User table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  bio: text("bio"),
+  location: text("location"),
+  phone: text("phone"),
+  avatar: text("avatar"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const usersRelations = relations(users, ({ many }) => ({
+  trips: many(trips),
+}));
+
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;

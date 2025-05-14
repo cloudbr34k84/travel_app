@@ -3,10 +3,14 @@ import {
   activities, type Activity, type InsertActivity,
   accommodations, type Accommodation, type InsertAccommodation,
   trips, type Trip, type InsertTrip,
-  tripDestinations, type TripDestination, type InsertTripDestination
+  tripDestinations, type TripDestination, type InsertTripDestination,
+  users, type User, type InsertUser
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, count, sql, gt } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 // Define the storage interface
 export interface IStorage {
