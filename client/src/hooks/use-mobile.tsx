@@ -2,6 +2,7 @@ import * as React from "react"
 
 /**
  * Mobile breakpoint value in pixels
+ * Matches Tailwind's md breakpoint (768px)
  */
 const MOBILE_BREAKPOINT: number = 768
 
@@ -11,9 +12,9 @@ const MOBILE_BREAKPOINT: number = 768
  */
 export function useIsMobile(): boolean {
   // State to track mobile status with proper type annotation
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+  const [isMobile, setIsMobile] = React.useState<boolean>(false)
 
-  React.useEffect(() => {
+  React.useEffect((): (() => void) => {
     // Create media query list with proper type
     const mql: MediaQueryList = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     
@@ -22,11 +23,11 @@ export function useIsMobile(): boolean {
      * @param {MediaQueryListEvent} event The media query change event
      */
     const onChange = (event: MediaQueryListEvent): void => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(event.matches)
     }
     
     // Initial check without waiting for event
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    setIsMobile(mql.matches)
     
     // Add event listener with proper types
     mql.addEventListener("change", onChange)
@@ -37,6 +38,5 @@ export function useIsMobile(): boolean {
     }
   }, [])
 
-  // Ensure return value is always boolean
-  return !!isMobile
+  return isMobile
 }

@@ -20,10 +20,12 @@ import NotFound from "@/pages/not-found";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen overflow-hidden">
+    <div className="flex flex-col min-h-screen overflow-hidden bg-background">
       <Sidebar />
-      <div className="main-content flex-1 ml-0 sm:ml-20 md:ml-64 overflow-y-auto content-safe-area">
-        {children}
+      <div className="main-content flex-1 overflow-y-auto content-safe-area">
+        <div className="page-container">
+          {children}
+        </div>
       </div>
     </div>
   );

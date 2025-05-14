@@ -81,11 +81,15 @@
 /* Responsive layout utilities */
 @layer utilities {
   .content-safe-area {
-    @apply pb-20 sm:pb-0; /* Bottom padding to avoid content being hidden by mobile nav */
+    @apply pb-20 sm:pb-6; /* Bottom padding to avoid content being hidden by mobile nav */
   }
   
   .mobile-nav-height {
     @apply h-16; /* Standard height for mobile bottom navigation */
+  }
+  
+  .page-container {
+    @apply px-4 sm:px-6 md:px-8; /* Consistent padding for all pages */
   }
 }
 
@@ -94,21 +98,22 @@
   .dashboard-grid {
     @apply grid-cols-1 gap-4;
   }
+  
   .main-content {
     @apply ml-0 mb-20; /* Space for fixed bottom navigation */
   }
 }
 
-/* Tablet layout adjustments - matches Tailwind's md breakpoint (min-width: 641px, max-width: 768px) */
-@media (min-width: 641px) and (max-width: 768px) {
+/* Tablet layout adjustments - matches Tailwind's sm: breakpoint exactly */
+@media (min-width: 640px) and (max-width: 767px) {
   .main-content {
-    @apply sm:ml-20;
+    @apply ml-20 mb-0;
   }
 }
 
-/* Desktop layout adjustments - after Tailwind's md breakpoint (min-width: 769px) */
-@media (min-width: 769px) {
+/* Desktop layout adjustments - matches Tailwind's md: breakpoint */
+@media (min-width: 768px) {
   .main-content {
-    @apply md:ml-64;
+    @apply ml-64 mb-0;
   }
 }
