@@ -49,8 +49,11 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    name: 'sid_travel_planner',
     cookie: {
       secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: 'strict',
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     }
   };
