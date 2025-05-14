@@ -137,7 +137,7 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
-  loginCount: integer("login_count").default(0),
+  loginCount: integer("login_count").notNull().default(0),
 }, (table) => {
   /**
    * Index for fast username lookups used in authentication flows

@@ -7,24 +7,13 @@ import { storage } from "./storage";
 import { User as UserType } from "@shared/schema";
 import { z } from "zod";
 
+// Import User type from schema
+import type { User as SchemaUser } from "@shared/schema";
+
 declare global {
   namespace Express {
-    // Use type intersection instead of interface extension
-    interface User {
-      id: number;
-      username: string;
-      email: string;
-      password: string;
-      firstName: string | null;
-      lastName: string | null;
-      bio: string | null;
-      location: string | null;
-      phone: string | null;
-      avatar: string | null;
-      createdAt: Date;
-      lastLogin: Date | null;
-      loginCount: number;
-    }
+    // Use the schema type directly to ensure consistency
+    interface User extends SchemaUser {}
   }
 }
 
@@ -150,10 +139,13 @@ export function setupAuth(app: Express) {
       }
 
       try {
+        // Get current login count or default to 0
+        const currentLoginCount = typeof user.loginCount === 'number' ? user.loginCount : 0;
+        
         // Update login tracking information
         await storage.updateUser(user.id, {
           lastLogin: new Date(),
-          loginCount: (user.loginCount || 0) + 1
+          loginCount: currentLoginCount + 1
         });
         
         // Refresh user data after update
@@ -162,7 +154,9 @@ export function setupAuth(app: Express) {
           return res.status(500).json({ message: "Failed to retrieve updated user data" });
         }
 
-        req.login(updatedUser, (err) => {
+        // Type assertion for login - we've already validated updatedUser is not null above
+        const typedUser = updatedUser as Express.User;
+        req.login(typedUser, (err) => {
           if (err) return next(err);
 
           // Remove password from response
@@ -240,7 +234,13 @@ export function setupAuth(app: Express) {
 
       // Update session with fresh user data
       const freshUser = await storage.getUser(req.user.id);
-      req.login(freshUser, (err) => {
+      if (!freshUser) {
+        return res.status(500).json({ message: "Failed to refresh user data" });
+      }
+      
+      // Type assertion for login - freshUser is validated above
+      const typedUser = freshUser as Express.User;
+      req.login(typedUser, (err) => {
         if (err) return next(err);
         
         // Return user without password
