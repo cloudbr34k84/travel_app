@@ -81,11 +81,11 @@
 /* Responsive layout utilities */
 @layer utilities {
   .content-safe-area {
-    @apply pb-20 sm:pb-6; /* Bottom padding to avoid content being hidden by mobile nav */
+    @apply pt-16 pb-20 sm:pt-0 sm:pb-6; /* Top padding for mobile header and bottom padding for mobile nav */
   }
   
   .mobile-nav-height {
-    @apply h-16; /* Standard height for mobile bottom navigation */
+    @apply h-16; /* Standard height for mobile navigation (top and bottom) */
   }
   
   .page-container {
@@ -100,20 +100,36 @@
   }
   
   .main-content {
-    @apply ml-0 mb-20; /* Space for fixed bottom navigation */
+    @apply ml-0 mt-16 mb-20; /* Space for fixed top header and bottom navigation */
   }
 }
 
 /* Tablet layout adjustments - matches Tailwind's sm: breakpoint exactly */
 @media (min-width: 640px) and (max-width: 767px) {
   .main-content {
-    @apply ml-20 mb-0;
+    @apply ml-20 mb-0 mt-0;
   }
 }
 
 /* Desktop layout adjustments - matches Tailwind's md: breakpoint */
 @media (min-width: 768px) {
   .main-content {
-    @apply ml-64 mb-0;
+    @apply ml-64 mb-0 mt-0;
   }
+}
+
+/* Mobile drawer animation */
+.drawer-enter {
+  transform: translateX(-100%);
+}
+.drawer-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-in-out;
+}
+.drawer-exit {
+  transform: translateX(0);
+}
+.drawer-exit-active {
+  transform: translateX(-100%);
+  transition: transform 300ms ease-in-out;
 }
