@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, date, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, date, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -136,6 +136,8 @@ export const users = pgTable("users", {
   phone: text("phone"),
   avatar: text("avatar"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+  loginCount: integer("login_count").default(0),
 }, (table) => {
   /**
    * Index for fast username lookups used in authentication flows

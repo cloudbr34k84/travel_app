@@ -22,6 +22,8 @@ declare global {
       phone: string | null;
       avatar: string | null;
       createdAt: Date;
+      lastLogin: Date | null;
+      loginCount: number;
     }
   }
 }
@@ -141,19 +143,35 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
+    passport.authenticate("local", async (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ message: info?.message || "Invalid credentials" });
       }
 
-      req.login(user, (err) => {
-        if (err) return next(err);
+      try {
+        // Update login tracking information
+        await storage.updateUser(user.id, {
+          lastLogin: new Date(),
+          loginCount: (user.loginCount || 0) + 1
+        });
+        
+        // Refresh user data after update
+        const updatedUser = await storage.getUser(user.id);
+        if (!updatedUser) {
+          return res.status(500).json({ message: "Failed to retrieve updated user data" });
+        }
 
-        // Remove password from response
-        const { password, ...userWithoutPassword } = user;
-        res.json(userWithoutPassword);
-      });
+        req.login(updatedUser, (err) => {
+          if (err) return next(err);
+
+          // Remove password from response
+          const { password, ...userWithoutPassword } = updatedUser;
+          res.json(userWithoutPassword);
+        });
+      } catch (error) {
+        next(error);
+      }
     })(req, res, next);
   });
 
@@ -172,5 +190,134 @@ export function setupAuth(app: Express) {
     // Remove password from response
     const { password, ...userWithoutPassword } = req.user as Express.User;
     res.json(userWithoutPassword);
+  });
+
+  /**
+   * Update User Profile Endpoint
+   * 
+   * @description Allows authenticated users to update their profile information
+   * excluding sensitive fields like password.
+   * 
+   * @security
+   * - Requires authentication
+   * - Validates input data
+   * - Only allows updates to the authenticated user's profile
+   * 
+   * @returns Updated user profile without sensitive fields like password
+   */
+  const updateProfileSchema = z.object({
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    email: z.string().email().optional(),
+    bio: z.string().optional(),
+    location: z.string().optional(),
+    phone: z.string().optional(),
+    avatar: z.string().optional()
+  });
+
+  app.put("/api/user", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      // Validate request body
+      const validatedData = updateProfileSchema.parse(req.body);
+
+      // If email is being updated, check if it already exists
+      if (validatedData.email) {
+        const existingUserWithEmail = await storage.getUserByEmail(validatedData.email);
+        if (existingUserWithEmail && existingUserWithEmail.id !== req.user.id) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+
+      // Update user profile
+      const updatedUser = await storage.updateUser(req.user.id, validatedData);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update session with fresh user data
+      const freshUser = await storage.getUser(req.user.id);
+      req.login(freshUser, (err) => {
+        if (err) return next(err);
+        
+        // Return user without password
+        const { password, ...userWithoutPassword } = updatedUser;
+        res.json(userWithoutPassword);
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      next(error);
+    }
+  });
+
+  /**
+   * Change Password Endpoint
+   * 
+   * @description Allows authenticated users to update their password
+   * 
+   * @security
+   * - Requires authentication
+   * - Validates current password before allowing change
+   * - Enforces password complexity requirements
+   * - Securely hashes the new password
+   * 
+   * @returns Success message on successful password change
+   */
+  const passwordChangeSchema = z.object({
+    currentPassword: z.string(),
+    newPassword: z.string().min(8, "Password must be at least 8 characters")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+  });
+
+  app.post("/api/user/change-password", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      // Validate request body
+      const validatedData = passwordChangeSchema.parse(req.body);
+
+      // Verify current password
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isCurrentPasswordValid = await comparePasswords(
+        validatedData.currentPassword, 
+        user.password
+      );
+
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      // Hash new password
+      const hashedNewPassword = await hashPassword(validatedData.newPassword);
+
+      // Update password
+      await storage.updateUser(req.user.id, { password: hashedNewPassword });
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: error.errors 
+        });
+      }
+      next(error);
+    }
   });
 }
