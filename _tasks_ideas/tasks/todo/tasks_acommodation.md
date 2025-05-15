@@ -1,4 +1,4 @@
-## Prompt 1 – Add Accommodation Button Integration Review
+# Prompt 1 – Add Accommodation Button Integration Review
 ### Instructions
 Act as a full-stack reviewer. On the Accommodation page, inspect the “Add Accommodation” button and answer:
 1. Is its click handler calling the real accommodation-creation API (not mock)?  
@@ -60,7 +60,7 @@ JSDoc explaining button behavior and loading handling best practices.
 
 ---
 
-### **Prompt 2 – Improve Error Messages for Accommodation Creation**
+# **Prompt 2 – Improve Error Messages for Accommodation Creation**
 
 ```md
 **Task**: Replace generic error toasts with specific error messages from API responses when accommodation creation fails.
@@ -90,10 +90,85 @@ Updated error handling logic.
 
 JSDoc that documents custom error toast behavior and best practices.
 
+  Here are the individual prompts derived from your Prompt 2 – Add Accommodation Modal Fields & Validation review, following Prompting 101 and including JSDoc tasks to support future AI understanding:
+
 
 ---
 
-### **Prompt 3 – Add Real-Time Validation Feedback to Form Fields**
+Prompt 1 – Disable Submit Button Until Form is Valid or Submitting
+
+**Task**: Prevent users from submitting the Add Accommodation form until it is valid and not currently submitting.
+
+**Context**:  
+The current modal allows users to click "Submit" even if the form has validation errors or is mid-submission. This can lead to repeated API calls or incomplete data.
+
+**Instructions**:  
+1. In `accommodation-form.tsx`, update the submit button to:
+   - Use the `isValid` and `isSubmitting` values from `useForm()` to conditionally disable the button.
+   - Prevent accidental double-submits and enforce clean UX.
+
+2. Add/Update JSDoc:
+   - At the top of the file, describe the component’s purpose and validation flow.
+   - Near the submit button logic, add a JSDoc comment explaining the condition used to disable the button and its UX rationale.
+
+**Example**:
+```tsx
+<button type="submit" disabled={!isValid || isSubmitting}>
+  {isSubmitting ? 'Saving...' : 'Submit'}
+</button>
+
+Deliverables:
+
+Updated button logic in the form.
+
+JSDoc added to describe how/why the submit button is conditionally disabled.
+
+
+---
+
+# **Prompt 2 – Map Server-Side Validation Errors to Form Fields**
+
+```md
+**Task**: Improve server error handling in the Add Accommodation form by mapping backend validation errors to specific fields.
+
+**Context**:  
+Currently, if the server returns a 400 with validation details (e.g. "name is required"), the app displays only a generic error toast. This makes it hard for users to fix specific issues.
+
+**Instructions**:  
+1. In `accommodation-form.tsx`, enhance the mutation’s `onError` callback to:
+   - Parse the response body for a `fieldErrors` object (e.g. `{ name: 'Name is required' }`).
+   - Use `setError` from React Hook Form to associate each error with the correct field.
+
+2. Add/Update JSDoc:
+   - At the top of the file, document how server-side validation is handled.
+   - Near the `onError` logic, describe the expected shape of error responses and how they are mapped.
+
+**Example**:
+```ts
+onError: (error) => {
+  if (error.response?.data?.fieldErrors) {
+    const fieldErrors = error.response.data.fieldErrors;
+    Object.entries(fieldErrors).forEach(([field, message]) => {
+      setError(field as keyof AccommodationFormValues, { message });
+    });
+  } else {
+    toast.error("Failed to create accommodation");
+  }
+}
+
+Deliverables:
+
+Improved error mapping logic in the form.
+
+JSDoc explaining error structure and mapping strategy.
+
+
+Let me know when you're ready for the next batch or if you'd like combined multi-step implementation prompts.
+
+
+---
+
+# **Prompt 3 – Add Real-Time Validation Feedback to Form Fields**
 
 ```md
 **Task**: Enhance the accommodation form with real-time validation feedback using React Hook Form and Zod.
@@ -120,15 +195,9 @@ Real-time validation logic for all critical fields.
 
 JSDoc covering form validation philosophy and usage patterns.
 
-
 ---
 
-Let me know when you’re ready for me to help generate these directly into the appropriate files or if you’d like to chain these into a single multi-step refactor prompt.
-
-
----
-
-## Prompt 2 – Add Accommodation Modal Fields & Validation
+# Prompt 2 – Add Accommodation Modal Fields & Validation
 ### Instructions
 Review the Add Accommodation modal and verify:
 - It contains the following fields with correct types:  
@@ -159,7 +228,70 @@ Review the Add Accommodation modal and verify:
   - Enhance error handling to parse and display field errors.  
 - **`client/src/pages/accommodations.tsx`**  
   - Improve server-error handling by routing field errors back to form inputs
-  - 
+Here are the individual prompts derived from your Prompt 2 – Add Accommodation Modal Fields & Validation review, following Prompting 101 and including JSDoc tasks to support future AI understanding:
+
+
+---
+
+### Prompt 2.1 – Disable Submit Button Until Form is Valid or Submitting
+
+**Task**: Prevent users from submitting the Add Accommodation form until it is valid and not currently submitting.
+**Context**:  
+The current modal allows users to click "Submit" even if the form has validation errors or is mid-submission. This can lead to repeated API calls or incomplete data.
+**Instructions**:  
+1. In `accommodation-form.tsx`, update the submit button to:
+   - Use the `isValid` and `isSubmitting` values from `useForm()` to conditionally disable the button.
+   - Prevent accidental double-submits and enforce clean UX.
+2. Add/Update JSDoc:
+   - At the top of the file, describe the component’s purpose and validation flow.
+   - Near the submit button logic, add a JSDoc comment explaining the condition used to disable the button and its UX rationale.
+
+**Example**:
+```tsx
+<button type="submit" disabled={!isValid || isSubmitting}>
+  {isSubmitting ? 'Saving...' : 'Submit'}
+</button>
+#### Deliverables:
+Updated button logic in the form.
+JSDoc added to describe how/why the submit button is conditionally disabled.
+
+---
+
+### **Prompt 2.2 – Map Server-Side Validation Errors to Form Fields**
+
+```md
+**Task**: Improve server error handling in the Add Accommodation form by mapping backend validation errors to specific fields.
+
+**Context**:  
+Currently, if the server returns a 400 with validation details (e.g. "name is required"), the app displays only a generic error toast. This makes it hard for users to fix specific issues.
+
+**Instructions**:  
+1. In `accommodation-form.tsx`, enhance the mutation’s `onError` callback to:
+   - Parse the response body for a `fieldErrors` object (e.g. `{ name: 'Name is required' }`).
+   - Use `setError` from React Hook Form to associate each error with the correct field.
+
+2. Add/Update JSDoc:
+   - At the top of the file, document how server-side validation is handled.
+   - Near the `onError` logic, describe the expected shape of error responses and how they are mapped.
+
+**Example**:
+```ts
+onError: (error) => {
+  if (error.response?.data?.fieldErrors) {
+    const fieldErrors = error.response.data.fieldErrors;
+    Object.entries(fieldErrors).forEach(([field, message]) => {
+      setError(field as keyof AccommodationFormValues, { message });
+    });
+  } else {
+    toast.error("Failed to create accommodation");
+  }
+}
+
+Deliverables:
+Improved error mapping logic in the form.
+JSDoc explaining error structure and mapping strategy.
+
+
 ---
 
 ## Prompt 3 – Destination Dropdown Population & Fallback
