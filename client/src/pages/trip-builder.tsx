@@ -572,6 +572,37 @@ export default function TripBuilder() {
           {createTrip.isPending ? "Creating..." : "Create Trip"}
         </Button>
       </div>
+
+      {/* Destination Form Modal (opened from empty destination dropdown) */}
+      <DestinationForm
+        open={destinationFormOpen}
+        onOpenChange={(open) => {
+          setDestinationFormOpen(open);
+        }}
+        onSubmit={(values) => {
+          // Create a new destination
+          apiRequestWithJson("POST", "/api/destinations", values)
+            .then(() => {
+              // Invalidate destinations query to refresh list
+              queryClient.invalidateQueries({ queryKey: ["/api/destinations"] });
+              
+              toast({
+                title: "Success",
+                description: "Destination created successfully. Now you can add it to your trip.",
+              });
+              
+              // Close destination form
+              setDestinationFormOpen(false);
+            })
+            .catch(() => {
+              toast({
+                title: "Error",
+                description: "Failed to create destination",
+                variant: "destructive",
+              });
+            });
+        }}
+      />
     </div>
   );
 }
