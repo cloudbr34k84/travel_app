@@ -40,16 +40,29 @@ export default function Accommodations() {
   });
 
   /**
-   * Create accommodation mutation with loading state and error handling
+   * Create accommodation mutation with enhanced error handling
    * 
    * @description This mutation handles the API request for creating new accommodations
-   * and provides feedback to the user through toast notifications.
+   * and provides feedback to the user through toast notifications with specific error messages.
    * 
    * @behavior
    * - Tracks loading state with isPending to disable UI elements during submission
    * - Shows success toast on successful creation
-   * - Shows error toast on failed creation
+   * - Shows detailed error toast on failed creation, extracting error message from the response
    * - Automatically refreshes accommodation data on success
+   * 
+   * @error-handling
+   * - Parses API error messages from the Error object thrown by apiRequestWithJson
+   * - Extracts status code and message details when available
+   * - Falls back to generic message when specific error details cannot be extracted
+   * - Formats validation errors in a user-friendly way
+   * 
+   * @maintainer-notes
+   * - When server returns validation errors, the format will be extracted from error.message
+   * - To maintain consistent error handling across forms:
+   *   1. Always use this same error extraction pattern in onError callbacks
+   *   2. Ensure backend returns error messages in a consistent format
+   *   3. Consider centralizing this error handling logic if used in multiple forms
    */
   const createAccommodation = useMutation({
     mutationFn: (newAccommodation: InsertAccommodation) => 
@@ -62,26 +75,68 @@ export default function Accommodations() {
       });
       setFormOpen(false);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      // Extract detailed error message from the error object
+      let errorMessage = "Failed to create accommodation";
+      
+      // The apiRequestWithJson function throws errors in format: "Status: Message"
+      if (error.message) {
+        // Check if it's a structured error with status code
+        const errorMatch = error.message.match(/^(\d+): (.+)$/);
+        if (errorMatch) {
+          const [, statusCode, message] = errorMatch;
+          
+          // Format based on status code
+          if (statusCode === "400") {
+            errorMessage = `Validation error: ${message}`;
+          } else if (statusCode === "401" || statusCode === "403") {
+            errorMessage = `Authentication error: ${message}`;
+          } else if (statusCode === "404") {
+            errorMessage = `Not found: ${message}`;
+          } else if (statusCode === "500") {
+            errorMessage = `Server error: ${message}`;
+          } else {
+            // For other status codes, just use the message
+            errorMessage = message;
+          }
+        } else {
+          // If no status pattern found, use the raw error message
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create accommodation",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
 
   /**
-   * Update accommodation mutation with loading state and error handling
+   * Update accommodation mutation with enhanced error handling
    * 
    * @description This mutation handles the API request for updating existing accommodations
-   * and provides feedback to the user through toast notifications.
+   * and provides feedback to the user through toast notifications with specific error messages.
    * 
    * @behavior
    * - Tracks loading state with isPending to disable UI elements during submission
    * - Shows success toast on successful update
-   * - Shows error toast on failed update
+   * - Shows detailed error toast on failed update, extracting error message from the response
    * - Automatically refreshes accommodation data on success
+   * 
+   * @error-handling
+   * - Parses API error messages from the Error object thrown by apiRequestWithJson
+   * - Extracts status code and message details when available
+   * - Falls back to generic message when specific error details cannot be extracted
+   * - Formats validation errors in a user-friendly way
+   * 
+   * @maintainer-notes
+   * - When server returns validation errors, the format will be extracted from error.message
+   * - To maintain consistent error handling across forms:
+   *   1. Always use this same error extraction pattern in onError callbacks
+   *   2. Ensure backend returns error messages in a consistent format
+   *   3. Consider centralizing this error handling logic if used in multiple forms
    */
   interface UpdateAccommodationParams {
     id: number;
@@ -99,16 +154,62 @@ export default function Accommodations() {
       });
       setEditingAccommodation(null);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      // Extract detailed error message from the error object
+      let errorMessage = "Failed to update accommodation";
+      
+      // The apiRequestWithJson function throws errors in format: "Status: Message"
+      if (error.message) {
+        // Check if it's a structured error with status code
+        const errorMatch = error.message.match(/^(\d+): (.+)$/);
+        if (errorMatch) {
+          const [, statusCode, message] = errorMatch;
+          
+          // Format based on status code
+          if (statusCode === "400") {
+            errorMessage = `Validation error: ${message}`;
+          } else if (statusCode === "401" || statusCode === "403") {
+            errorMessage = `Authentication error: ${message}`;
+          } else if (statusCode === "404") {
+            errorMessage = `Not found: ${message}`;
+          } else if (statusCode === "500") {
+            errorMessage = `Server error: ${message}`;
+          } else {
+            // For other status codes, just use the message
+            errorMessage = message;
+          }
+        } else {
+          // If no status pattern found, use the raw error message
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to update accommodation",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
 
-  // Delete accommodation mutation with proper return type
+  /**
+   * Delete accommodation mutation with enhanced error handling
+   * 
+   * @description This mutation handles the API request for deleting accommodations
+   * and provides feedback to the user through toast notifications with specific error messages.
+   * 
+   * @behavior
+   * - Tracks loading state with isPending to disable UI elements during submission
+   * - Shows success toast on successful deletion
+   * - Shows detailed error toast on failed deletion, extracting error message from the response
+   * - Automatically refreshes accommodation data on success
+   * - Closes the delete confirmation dialog on success
+   * 
+   * @error-handling
+   * - Parses API error messages from the Error object thrown by apiRequestWithJson
+   * - Extracts status code and message details when available
+   * - Falls back to generic message when specific error details cannot be extracted
+   */
   const deleteAccommodation = useMutation({
     mutationFn: (id: number) => 
       apiRequestWithJson<null, void>("DELETE", `/api/accommodations/${id}`),
@@ -121,10 +222,41 @@ export default function Accommodations() {
       setDeleteDialogOpen(false);
       setAccommodationToDelete(null);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      // Extract detailed error message from the error object
+      let errorMessage = "Failed to delete accommodation";
+      
+      // The apiRequestWithJson function throws errors in format: "Status: Message"
+      if (error.message) {
+        // Check if it's a structured error with status code
+        const errorMatch = error.message.match(/^(\d+): (.+)$/);
+        if (errorMatch) {
+          const [, statusCode, message] = errorMatch;
+          
+          // Format based on status code
+          if (statusCode === "400") {
+            errorMessage = `Validation error: ${message}`;
+          } else if (statusCode === "401" || statusCode === "403") {
+            errorMessage = `Authentication error: ${message}`;
+          } else if (statusCode === "404") {
+            errorMessage = `Not found: ${message}`;
+          } else if (statusCode === "409") {
+            errorMessage = `Conflict: ${message}`; // Often used for dependency conflicts
+          } else if (statusCode === "500") {
+            errorMessage = `Server error: ${message}`;
+          } else {
+            // For other status codes, just use the message
+            errorMessage = message;
+          }
+        } else {
+          // If no status pattern found, use the raw error message
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to delete accommodation",
+        description: errorMessage,
         variant: "destructive",
       });
     },
