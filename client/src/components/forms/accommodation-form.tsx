@@ -42,6 +42,13 @@ export type AccommodationApiValues = {
 
 /**
  * Props interface for the AccommodationForm component
+ * 
+ * @property open - Controls the visibility state of the accommodation form dialog
+ * @property onOpenChange - Callback function that is triggered when dialog open state changes
+ * @property onSubmit - Callback function that handles form submission with validated values
+ * @property defaultValues - Pre-populated values for editing an existing accommodation
+ * @property isEditing - Flag indicating whether the form is in edit mode
+ * @property isSubmitting - Flag indicating whether a submission is in progress
  */
 export interface AccommodationFormProps {
   open: boolean;
@@ -49,6 +56,7 @@ export interface AccommodationFormProps {
   onSubmit: (values: AccommodationApiValues) => void;
   defaultValues?: Partial<Accommodation>;
   isEditing?: boolean;
+  isSubmitting?: boolean;
 }
 
 export function AccommodationForm({
@@ -57,6 +65,7 @@ export function AccommodationForm({
   onSubmit,
   defaultValues,
   isEditing = false,
+  isSubmitting = false,
 }: AccommodationFormProps) {
   /**
    * Prepares default values for the form with proper type conversion
@@ -204,8 +213,27 @@ export function AccommodationForm({
               )}
             />
             <DialogFooter>
-              <Button type="submit" className="bg-primary hover:bg-primary-800">
-                {isEditing ? "Save Changes" : "Add Accommodation"}
+              {/* 
+               * Submit Button with loading state
+               * 
+               * This button is disabled during form submission to prevent duplicate requests.
+               * It shows different text based on the current operation (adding vs editing)
+               * and submission state, improving user feedback during API operations.
+               * 
+               * @behavior
+               * - Shows "Add Accommodation" or "Save Changes" when idle
+               * - Shows "Adding..." or "Saving..." when submitting
+               * - Disabled when submission is in progress to prevent duplicate requests
+               */}
+              <Button 
+                type="submit" 
+                className="bg-primary hover:bg-primary-800"
+                disabled={isSubmitting}
+              >
+                {isSubmitting 
+                  ? (isEditing ? "Saving..." : "Adding...") 
+                  : (isEditing ? "Save Changes" : "Add Accommodation")
+                }
               </Button>
             </DialogFooter>
           </form>

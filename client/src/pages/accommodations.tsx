@@ -39,7 +39,18 @@ export default function Accommodations() {
     queryKey: ["/api/destinations"],
   });
 
-  // Create accommodation mutation with proper type handling
+  /**
+   * Create accommodation mutation with loading state and error handling
+   * 
+   * @description This mutation handles the API request for creating new accommodations
+   * and provides feedback to the user through toast notifications.
+   * 
+   * @behavior
+   * - Tracks loading state with isPending to disable UI elements during submission
+   * - Shows success toast on successful creation
+   * - Shows error toast on failed creation
+   * - Automatically refreshes accommodation data on success
+   */
   const createAccommodation = useMutation({
     mutationFn: (newAccommodation: InsertAccommodation) => 
       apiRequestWithJson<InsertAccommodation, Accommodation>("POST", "/api/accommodations", newAccommodation),
@@ -60,7 +71,18 @@ export default function Accommodations() {
     },
   });
 
-  // Update accommodation mutation with proper type for payload
+  /**
+   * Update accommodation mutation with loading state and error handling
+   * 
+   * @description This mutation handles the API request for updating existing accommodations
+   * and provides feedback to the user through toast notifications.
+   * 
+   * @behavior
+   * - Tracks loading state with isPending to disable UI elements during submission
+   * - Shows success toast on successful update
+   * - Shows error toast on failed update
+   * - Automatically refreshes accommodation data on success
+   */
   interface UpdateAccommodationParams {
     id: number;
     data: Partial<InsertAccommodation>;
@@ -277,6 +299,7 @@ export default function Accommodations() {
         onSubmit={handleCreateOrUpdateAccommodation}
         defaultValues={editingAccommodation || undefined}
         isEditing={!!editingAccommodation}
+        isSubmitting={createAccommodation.isPending || updateAccommodation.isPending}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -298,8 +321,9 @@ export default function Accommodations() {
             <Button
               variant="destructive"
               onClick={confirmDelete}
+              disabled={deleteAccommodation.isPending}
             >
-              Delete
+              {deleteAccommodation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
