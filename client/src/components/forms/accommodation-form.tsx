@@ -59,6 +59,27 @@ export interface AccommodationFormProps {
   isSubmitting?: boolean;
 }
 
+/**
+ * Accommodation Form Component with Real-Time Validation
+ * 
+ * This form implements real-time validation feedback for all fields as users type.
+ * It uses React Hook Form's onChange mode to validate input and display error messages
+ * immediately, improving user experience by providing instant feedback.
+ * 
+ * @validation
+ * - All fields use real-time validation triggered by the onChange event
+ * - Name field validates for required input
+ * - Type field validates for required selection
+ * - Destination field validates for required selection
+ * - Image URL field validates for proper URL format (optional field)
+ * 
+ * @realtime_validation_guide
+ * To implement similar real-time validation in other forms:
+ * 1. Set useForm mode to "onChange" to validate as users type
+ * 2. Use formState.errors to access field-specific error messages
+ * 3. FormMessage components will automatically display validation errors
+ * 4. The Submit button can be disabled based on !formState.isValid to prevent submissions with errors
+ */
 export function AccommodationForm({
   open,
   onOpenChange,
@@ -93,11 +114,23 @@ export function AccommodationForm({
 
   /**
    * Initialize the form with typesafe validation using Zod schema
+   * 
+   * @configuration
+   * - mode: "onChange" - Enables real-time validation as users type
+   * - resolver: zodResolver - Validates form values against our Zod schema
+   * - defaultValues: Pre-populated values based on the current state (new or editing)
    */
   const form = useForm<AccommodationFormValues>({
     resolver: zodResolver(accommodationFormSchema),
     defaultValues: prepareDefaultValues(),
+    mode: "onChange", // Enable real-time validation
   });
+  
+  /**
+   * Extract form state to access validation status
+   * Used for real-time validation feedback and disabling submit button when form is invalid
+   */
+  const { formState } = form;
 
   // Use explicit typing for the destinations query
   const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
@@ -131,6 +164,10 @@ export function AccommodationForm({
             };
             onSubmit(apiValues);
           })} className="space-y-4">
+            {/* 
+             * Name field with real-time validation
+             * Shows error message as user types if the field is empty
+             */}
             <FormField
               control={form.control}
               name="name"
@@ -138,12 +175,24 @@ export function AccommodationForm({
                 <FormItem>
                   <FormLabel>Accommodation Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Grand Hotel Paris" {...field} />
+                    <Input 
+                      placeholder="Grand Hotel Paris" 
+                      {...field} 
+                      onChange={(e) => {
+                        field.onChange(e);
+                        // This triggers validation as the user types
+                        form.trigger("name");
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {/* 
+             * Type selection field with real-time validation
+             * Validates as soon as user makes a selection
+             */}
             <FormField
               control={form.control}
               name="type"
@@ -151,11 +200,15 @@ export function AccommodationForm({
                 <FormItem>
                   <FormLabel>Type</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Trigger validation when selection changes
+                      form.trigger("type");
+                    }}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={formState.errors.type ? "border-red-500" : ""}>
                         <SelectValue placeholder="Select a type" />
                       </SelectTrigger>
                     </FormControl>
@@ -171,6 +224,10 @@ export function AccommodationForm({
                 </FormItem>
               )}
             />
+            {/* 
+             * Destination selection field with real-time validation
+             * Shows validation error if no destination is selected
+             */}
             <FormField
               control={form.control}
               name="destinationId"
@@ -178,12 +235,16 @@ export function AccommodationForm({
                 <FormItem>
                   <FormLabel>Destination</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    onValueChange={(value) => {
+                      field.onChange(parseInt(value));
+                      // Trigger validation when selection changes
+                      form.trigger("destinationId");
+                    }}
                     defaultValue={field.value?.toString()}
                     disabled={isLoadingDestinations}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={formState.errors.destinationId ? "border-red-500" : ""}>
                         <SelectValue placeholder="Select a destination" />
                       </SelectTrigger>
                     </FormControl>
@@ -199,6 +260,10 @@ export function AccommodationForm({
                 </FormItem>
               )}
             />
+            {/* 
+             * Image URL field with real-time validation
+             * Validates URL format as user types (this field is optional)
+             */}
             <FormField
               control={form.control}
               name="image"
@@ -206,7 +271,25 @@ export function AccommodationForm({
                 <FormItem>
                   <FormLabel>Image URL (optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/image.jpg" {...field} value={field.value || ""} />
+                    <Input 
+                      placeholder="https://example.com/image.jpg" 
+                      {...field} 
+                      value={field.value || ""}
+                      className={formState.errors.image ? "border-red-500" : ""}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        // Only trigger validation if there's a value
+                        if (e.target.value) {
+                          form.trigger("image");
+                        }
+                      }}
+                      onBlur={() => {
+                        // Also validate on blur for better UX
+                        if (field.value) {
+                          form.trigger("image");
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -225,10 +308,20 @@ export function AccommodationForm({
                * - Shows "Adding..." or "Saving..." when submitting
                * - Disabled when submission is in progress to prevent duplicate requests
                */}
+              {/* 
+               * Enhanced Submit Button with validation-aware state
+               * 
+               * This button is disabled in two scenarios:
+               * 1. During form submission to prevent duplicate requests
+               * 2. When the form has validation errors
+               * 
+               * The button's disabled state reflects real-time validation status,
+               * preventing users from submitting invalid data.
+               */}
               <Button 
                 type="submit" 
                 className="bg-primary hover:bg-primary-800"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !formState.isValid || formState.isSubmitting}
               >
                 {isSubmitting 
                   ? (isEditing ? "Saving..." : "Adding...") 
