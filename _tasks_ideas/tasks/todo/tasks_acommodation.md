@@ -22,7 +22,109 @@ Act as a full-stack reviewer. On the Accommodation page, inspect the “Add Acco
 #### Areas for Improvement
 - **Loading State:** Add a loading indicator or disable the button during submission.  
 - **Specific Error Messages:** Surface more detailed error info rather than a generic message.  
-- **Real-Time Validation Feedback:** Consider live form validation feedback as the user types.  
+- **Real-Time Validation Feedback:** Consider live form validation feedback as the user types.
+Here's a complete markdown prompt for each of the improvement areas from the review, following Prompting 101 and including the instruction to add clear JSDoc to support future AI review:
+
+
+---
+
+Prompt 1 – Add Loading State to Add Accommodation Button
+
+**Task**: Improve UX of the "Add Accommodation" button by adding a loading state during form submission.
+
+**Context**:  
+Currently, the "Add Accommodation" button remains clickable during API submission, which may lead to accidental duplicate requests.
+
+**Instructions**:  
+1. Update the component file (likely `accommodations.tsx` or `AccommodationForm.tsx`) to:
+   - Disable the button and/or show a spinner while the API request is in progress.
+   - Use React state or `isLoading` from `useMutation` to manage the button state.
+
+2. Update JSDoc at the top of the file and near the `Add Accommodation` button logic:
+   - Explain the button's purpose and when it should be disabled.
+   - Include guidance for maintaining consistency across other API-driven buttons.
+
+**Example**:
+```tsx
+// Disable button with loading state
+<button type="submit" disabled={isLoading}>
+  {isLoading ? 'Saving...' : 'Add Accommodation'}
+</button>
+
+Deliverables:
+
+Updated component with loading state logic.
+
+JSDoc explaining button behavior and loading handling best practices.
+
+
+---
+
+### **Prompt 2 – Improve Error Messages for Accommodation Creation**
+
+```md
+**Task**: Replace generic error toasts with specific error messages from API responses when accommodation creation fails.
+
+**Context**:  
+Currently, the error toast shows "Failed to create accommodation" regardless of the actual failure reason. Improving this will enhance UX and debugging.
+
+**Instructions**:  
+1. Update the `onError` logic in the `useMutation` block to:
+   - Inspect the `error` object or response body.
+   - Show a detailed message if available (e.g. validation failed, name required, server timeout, etc.).
+
+2. Update JSDoc in the component file:
+   - Document how the error handling logic works.
+   - Include instructions for maintaining informative error messages across similar forms.
+
+**Example**:
+```tsx
+onError: (error) => {
+  const message = error?.response?.data?.message || 'Failed to create accommodation';
+  toast.error(message);
+}
+
+Deliverables:
+
+Updated error handling logic.
+
+JSDoc that documents custom error toast behavior and best practices.
+
+
+---
+
+### **Prompt 3 – Add Real-Time Validation Feedback to Form Fields**
+
+```md
+**Task**: Enhance the accommodation form with real-time validation feedback using React Hook Form and Zod.
+
+**Context**:  
+Users currently receive validation errors only on submit. Inline, real-time validation will improve usability and prevent submit-time frustration.
+
+**Instructions**:  
+1. Refactor the form to display validation messages as users type.
+   - Use `formState.errors` and `onChange`/`onBlur` from React Hook Form.
+   - Show messages under relevant fields (e.g., "Name is required").
+
+2. Update JSDoc in the form component file:
+   - Document which fields use real-time validation and why.
+   - Include a general guide for developers to replicate this in other forms.
+
+**Example**:
+```tsx
+{errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+
+Deliverables:
+
+Real-time validation logic for all critical fields.
+
+JSDoc covering form validation philosophy and usage patterns.
+
+
+---
+
+Let me know when you’re ready for me to help generate these directly into the appropriate files or if you’d like to chain these into a single multi-step refactor prompt.
+
 
 ---
 
