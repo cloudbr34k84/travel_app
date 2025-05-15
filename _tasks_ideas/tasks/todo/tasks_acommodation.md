@@ -408,3 +408,288 @@ Audit the search and table integration:
 - **Pagination/Infinite Scroll:** Load data in pages or use cursor-based fetching.  
 - **Error Toasts:** Catch and display toasts for failed search requests.  
 - **Reset Filters Button:** Add a dedicated reset control in the search-filter component.  
+
+
+# These are yht remaining prompts to use
+
+Here are individual prompts for each action item from Prompts 3, 4, and 5, all written according to Prompt Engineering 101 with clear instructions to add/update JSDoc for maintainability:
+
+
+---
+
+Prompt 3.1 – Add Empty-State Messaging to Destination Dropdown
+
+**Task**: Improve UX by adding placeholder text and an action to the Destination dropdown when no destinations are available.
+
+**Context**:  
+When the API returns no destinations, the dropdown is empty with no guidance for the user.
+
+**Instructions**:  
+1. In each destination dropdown (`destination-form.tsx`, `trip-builder.tsx`, etc.), add:
+   - A fallback option: “No destinations—add one”.
+   - Optional: A button to open the “Add Destination” modal from within the empty dropdown state.
+
+2. Update JSDoc in affected files:
+   - Describe the logic for handling an empty destination list.
+   - Include maintenance instructions for ensuring the empty state always includes a call-to-action.
+
+**Deliverables**:  
+- Placeholder rendering logic.
+- Modal-triggering mechanism.
+- Updated JSDoc explaining fallback state usage.
+
+
+---
+
+Prompt 3.2 – Add Loading State to Destination Dropdowns
+
+**Task**: Display a loading indicator in Destination dropdowns while data is being fetched.
+
+**Context**:  
+Currently, when destinations are loading, there is no visual feedback.
+
+**Instructions**:  
+1. Use `isLoading` from React Query to show:
+   - A spinner or “Loading…” text within the dropdown until data is ready.
+   - Optional: Use a skeleton placeholder if dropdown is prominent.
+
+2. Update JSDoc:
+   - Explain how loading states are handled and why this improves UX.
+   - Document any fallback or transition UI used.
+
+**Deliverables**:  
+- Loading state logic for dropdowns.
+- JSDoc covering when and how to indicate loading.
+
+
+---
+
+Prompt 3.3 – Add Error Message Fallback for Failed Destination Fetch
+
+**Task**: Handle API errors in destination dropdowns by displaying retryable error messages.
+
+**Context**:  
+No error UI is shown if the destination fetch fails.
+
+**Instructions**:  
+1. Use `error` state from React Query to:
+   - Display a message like “Failed to load destinations. Try again.”
+   - Include a “Retry” button that refetches the query.
+
+2. Update JSDoc:
+   - Document how and when fetch errors are surfaced to the user.
+   - Describe the retry mechanism and fallback UI.
+
+**Deliverables**:  
+- Error message component or inline fallback UI.
+- JSDoc explaining error states and retry logic.
+
+
+---
+
+Prompt 3.4 – Extract Destination Dropdown into a Reusable Component
+
+**Task**: Create a reusable `DestinationDropdown` component to encapsulate fetch, loading, empty, and error handling logic.
+
+**Context**:  
+Currently, destination dropdowns are duplicated across forms with similar logic.
+
+**Instructions**:  
+1. Move the dropdown logic into `components/common/DestinationDropdown.tsx`.
+   - Accept props for selected value, onChange handler, and default text.
+   - Internally handle fetch, loading, empty, and error states.
+
+2. Update JSDoc:
+   - At the top of the new file, describe usage and customization options.
+   - Add a short comment in each refactored file linking to this shared component.
+
+**Deliverables**:  
+- `DestinationDropdown.tsx` component.
+- Updated imports and usages across forms.
+- Full JSDoc describing API and usage.
+
+
+---
+
+Prompt 4.1 – Replace Hard-Coded Type Dropdown with API Enum Fetch
+
+**Task**: Replace the hard-coded type options in `accommodations.tsx` with a dynamic enum fetch from the backend.
+
+**Context**:  
+The “All Types” filter dropdown uses a hard-coded list of accommodation types.
+
+**Instructions**:  
+1. Create a new query to fetch type options from `/api/accommodation-types`.
+2. Replace the static array with the dynamic data in the filter bar.
+
+3. Update JSDoc:
+   - Document the reasoning for using dynamic enum data.
+   - Note the structure of the returned enum values and how they are transformed for display.
+
+**Deliverables**:  
+- API fetch and query hook for types.
+- Updated dropdown logic.
+- JSDoc in both the filter bar and query file.
+
+
+---
+
+Prompt 4.2 – Add Server-Side Filtering to Accommodation List
+
+**Task**: Implement server-side filtering for accommodation types and destinations.
+
+**Context**:  
+Filters are currently applied client-side. This doesn’t scale well with large datasets.
+
+**Instructions**:  
+1. Modify the API call in `accommodations.tsx` to include `type` and `destinationId` as query parameters.
+2. Update the backend route handler to apply filters in the database query.
+
+3. Update JSDoc:
+   - Explain how filters are passed and processed.
+   - Note where filter values are sanitized or validated.
+
+**Deliverables**:  
+- Query param handling in frontend.
+- Filtering logic in backend.
+- JSDoc updates in route handler and component.
+
+
+---
+
+Prompt 4.3 – Add Enum Validation to Filtering
+
+**Task**: Validate enum filter values before applying them to the accommodation list.
+
+**Context**:  
+Invalid enum values are currently accepted without validation.
+
+**Instructions**:  
+1. In the backend handler, validate incoming filter values against a predefined enum.
+2. Return a 400 error for unknown values.
+
+3. Update JSDoc:
+   - Describe the expected enum format.
+   - Document the validation logic and response shape for errors.
+
+**Deliverables**:  
+- Enum validation logic.
+- Descriptive 400 error responses.
+- JSDoc covering filter input constraints.
+
+
+---
+
+Prompt 4.4 – Add Filter State to URL
+
+**Task**: Encode the selected filter state (type and destination) into the URL for shareable views.
+
+**Context**:  
+Current filters are local state only, making it hard to share filtered views.
+
+**Instructions**:  
+1. Use `URLSearchParams` to sync filter values with the URL.
+2. On page load, parse URL to restore filter state.
+
+3. Update JSDoc:
+   - Document how filters are encoded/decoded in URLs.
+   - Include future considerations (e.g., bookmarking, deep linking).
+
+**Deliverables**:  
+- URL-sync logic in `accommodations.tsx`.
+- JSDoc describing filter URL format.
+
+
+---
+
+Prompt 5.1 – Add Debounce to Search Input
+
+**Task**: Debounce user input in the accommodation search box to avoid excessive re-renders or API calls.
+
+**Context**:  
+Currently, each keystroke triggers a new filter operation immediately.
+
+**Instructions**:  
+1. Use `useDebounce` or `useEffect + setTimeout` to delay applying the search value by ~300ms.
+2. Update the search logic to use the debounced value.
+
+3. Update JSDoc:
+   - Explain debounce timing and why it’s used.
+   - Document where to adjust delay thresholds if needed.
+
+**Deliverables**:  
+- Debounced search input.
+- JSDoc for search/filter performance.
+
+
+---
+
+Prompt 5.2 – Add Server-Side Search
+
+**Task**: Move search logic from client-side filtering to a real backend API query.
+
+**Context**:  
+Current filtering happens only on the already-fetched accommodation list.
+
+**Instructions**:  
+1. Update the `/api/accommodations` route to accept a `search` query param.
+2. Update the frontend to send the search term and show filtered results from the server.
+
+3. Update JSDoc:
+   - At the route handler, explain query params and supported formats.
+   - In the frontend, document the request lifecycle and fallback behavior.
+
+**Deliverables**:  
+- Search param support in backend.
+- Connected search bar in frontend.
+- JSDoc for search API and UI logic.
+
+
+---
+
+Prompt 5.3 – Add Pagination or Infinite Scroll to Accommodations List
+
+**Task**: Implement paginated or infinite-scroll loading for the accommodation list.
+
+**Context**:  
+All accommodations are loaded at once, which does not scale well.
+
+**Instructions**:  
+1. Backend: Support `limit` and `cursor` or `page` query params.
+2. Frontend: Use `useInfiniteQuery` (TanStack Query) or pagination buttons to load data incrementally.
+
+3. Update JSDoc:
+   - In the backend, document pagination logic and param defaults.
+   - In the frontend, explain scroll triggers and loading behavior.
+
+**Deliverables**:  
+- Backend pagination support.
+- Infinite scroll or paginated UI.
+- JSDoc covering paging strategy and parameters.
+
+
+---
+
+Prompt 5.4 – Show Error Toasts for Search Failures
+
+**Task**: Display user-friendly toast messages when search API calls fail.
+
+**Context**:  
+Search failures are silent; users don’t know when something went wrong.
+
+**Instructions**:  
+1. Catch errors from the search API call in `accommodations.tsx`.
+2. Display an error toast using your toast UI system.
+
+3. Update JSDoc:
+   - Document when errors are surfaced and toast fallback logic.
+
+**Deliverables**:  
+- Error catch block and toast display.
+- JSDoc for search error handling.
+
+
+---
+
+Would you like these bundled into a file or task list for project tracking?
+
