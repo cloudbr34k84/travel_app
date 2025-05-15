@@ -247,14 +247,8 @@ export function AccommodationForm({
               };
               
               // Call the onSubmit callback provided by parent component
-              // with enhanced error handling
-              try {
-                onSubmit(apiValues);
-              } catch (error) {
-                // This catch is just for synchronous errors
-                // Most errors will be handled by the parent component's mutation onError
-                console.error("Form submission error:", error);
-              }
+              // Parent component will handle server errors and pass them back to us via onError callback
+              onSubmit(apiValues);
             },
             // Error handler - executed when client-side validation fails
             (errors) => {
