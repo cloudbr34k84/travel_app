@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, apiRequestWithJson } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { DestinationForm } from "@/components/forms/destination-form";
 import { Trip, Destination, Activity, Accommodation, InsertTrip } from "@shared/schema";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,26 @@ export default function TripBuilder() {
   const [selectedDestinations, setSelectedDestinations] = useState<number[]>([]);
   const [selectedActivities, setSelectedActivities] = useState<number[]>([]);
   const [selectedAccommodations, setSelectedAccommodations] = useState<number[]>([]);
+  const [destinationFormOpen, setDestinationFormOpen] = useState(false);
+
+  // Listen for openDestinationForm events to handle destinations modal from dropdown empty state
+  useEffect(() => {
+    /**
+     * Event handler for the openDestinationForm custom event
+     * This allows the destination dropdown empty state to trigger opening the destination form
+     */
+    const handleOpenDestinationForm = () => {
+      setDestinationFormOpen(true);
+    };
+    
+    // Add event listener when component mounts
+    window.addEventListener('openDestinationForm', handleOpenDestinationForm);
+    
+    // Remove event listener when component unmounts
+    return () => {
+      window.removeEventListener('openDestinationForm', handleOpenDestinationForm);
+    };
+  }, []);
 
   /**
    * Fetch all destinations for trip planning
