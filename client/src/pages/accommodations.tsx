@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { SearchFilter } from "@/components/ui/search-filter";
 import { AccommodationCard } from "@/components/accommodations/accommodation-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Accommodation, Destination, InsertAccommodation } from "@shared/schema";
-import { AccommodationForm } from "@/components/forms/accommodation-form";
+import { AccommodationForm, AccommodationFormProps } from "@/components/forms/accommodation-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, apiRequestWithJson } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -28,6 +28,11 @@ export default function Accommodations() {
   const [accommodationToDelete, setAccommodationToDelete] = useState<number | null>(null);
   const [accommodationDetailOpen, setAccommodationDetailOpen] = useState(false);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
+  
+  // Reference to the accommodation form for handling server validation errors
+  const accommodationFormRef = useRef<{
+    parseServerValidationErrors: (error: Error) => boolean;
+  }>(null);
 
   // Fetch accommodations
   const { data: accommodations, isLoading } = useQuery<Accommodation[]>({
@@ -76,7 +81,19 @@ export default function Accommodations() {
       setFormOpen(false);
     },
     onError: (error: Error) => {
-      // Extract detailed error message from the error object
+      // First, try to parse and map field validation errors to the form fields
+      if (accommodationFormRef.current?.parseServerValidationErrors(error)) {
+        // If validation errors were successfully mapped to form fields, 
+        // just show a generic error toast without field details
+        toast({
+          title: "Validation Error",
+          description: "Please correct the highlighted fields",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // If no field validation errors were mapped, fall back to generic error handling
       let errorMessage = "Failed to create accommodation";
       
       // The apiRequestWithJson function throws errors in format: "Status: Message"
@@ -155,7 +172,19 @@ export default function Accommodations() {
       setEditingAccommodation(null);
     },
     onError: (error: Error) => {
-      // Extract detailed error message from the error object
+      // First, try to parse and map field validation errors to the form fields
+      if (accommodationFormRef.current?.parseServerValidationErrors(error)) {
+        // If validation errors were successfully mapped to form fields, 
+        // just show a generic error toast without field details
+        toast({
+          title: "Validation Error",
+          description: "Please correct the highlighted fields",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // If no field validation errors were mapped, fall back to generic error handling
       let errorMessage = "Failed to update accommodation";
       
       // The apiRequestWithJson function throws errors in format: "Status: Message"
@@ -426,9 +455,11 @@ export default function Accommodations() {
 
       {/* Create/Edit Accommodation Form */}
       <AccommodationForm
+        ref={accommodationFormRef}
         open={formOpen}
         onOpenChange={handleFormOpenChange}
         onSubmit={handleCreateOrUpdateAccommodation}
+        onError={(error) => accommodationFormRef.current?.parseServerValidationErrors(error)}
         defaultValues={editingAccommodation || undefined}
         isEditing={!!editingAccommodation}
         isSubmitting={createAccommodation.isPending || updateAccommodation.isPending}

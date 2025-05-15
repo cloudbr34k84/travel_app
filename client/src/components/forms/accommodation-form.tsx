@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import React, { forwardRef, useImperativeHandle } from "react";
 import { Accommodation, Destination } from "@shared/schema";
 import { insertAccommodationSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -97,19 +98,28 @@ export interface AccommodationFormProps {
  * 4. The Submit button should be disabled with: disabled={!formState.isValid || formState.isSubmitting}
  * 5. For server error mapping, implement an error parsing function in the onSubmit handler that calls setError
  */
-export function AccommodationForm({
-  open,
-  onOpenChange,
-  onSubmit,
-  onError,
-  defaultValues,
-  isEditing = false,
-  isSubmitting = false,
-}: AccommodationFormProps) {
-  /**
-   * Prepares default values for the form with proper type conversion
-   * @returns Properly typed form values
-   */
+// Define a type for the ref exposed by the form
+type AccommodationFormRef = {
+  parseServerValidationErrors: (error: Error) => boolean;
+};
+
+// Use a named function for the forwardRef to improve debugging
+export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationFormProps>(
+  function AccommodationForm(props, ref) {
+    const {
+      open,
+      onOpenChange,
+      onSubmit,
+      onError,
+      defaultValues,
+      isEditing = false,
+      isSubmitting = false,
+    } = props;
+
+    /**
+     * Prepares default values for the form with proper type conversion
+     * @returns Properly typed form values
+     */
   const prepareDefaultValues = (): AccommodationFormValues => {
     if (defaultValues) {
       return {
@@ -152,6 +162,13 @@ export function AccommodationForm({
    */
   const { formState, setError } = form;
   const { toast } = useToast();
+
+  // Expose the parseServerValidationErrors function to parent components via ref
+  useImperativeHandle(ref, () => ({
+    parseServerValidationErrors: (error: Error) => {
+      return parseServerValidationErrors(error);
+    }
+  }));
 
   // Use explicit typing for the destinations query
   const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
@@ -420,4 +437,5 @@ export function AccommodationForm({
       </DialogContent>
     </Dialog>
   );
-}
+  }
+);
