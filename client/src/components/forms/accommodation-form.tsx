@@ -60,9 +60,10 @@ export interface AccommodationFormProps {
 }
 
 /**
- * Accommodation Form Component with Real-Time Validation
+ * Accommodation Form Component with Real-Time Validation and Submit Protection
  * 
- * This form implements real-time validation feedback for all fields as users type.
+ * This form implements real-time validation feedback for all fields as users type
+ * and protects against invalid submissions through button disabling logic.
  * It uses React Hook Form's onChange mode to validate input and display error messages
  * immediately, improving user experience by providing instant feedback.
  * 
@@ -73,12 +74,19 @@ export interface AccommodationFormProps {
  * - Destination field validates for required selection
  * - Image URL field validates for proper URL format (optional field)
  * 
+ * @submit_button_behavior
+ * - The submit button is disabled in two critical scenarios:
+ *   1. When form validation fails (formState.isValid is false)
+ *   2. During form submission to prevent duplicate requests (formState.isSubmitting or props.isSubmitting)
+ * - Button text changes to reflect the current action ("Adding..." during submission)
+ * - This prevents users from submitting invalid data and improves API request reliability
+ * 
  * @realtime_validation_guide
  * To implement similar real-time validation in other forms:
  * 1. Set useForm mode to "onChange" to validate as users type
  * 2. Use formState.errors to access field-specific error messages
  * 3. FormMessage components will automatically display validation errors
- * 4. The Submit button can be disabled based on !formState.isValid to prevent submissions with errors
+ * 4. The Submit button should be disabled with: disabled={!formState.isValid || formState.isSubmitting}
  */
 export function AccommodationForm({
   open,
@@ -127,8 +135,10 @@ export function AccommodationForm({
   });
   
   /**
-   * Extract form state to access validation status
-   * Used for real-time validation feedback and disabling submit button when form is invalid
+   * Extract form state to access validation status and submission state
+   * Used for real-time validation feedback and conditional button disabling
+   * - formState.isValid: True when all form fields pass validation
+   * - formState.isSubmitting: True during form submission
    */
   const { formState } = form;
 
@@ -297,33 +307,25 @@ export function AccommodationForm({
             />
             <DialogFooter>
               {/* 
-               * Submit Button with loading state
+               * Submit Button with Enhanced Validation-Aware State
                * 
-               * This button is disabled during form submission to prevent duplicate requests.
-               * It shows different text based on the current operation (adding vs editing)
-               * and submission state, improving user feedback during API operations.
+               * This button implements a UX-optimized disabled state that prevents:
+               * 1. Invalid submissions - When the form has validation errors (formState.isValid is false)
+               * 2. Double-submissions - During form submission (formState.isSubmitting or isSubmitting prop is true)
                * 
                * @behavior
                * - Shows "Add Accommodation" or "Save Changes" when idle
                * - Shows "Adding..." or "Saving..." when submitting
-               * - Disabled when submission is in progress to prevent duplicate requests
-               */}
-              {/* 
-               * Enhanced Submit Button with validation-aware state
-               * 
-               * This button is disabled in two scenarios:
-               * 1. During form submission to prevent duplicate requests
-               * 2. When the form has validation errors
-               * 
-               * The button's disabled state reflects real-time validation status,
-               * preventing users from submitting invalid data.
+               * - Dynamically updates disabled state based on real-time form validation
+               * - Prevents users from submitting invalid data
+               * - Prevents duplicate API calls by disabling during submission
                */}
               <Button 
                 type="submit" 
                 className="bg-primary hover:bg-primary-800"
                 disabled={isSubmitting || !formState.isValid || formState.isSubmitting}
               >
-                {isSubmitting 
+                {isSubmitting || formState.isSubmitting
                   ? (isEditing ? "Saving..." : "Adding...") 
                   : (isEditing ? "Save Changes" : "Add Accommodation")
                 }
