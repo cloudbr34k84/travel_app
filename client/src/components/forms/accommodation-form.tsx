@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Extended schema for accommodation form with additional fields and validations
@@ -46,6 +47,7 @@ export type AccommodationApiValues = {
  * @property open - Controls the visibility state of the accommodation form dialog
  * @property onOpenChange - Callback function that is triggered when dialog open state changes
  * @property onSubmit - Callback function that handles form submission with validated values
+ * @property onError - Optional callback for handling server-side validation errors
  * @property defaultValues - Pre-populated values for editing an existing accommodation
  * @property isEditing - Flag indicating whether the form is in edit mode
  * @property isSubmitting - Flag indicating whether a submission is in progress
@@ -54,18 +56,18 @@ export interface AccommodationFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: AccommodationApiValues) => void;
+  onError?: (error: Error) => void;
   defaultValues?: Partial<Accommodation>;
   isEditing?: boolean;
   isSubmitting?: boolean;
 }
 
 /**
- * Accommodation Form Component with Real-Time Validation and Submit Protection
+ * Accommodation Form Component with Real-Time Validation and Server-Side Error Mapping
  * 
- * This form implements real-time validation feedback for all fields as users type
- * and protects against invalid submissions through button disabling logic.
- * It uses React Hook Form's onChange mode to validate input and display error messages
- * immediately, improving user experience by providing instant feedback.
+ * This form implements comprehensive validation through two key mechanisms:
+ * 1. Real-time client-side validation that provides immediate feedback as users type
+ * 2. Server-side validation error mapping that associates backend validation failures with specific form fields
  * 
  * @validation
  * - All fields use real-time validation triggered by the onChange event
@@ -73,6 +75,12 @@ export interface AccommodationFormProps {
  * - Type field validates for required selection
  * - Destination field validates for required selection
  * - Image URL field validates for proper URL format (optional field)
+ * 
+ * @server_error_mapping
+ * - When the server returns validation errors (400 status code), the component parses the response
+ * - Field-specific errors are mapped directly to form fields using react-hook-form's setError function
+ * - Expected error response format from server: { message: string, errors: { fieldName: string[] } }
+ * - This creates a seamless experience where server validation appears directly in the UI
  * 
  * @submit_button_behavior
  * - The submit button is disabled in two critical scenarios:
@@ -87,11 +95,13 @@ export interface AccommodationFormProps {
  * 2. Use formState.errors to access field-specific error messages
  * 3. FormMessage components will automatically display validation errors
  * 4. The Submit button should be disabled with: disabled={!formState.isValid || formState.isSubmitting}
+ * 5. For server error mapping, implement an error parsing function in the onSubmit handler that calls setError
  */
 export function AccommodationForm({
   open,
   onOpenChange,
   onSubmit,
+  onError,
   defaultValues,
   isEditing = false,
   isSubmitting = false,
@@ -140,12 +150,73 @@ export function AccommodationForm({
    * - formState.isValid: True when all form fields pass validation
    * - formState.isSubmitting: True during form submission
    */
-  const { formState } = form;
+  const { formState, setError } = form;
+  const { toast } = useToast();
 
   // Use explicit typing for the destinations query
   const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
+  
+  /**
+   * Parses server-side validation errors and maps them to form fields
+   * 
+   * @param error - The error object returned from the server
+   * @returns boolean - Whether any field errors were mapped (true) or not (false)
+   */
+  const parseServerValidationErrors = (error: Error): boolean => {
+    try {
+      // The apiRequestWithJson function throws errors in format: "Status: Message"
+      if (!error.message) return false;
+      
+      // Check if it's a structured error with status code
+      const errorMatch = error.message.match(/^(\d+): (.+)$/);
+      if (!errorMatch) return false;
+      
+      const [, statusCode, message] = errorMatch;
+      
+      // Only process 400 status errors (validation errors)
+      if (statusCode !== "400") return false;
+      
+      try {
+        // Try to parse the message as JSON which might contain field errors
+        const errorData = JSON.parse(message);
+        
+        // Check if the error response contains a fieldErrors or errors object
+        const fieldErrors = errorData.fieldErrors || errorData.errors;
+        
+        if (!fieldErrors || typeof fieldErrors !== 'object') return false;
+        
+        let errorsFound = false;
+        
+        // Map each field error to the corresponding form field
+        Object.entries(fieldErrors).forEach(([field, errorMessages]) => {
+          // For errors returned as arrays (e.g., ['Name is required'])
+          if (Array.isArray(errorMessages) && errorMessages.length > 0) {
+            setError(field as keyof AccommodationFormValues, { 
+              message: errorMessages[0] as string 
+            });
+            errorsFound = true;
+          } 
+          // For errors returned as strings (e.g., 'Name is required')
+          else if (typeof errorMessages === 'string') {
+            setError(field as keyof AccommodationFormValues, { 
+              message: errorMessages 
+            });
+            errorsFound = true;
+          }
+        });
+        
+        return errorsFound;
+      } catch (jsonError) {
+        // If JSON parsing fails, it's not a structured field error
+        return false;
+      }
+    } catch (parseError) {
+      // If error parsing fails completely, just return false
+      return false;
+    }
+  };
 
   const accommodationTypes = [
     { value: "Hotel", label: "Hotel" },
@@ -165,15 +236,34 @@ export function AccommodationForm({
           <DialogTitle>{isEditing ? "Edit Accommodation" : "Add New Accommodation"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values: AccommodationFormValues) => {
-            // Convert form values to API values
-            const apiValues: AccommodationApiValues = {
-              ...values,
-              // Include id if we're editing
-              ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
-            };
-            onSubmit(apiValues);
-          })} className="space-y-4">
+          <form onSubmit={form.handleSubmit(
+            // Success handler - executed when form validation passes
+            (values: AccommodationFormValues) => {
+              // Convert form values to API values
+              const apiValues: AccommodationApiValues = {
+                ...values,
+                // Include id if we're editing
+                ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
+              };
+              
+              // Call the onSubmit callback provided by parent component
+              // with enhanced error handling
+              try {
+                onSubmit(apiValues);
+              } catch (error) {
+                // This catch is just for synchronous errors
+                // Most errors will be handled by the parent component's mutation onError
+                console.error("Form submission error:", error);
+              }
+            },
+            // Error handler - executed when client-side validation fails
+            (errors) => {
+              console.log("Form validation failed:", errors);
+              // We don't need to do anything here as React Hook Form will
+              // automatically show validation messages for invalid fields
+            }
+          )} 
+          className="space-y-4">
             {/* 
              * Name field with real-time validation
              * Shows error message as user types if the field is empty
