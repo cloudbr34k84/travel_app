@@ -183,6 +183,15 @@ export function ActivityForm({
                 </FormItem>
               )}
             />
+            {/* 
+             * Destination selection field with real-time validation and empty state handling
+             * 
+             * @EmptyState
+             * - When no destinations are available, shows a message "No destinations—add one"
+             * - Provides a button to open the destination form modal directly from the dropdown
+             * - Uses a CustomEvent to communicate with parent component to open destination form
+             * - Improves UX by guiding users through the dependency chain (add destination first)
+             */}
             <FormField
               control={form.control}
               name="destinationId"
@@ -200,11 +209,32 @@ export function ActivityForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {destinations && destinations.map((destination: Destination) => (
-                        <SelectItem key={destination.id} value={destination.id.toString()}>
-                          {destination.name}, {destination.country}
-                        </SelectItem>
-                      ))}
+                      {destinations && destinations.length > 0 ? (
+                        destinations.map((destination: Destination) => (
+                          <SelectItem key={destination.id} value={destination.id.toString()}>
+                            {destination.name}, {destination.country}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="px-2 py-4 text-center">
+                          <p className="text-sm text-muted-foreground mb-2">No destinations—add one</p>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              // Close the current form and open destination form
+                              // This would need to be implemented via a callback from parent
+                              onOpenChange(false);
+                              // Notify parent to open destination form
+                              window.dispatchEvent(new CustomEvent('openDestinationForm'));
+                            }}
+                          >
+                            Add Destination
+                          </Button>
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

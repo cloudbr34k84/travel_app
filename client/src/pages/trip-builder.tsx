@@ -295,6 +295,16 @@ export default function TripBuilder() {
             <CardTitle>Destinations</CardTitle>
           </CardHeader>
           <CardContent>
+            {/* 
+             * Destination dropdown with empty state messaging
+             * 
+             * @EmptyState
+             * - When no destinations are available, shows a message "No destinations—add one"
+             * - Provides a button to open the destination form modal directly from the dropdown
+             * - Uses a CustomEvent to communicate with parent component to open destination form
+             * - Empty state always includes a call-to-action to ensure users understand how to proceed
+             * - This improves UX by guiding users through necessary steps in correct order
+             */}
             <div className="space-y-2">
               <Label>Select Destinations</Label>
               <Select
@@ -309,15 +319,33 @@ export default function TripBuilder() {
                   <SelectValue placeholder="Add a destination" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(destinations || []).map((destination: Destination): JSX.Element => (
-                    <SelectItem 
-                      key={destination.id} 
-                      value={destination.id.toString()}
-                      disabled={selectedDestinations.includes(destination.id)}
-                    >
-                      {destination.name}, {destination.country}
-                    </SelectItem>
-                  ))}
+                  {(destinations && destinations.length > 0) ? (
+                    destinations.map((destination: Destination): JSX.Element => (
+                      <SelectItem 
+                        key={destination.id} 
+                        value={destination.id.toString()}
+                        disabled={selectedDestinations.includes(destination.id)}
+                      >
+                        {destination.name}, {destination.country}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-4 text-center">
+                      <p className="text-sm text-muted-foreground mb-2">No destinations—add one</p>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Trigger an event to open the destination form
+                          window.dispatchEvent(new CustomEvent('openDestinationForm'));
+                        }}
+                      >
+                        Add Destination
+                      </Button>
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { SearchFilter } from "@/components/ui/search-filter";
 import { ActivityCard } from "@/components/activities/activity-card";
@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Activity, Destination, InsertActivity } from "@shared/schema";
 import { ActivityForm } from "@/components/forms/activity-form";
+import { DestinationForm } from "@/components/forms/destination-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, apiRequestWithJson } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -28,6 +29,26 @@ export default function Activities() {
   const [activityToDelete, setActivityToDelete] = useState<number | null>(null);
   const [activityDetailOpen, setActivityDetailOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [destinationFormOpen, setDestinationFormOpen] = useState(false);
+
+  // Listen for openDestinationForm events to handle destinations modal from dropdown empty state
+  useEffect(() => {
+    /**
+     * Event handler for the openDestinationForm custom event
+     * This allows the destination dropdown empty state to trigger opening the destination form
+     */
+    const handleOpenDestinationForm = () => {
+      setDestinationFormOpen(true);
+    };
+    
+    // Add event listener when component mounts
+    window.addEventListener('openDestinationForm', handleOpenDestinationForm);
+    
+    // Remove event listener when component unmounts
+    return () => {
+      window.removeEventListener('openDestinationForm', handleOpenDestinationForm);
+    };
+  }, []);
 
   // Fetch activities
   const { data: activities, isLoading } = useQuery<Activity[]>({
@@ -376,6 +397,42 @@ export default function Activities() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Destination Form Modal (opened from empty destination dropdown) */}
+      <DestinationForm
+        open={destinationFormOpen}
+        onOpenChange={(open) => {
+          setDestinationFormOpen(open);
+          // If the destination form is closed, reopen the activity form that was likely closed
+          if (!open) {
+            setFormOpen(true);
+          }
+        }}
+        onSubmit={(values) => {
+          // Create a new destination
+          apiRequestWithJson("POST", "/api/destinations", values)
+            .then(() => {
+              // Invalidate destinations query to refresh list
+              queryClient.invalidateQueries({ queryKey: ["/api/destinations"] });
+              
+              toast({
+                title: "Success",
+                description: "Destination created successfully. Now you can select it for your activity.",
+              });
+              
+              // Close destination form and reopen activity form
+              setDestinationFormOpen(false);
+              setFormOpen(true);
+            })
+            .catch(() => {
+              toast({
+                title: "Error",
+                description: "Failed to create destination",
+                variant: "destructive",
+              });
+            });
+        }}
+      />
     </div>
   );
 }
