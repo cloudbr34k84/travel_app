@@ -8,7 +8,12 @@
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "test-db": "tsx scripts/test-db.ts",
+    "lint:json": "eslint client server shared --ext .ts,.tsx --format json -o eslint-report.json",
+    "lint:report": "npm run lint:json && tsx scripts/eslint-to-md.js",
+    "lint": "eslint client server shared config scripts --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint client server shared config scripts --ext .ts,.tsx,.js,.jsx --fix"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -87,6 +92,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.27.0",
     "@replit/vite-plugin-cartographer": "^0.1.2",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
@@ -100,14 +106,21 @@
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.30.4",
     "esbuild": "^0.25.0",
+    "eslint": "^9.27.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.1.0",
+    "json2md": "^2.0.3",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
+    "typescript-eslint": "^8.32.1",
     "vite": "^5.4.14"
   },
   "optionalDependencies": {
