@@ -1,5 +1,0 @@
-server/vite.ts(4,10): error TS2305: Module '"vite"' has no exported member 'createServer'.
-server/vite.ts(4,44): error TS2305: Module '"vite"' has no exported member 'createLogger'.
-server/vite.ts(34,15): error TS7006: Parameter 'msg' implicitly has an 'any' type.
-server/vite.ts(34,20): error TS7006: Parameter 'options' implicitly has an 'any' type.
-vite.config.ts(1,10): error TS2305: Module '"vite"' has no exported member 'defineConfig'.
