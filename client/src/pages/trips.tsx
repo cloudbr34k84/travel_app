@@ -24,7 +24,7 @@ interface FilterOption {
 export default function Trips() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

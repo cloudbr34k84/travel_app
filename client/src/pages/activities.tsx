@@ -21,8 +21,8 @@ interface FilterOption {
 export default function Activities() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [destinationFilter, setDestinationFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [destinationFilter, setDestinationFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

@@ -19,8 +19,8 @@ interface FilterOption {
 export default function Destinations() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [regionFilter, setRegionFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [regionFilter, setRegionFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingDestination, setEditingDestination] = useState<Destination | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
