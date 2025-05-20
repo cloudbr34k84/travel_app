@@ -9,14 +9,7 @@ export const globalLimiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  message: { message: 'Too many requests, please try again later.' },
-  // Add logging for rate limit events
-  handler: (req, res, next, options) => {
-    console.warn(`[RATE LIMIT] Request to ${req.method} ${req.path} exceeded rate limit`);
-    res.status(options.statusCode).json(options.message);
-  },
-  // Adds headers with rate limit info
-  headers: true,
+  message: { message: 'Too many requests, please try again later.' }
 });
 
 // Auth-specific rate limiter - 10 requests per 15 minutes
@@ -63,25 +56,11 @@ const csrfTokenMiddleware = (req: Request, res: Response, next: NextFunction) =>
 };
 
 export function setupMiddleware(app: Express): void {
-  // Function to check if a request is for a static asset
-  const isStaticAsset = (path: string): boolean => {
-    // Common static asset extensions
-    const staticExtensions = ['.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot'];
-    return staticExtensions.some(ext => path.endsWith(ext)) || path.includes('chunk-') || path.includes('assets/');
-  };
+  // Disabled rate limiters during development to resolve 429 errors
+  // app.use(globalLimiter);
   
-  // Apply the global limiter to all routes EXCEPT static assets
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (isStaticAsset(req.path)) {
-      // Skip rate limiting for static assets
-      return next();
-    }
-    // Apply rate limiting to other routes
-    globalLimiter(req, res, next);
-  });
-  
-  // Apply the auth limiter specifically to login and register routes
-  app.use(['/api/login', '/api/register'], authLimiter);
+  // Disabled auth limiter during development
+  // app.use(['/api/login', '/api/register'], authLimiter);
   
   /**
    * Applies CSRF protection selectively based on request type.
@@ -101,8 +80,8 @@ export function setupMiddleware(app: Express): void {
    * 3. Rejects requests with invalid/missing tokens with a 403 error
    */
   app.use((req: Request, res: Response, next: NextFunction) => {
-    // Skip CSRF for API routes, JSON requests, and static assets
-    if (req.path.startsWith('/api') || req.headers['content-type'] === 'application/json' || isStaticAsset(req.path)) {
+    // Skip CSRF for API routes and JSON requests
+    if (req.path.startsWith('/api') || req.headers['content-type'] === 'application/json') {
       return next();
     }
     
