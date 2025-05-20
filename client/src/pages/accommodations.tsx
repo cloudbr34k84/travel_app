@@ -21,8 +21,8 @@ interface FilterOption {
 export default function Accommodations() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [destinationFilter, setDestinationFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [destinationFilter, setDestinationFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingAccommodation, setEditingAccommodation] = useState<Accommodation | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
