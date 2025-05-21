@@ -15,13 +15,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 /**
- * Extended schema for destination form with additional fields and validations
+ * DestinationForm component.
+ *
+ * This form is used for both creating and editing destinations.
+ * It remains mounted in the DOM even when not visible (controlled by the `open` prop).
+ * Because it stays mounted, `react-hook-form`'s `useForm` hook initializes with
+ * `defaultValues` only once when the component first mounts.
+ *
+ * To ensure the form correctly pre-fills with data when editing an *existing*
+ * destination (i.e., when the `defaultValues` prop changes after initial mount),
+ * a `useEffect` hook is necessary. This effect calls `form.reset()` with the new
+ * `defaultValues` (for editing) or with empty defaults (for creating a new entry),
+ * effectively re-initializing the form state based on the current props.
  */
 export const destinationFormSchema = insertDestinationSchema.extend({
   image: z.string().url("Please enter a valid image URL").default(""),
   status: z.enum(["visited", "planned", "wishlist"]).default("wishlist"),
+  description: z.string().optional().default(""),
 });
 
 /**
@@ -30,58 +44,52 @@ export const destinationFormSchema = insertDestinationSchema.extend({
 export type DestinationFormValues = z.infer<typeof destinationFormSchema>;
 
 /**
- * Type definition for destination form submission values
- */
-export type DestinationApiValues = {
-  name: string;
-  country: string;
-  region: string;
-  image: string;
-  status: "visited" | "planned" | "wishlist";
-  id?: number;
-};
-
-/**
  * Props interface for the DestinationForm component
  */
-export interface DestinationFormProps {
+export type DestinationFormProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: DestinationApiValues) => void;
-  defaultValues?: Partial<Destination>;
-  isEditing?: boolean;
-}
+  defaultValues?: Destination | undefined;
+  isEditing: boolean;
+  onSubmit: (values: DestinationFormValues) => void;
+};
+
+const defaultEmptyValues: DestinationFormValues = {
+  name: "",
+  country: "",
+  region: "",
+  description: "",
+  image: "",
+  status: "wishlist",
+};
 
 export function DestinationForm({
   open,
   onOpenChange,
   onSubmit,
   defaultValues,
-  isEditing = false,
+  isEditing,
 }: DestinationFormProps) {
   /**
-   * Prepares default values for the form with proper type conversion
-   * @returns Properly typed form values
+   * Prepares default values for the form when editing.
+   * This function is called by the useEffect hook.
+   * @returns Properly typed form values for editing.
    */
-  const prepareDefaultValues = (): DestinationFormValues => {
-    if (defaultValues) {
-      return {
-        name: defaultValues.name || "",
-        country: defaultValues.country || "",
-        region: defaultValues.region || "",
-        image: defaultValues.image || "",
-        // Convert the string status to our enum type
-        status: (defaultValues.status as "wishlist" | "planned" | "visited") || "wishlist",
-      };
+  const prepareDefaultValuesForEdit = (): DestinationFormValues => {
+    if (!defaultValues) {
+      return defaultEmptyValues;
     }
-    
-    // Default values for new destination
+    // Ensure status is correctly typed for the form
+    const currentStatus = defaultValues.status as DestinationFormValues['status'];
+    const validStatuses: Array<DestinationFormValues['status']> = ["visited", "planned", "wishlist"];
+
     return {
-      name: "",
-      country: "",
-      region: "",
-      image: "",
-      status: "wishlist",
+      name: defaultValues.name,
+      country: defaultValues.country,
+      region: defaultValues.region,
+      description: defaultValues.description || "", // Removed 'as any' assertion
+      image: defaultValues.image || "",
+      status: validStatuses.includes(currentStatus) ? currentStatus : "wishlist", // Fallback to wishlist if status is invalid
     };
   };
 
@@ -90,8 +98,17 @@ export function DestinationForm({
    */
   const form = useForm<DestinationFormValues>({
     resolver: zodResolver(destinationFormSchema),
-    defaultValues: prepareDefaultValues(),
+    defaultValues: defaultEmptyValues,
   });
+
+  // Effect to reset form when defaultValues or editing mode changes
+  useEffect(() => {
+    if (isEditing && defaultValues) {
+      form.reset(prepareDefaultValuesForEdit());
+    } else {
+      form.reset(defaultEmptyValues);
+    }
+  }, [isEditing, defaultValues, form.reset]);
 
   const regions = [
     { value: "Africa", label: "Africa" },
@@ -116,15 +133,12 @@ export function DestinationForm({
           <DialogTitle>{isEditing ? "Edit Destination" : "Add New Destination"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values: DestinationFormValues) => {
-            // Convert form values to API values
-            const apiValues: DestinationApiValues = {
-              ...values,
-              // Include id if we're editing
-              ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
-            };
-            onSubmit(apiValues);
-          })} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit((values: DestinationFormValues) => {
+              onSubmit(values);
+            })}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -157,10 +171,7 @@ export function DestinationForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Region</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a region" />
@@ -174,6 +185,19 @@ export function DestinationForm({
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Describe the destination..." {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -197,10 +221,7 @@ export function DestinationForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a status" />

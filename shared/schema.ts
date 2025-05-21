@@ -9,6 +9,7 @@ export const destinations = pgTable("destinations", {
   name: text("name").notNull(),
   country: text("country").notNull(),
   region: text("region").notNull(),
+  description: text("description").notNull().default(""), // Added description field
   image: text("image").notNull(),
   status: text("status").notNull().default("wishlist"), // wishlist, planned, visited
 });

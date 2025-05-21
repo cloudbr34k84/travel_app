@@ -1,4 +1,23 @@
-import type { Express, Request, Response } from "express";
+/**
+ * @file server/routes.ts
+ * @description This file defines all API routes for the application. It maps HTTP
+ * requests to appropriate handler functions, often utilizing the storage layer
+ * for data operations and Zod schemas for request validation.
+ * It handles routes for entities like Users, Destinations, Activities,
+ * Accommodations, and Trips.
+ *
+ * When adding new schema fields (e.g., a 'description' field to Destinations):
+ * 1. Ensure the corresponding Zod schema (e.g., `insertDestinationSchema` from
+ *    `@shared/schema`) is updated or correctly infers the new field.
+ * 2. For `POST` and `PUT` routes, verify that `req.body` parsing (e.g.,
+ *    `insertDestinationSchema.parse(req.body)`) correctly validates and
+ *    includes the new field.
+ * 3. For `GET` routes, ensure that the data returned from the storage layer
+ *    includes the new field and that it's part of the JSON response.
+ * 4. Update any route-specific JSDoc if it details request/response payloads.
+ */
+
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 

@@ -1,3 +1,23 @@
+/**
+ * @file server/storage.ts
+ * @description This file defines the storage layer for the application, providing an
+ * interface and a database-backed implementation for all data persistence operations.
+ * It handles interactions with entities such as Users, Destinations, Activities,
+ * Accommodations, and Trips.
+ *
+ * When adding new schema fields (e.g., a 'description' field to Destinations):
+ * 1. Ensure the field is added to the Drizzle schema in `shared/schema.ts`.
+ * 2. Verify that `InsertType` and `Type` (e.g., `InsertDestination`, `Destination`)
+ *    correctly infer the new field.
+ * 3. Update any seed data or mock data generation (like in `DataSeeder`) to
+ *    include the new field.
+ * 4. Confirm that `create` and `update` methods in `DatabaseStorage` correctly
+ *    handle the new field (Drizzle typically handles this automatically if types
+ *    are correct).
+ * 5. Check if `select` queries implicitly include the new field (Drizzle's default
+ *    behavior) or if specific column selections need adjustment.
+ */
+
 import { 
   destinations, type Destination, type InsertDestination,
   activities, type Activity, type InsertActivity,
@@ -413,12 +433,12 @@ export class DataSeeder {
         
         // Sample destinations
         const sampleDestinations: InsertDestination[] = [
-          { name: "Paris", country: "France", region: "Europe", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34", status: "visited" },
-          { name: "Tokyo", country: "Japan", region: "Asia", image: "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc", status: "planned" },
-          { name: "Sydney", country: "Australia", region: "Oceania", image: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9", status: "wishlist" },
-          { name: "Venice", country: "Italy", region: "Europe", image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9", status: "visited" },
-          { name: "Santorini", country: "Greece", region: "Europe", image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff", status: "wishlist" },
-          { name: "Machu Picchu", country: "Peru", region: "South America", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", status: "planned" },
+          { name: "Paris", country: "France", region: "Europe", description: "The city of lights, known for its art, fashion, and culture.", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34", status: "visited" },
+          { name: "Tokyo", country: "Japan", region: "Asia", description: "A bustling metropolis blending tradition and modernity.", image: "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc", status: "planned" },
+          { name: "Sydney", country: "Australia", region: "Oceania", description: "Famous for its Opera House and Harbour Bridge.", image: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9", status: "wishlist" },
+          { name: "Venice", country: "Italy", region: "Europe", description: "A unique city built on water, with canals and gondolas.", image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9", status: "visited" },
+          { name: "Santorini", country: "Greece", region: "Europe", description: "A picturesque island with white-washed villages and blue-domed churches.", image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff", status: "wishlist" },
+          { name: "Machu Picchu", country: "Peru", region: "South America", description: "An ancient Incan city set high in the Andes Mountains.", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", status: "planned" },
         ];
         
         // Create destinations and store their IDs
