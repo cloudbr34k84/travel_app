@@ -23,6 +23,15 @@ export default function Activities() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [destinationFilter, setDestinationFilter] = useState("all");
+
+  /**
+   * Manages the "Edit Activity" modal state.
+   * `formOpen` controls the visibility of the modal.
+   * `editingActivity` stores the activity data to be edited.
+   * These states are synchronized:
+   * - When an activity's edit button is clicked, `editingActivity` is set to that activity's data, and `formOpen` is set to true, opening the modal with the correct data.
+   * - When the modal is closed (`formOpen` becomes false), `editingActivity` is set to null after a short delay (`setTimeout`). This delay ensures that the modal's closing animation completes smoothly before the form data is cleared, preventing any visual flicker or display of stale data during the transition.
+   */
   const [formOpen, setFormOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -156,7 +165,7 @@ export default function Activities() {
   const handleFormOpenChange = (open: boolean): void => {
     setFormOpen(open);
     if (!open) {
-      setEditingActivity(null);
+      setTimeout(() => setEditingActivity(null), 300);
     }
   };
 
