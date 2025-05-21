@@ -9,12 +9,10 @@
  * 1. Ensure the field is added to the Drizzle schema in `shared/schema.ts`.
  * 2. Verify that `InsertType` and `Type` (e.g., `InsertDestination`, `Destination`)
  *    correctly infer the new field.
- * 3. Update any seed data or mock data generation (like in `DataSeeder`) to
- *    include the new field.
- * 4. Confirm that `create` and `update` methods in `DatabaseStorage` correctly
+ * 3. Confirm that `create` and `update` methods in `DatabaseStorage` correctly
  *    handle the new field (Drizzle typically handles this automatically if types
  *    are correct).
- * 5. Check if `select` queries implicitly include the new field (Drizzle's default
+ * 4. Check if `select` queries implicitly include the new field (Drizzle's default
  *    behavior) or if specific column selections need adjustment.
  */
 
@@ -415,109 +413,7 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Create a seed data class to initialize the database with sample data if needed
-export class DataSeeder {
-  private storage: IStorage;
-  
-  constructor(storage: IStorage) {
-    this.storage = storage;
-  }
-  
-  async seedDatabase() {
-    try {
-      // Check if there's already data in the destinations table
-      const existingDestinations = await this.storage.getDestinations();
-      
-      if (existingDestinations.length === 0) {
-        console.log("Seeding database with initial data...");
-        
-        // Sample destinations
-        const sampleDestinations: InsertDestination[] = [
-          { name: "Paris", country: "France", region: "Europe", description: "The city of lights, known for its art, fashion, and culture.", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34", status: "visited" },
-          { name: "Tokyo", country: "Japan", region: "Asia", description: "A bustling metropolis blending tradition and modernity.", image: "https://images.unsplash.com/photo-1536098561742-ca998e48cbcc", status: "planned" },
-          { name: "Sydney", country: "Australia", region: "Oceania", description: "Famous for its Opera House and Harbour Bridge.", image: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9", status: "wishlist" },
-          { name: "Venice", country: "Italy", region: "Europe", description: "A unique city built on water, with canals and gondolas.", image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9", status: "visited" },
-          { name: "Santorini", country: "Greece", region: "Europe", description: "A picturesque island with white-washed villages and blue-domed churches.", image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff", status: "wishlist" },
-          { name: "Machu Picchu", country: "Peru", region: "South America", description: "An ancient Incan city set high in the Andes Mountains.", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", status: "planned" },
-        ];
-        
-        // Create destinations and store their IDs
-        const destinationMap = new Map<string, number>();
-        
-        for (const dest of sampleDestinations) {
-          const newDest = await this.storage.createDestination(dest);
-          destinationMap.set(dest.name, newDest.id);
-        }
-        
-        // Sample activities
-        const sampleActivities: InsertActivity[] = [
-          { name: "Eiffel Tower Visit", description: "Visit the iconic Eiffel Tower", category: "Sightseeing", destinationId: destinationMap.get("Paris")!, image: "https://images.unsplash.com/photo-1543349689-9a4d426bee8e" },
-          { name: "Louvre Museum", description: "Explore art at the Louvre", category: "Culture", destinationId: destinationMap.get("Paris")!, image: "https://images.unsplash.com/photo-1565783795132-13a333cdcd75" },
-          { name: "Tokyo Skytree", description: "Visit one of the tallest towers in the world", category: "Sightseeing", destinationId: destinationMap.get("Tokyo")!, image: "https://images.unsplash.com/photo-1536984456083-d957495fb197" },
-          { name: "Sydney Opera House Tour", description: "Tour the famous Sydney Opera House", category: "Culture", destinationId: destinationMap.get("Sydney")!, image: "https://images.unsplash.com/photo-1510162548618-d50a4c4c8d18" },
-        ];
-        
-        for (const activity of sampleActivities) {
-          await this.storage.createActivity(activity);
-        }
-        
-        // Sample accommodations
-        const sampleAccommodations: InsertAccommodation[] = [
-          { name: "Hotel de Paris", type: "Hotel", destinationId: destinationMap.get("Paris")!, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945" },
-          { name: "Tokyo Bay Resort", type: "Resort", destinationId: destinationMap.get("Tokyo")!, image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4" },
-          { name: "Sydney Harbor View", type: "Apartment", destinationId: destinationMap.get("Sydney")!, image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267" },
-          { name: "Venice Canal House", type: "Guesthouse", destinationId: destinationMap.get("Venice")!, image: "https://images.unsplash.com/photo-1516455590571-18256e5bb9ff" },
-        ];
-        
-        for (const accommodation of sampleAccommodations) {
-          await this.storage.createAccommodation(accommodation);
-        }
-        
-        // Sample trips
-        const today = new Date();
-        const nextMonth = new Date(today);
-        nextMonth.setMonth(today.getMonth() + 1);
-        
-        const lastMonth = new Date(today);
-        lastMonth.setMonth(today.getMonth() - 1);
-        
-        const twoMonthsAgo = new Date(today);
-        twoMonthsAgo.setMonth(today.getMonth() - 2);
-        
-        const sampleTrips: InsertTrip[] = [
-          { name: "Japan Adventure", startDate: nextMonth.toISOString().split('T')[0], endDate: new Date(nextMonth.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "planned" },
-          { name: "Bali Getaway", startDate: twoMonthsAgo.toISOString().split('T')[0], endDate: new Date(twoMonthsAgo.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "completed" },
-          { name: "Swiss Alps Adventure", startDate: lastMonth.toISOString().split('T')[0], endDate: new Date(lastMonth.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "completed" },
-          { name: "New York City Trip", startDate: new Date(lastMonth.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], endDate: new Date(lastMonth.getTime() - 24 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "completed" },
-        ];
-        
-        // Create trips and store their IDs
-        const tripMap = new Map<string, number>();
-        
-        for (const trip of sampleTrips) {
-          const newTrip = await this.storage.createTrip(trip);
-          tripMap.set(trip.name, newTrip.id);
-        }
-        
-        // Link trips to destinations
-        await this.storage.addDestinationToTrip({ tripId: tripMap.get("Japan Adventure")!, destinationId: destinationMap.get("Tokyo")! });
-        await this.storage.addDestinationToTrip({ tripId: tripMap.get("Bali Getaway")!, destinationId: destinationMap.get("Paris")! }); // Just for example
-        await this.storage.addDestinationToTrip({ tripId: tripMap.get("Swiss Alps Adventure")!, destinationId: destinationMap.get("Venice")! }); // Just for example
-        await this.storage.addDestinationToTrip({ tripId: tripMap.get("New York City Trip")!, destinationId: destinationMap.get("Sydney")! }); // Just for example
-        
-        console.log("Database seeded successfully");
-      } else {
-        console.log("Database already contains data, skipping seed");
-      }
-    } catch (error) {
-      console.error("Error seeding database:", error);
-    }
-  }
-}
-
 // Create and export the database storage
 export const storage = new DatabaseStorage();
 
-// Seed the database if needed
-const seeder = new DataSeeder(storage);
-seeder.seedDatabase().catch(console.error);
+// Database seeding logic has been removed from this file.
