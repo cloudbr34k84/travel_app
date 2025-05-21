@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useEffect } from "react";
 import { Activity, Destination } from "@shared/schema";
 import { insertActivitySchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import { useQuery } from "@tanstack/react-query";
  * Extended schema for activity form with additional fields and validations
  */
 export const activityFormSchema = insertActivitySchema.extend({
-  image: z.string().url("Please enter a valid image URL").optional(),
+  image: z.string().url("Please enter a valid image URL").optional().or(z.literal("")),
 });
 
 /**
@@ -31,70 +32,62 @@ export const activityFormSchema = insertActivitySchema.extend({
 export type ActivityFormValues = z.infer<typeof activityFormSchema>;
 
 /**
- * Type definition for activity form submission values
- */
-export type ActivityApiValues = {
-  name: string;
-  description: string;
-  category: string;
-  destinationId: number;
-  image?: string;
-  id?: number;
-};
-
-/**
  * Props interface for the ActivityForm component
  */
 export interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: ActivityApiValues) => void;
-  defaultValues?: Partial<Activity>;
-  isEditing?: boolean;
+  onSubmit: (values: ActivityFormValues) => void;
+  defaultValues?: Activity | undefined;
+  isEditing: boolean;
 }
+
+/**
+ * Default empty values for the activity form.
+ * Used to initialize the form when no defaultValues are provided or when resetting.
+ */
+const defaultEmptyValues: ActivityFormValues = {
+  name: "",
+  description: "",
+  category: "",
+  destinationId: 0,
+  image: "",
+};
 
 export function ActivityForm({
   open,
   onOpenChange,
   onSubmit,
   defaultValues,
-  isEditing = false,
+  isEditing,
 }: ActivityFormProps) {
-  /**
-   * Prepares default values for the form with proper type conversion
-   * @returns Properly typed form values 
-   */
-  const prepareDefaultValues = (): ActivityFormValues => {
-    if (defaultValues) {
-      return {
-        name: defaultValues.name || "",
-        description: defaultValues.description || "",
-        category: defaultValues.category || "",
-        destinationId: defaultValues.destinationId || 0,
-        // Handle null image values by converting to undefined
-        image: defaultValues.image === null ? undefined : defaultValues.image,
-      };
-    }
-    
-    // Default values for new activity
-    return {
-      name: "",
-      description: "",
-      category: "",
-      destinationId: 0,
-      image: "",
-    };
-  };
-
   /**
    * Initialize the form with typesafe validation using Zod schema
    */
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(activityFormSchema),
-    defaultValues: prepareDefaultValues(),
+    defaultValues: defaultEmptyValues,
+    mode: "onChange",
   });
 
-  // Use explicit typing for the destinations query
+  /**
+   * Effect to reset the form when `defaultValues` change and `isEditing` is true.
+   */
+  useEffect(() => {
+    if (isEditing && defaultValues) {
+      const transformedValues: ActivityFormValues = {
+        name: defaultValues.name || "",
+        description: defaultValues.description || "",
+        category: defaultValues.category || "",
+        destinationId: Number(defaultValues.destinationId) || 0,
+        image: defaultValues.image === null ? "" : defaultValues.image || "",
+      };
+      form.reset(transformedValues);
+    } else if (!isEditing) {
+      form.reset(defaultEmptyValues);
+    }
+  }, [isEditing, defaultValues, form.reset]);
+
   const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
@@ -118,13 +111,7 @@ export function ActivityForm({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((values: ActivityFormValues) => {
-            // Convert form values to API values
-            const apiValues: ActivityApiValues = {
-              ...values,
-              // Include id if we're editing
-              ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
-            };
-            onSubmit(apiValues);
+            onSubmit(values);
           })} className="space-y-4">
             <FormField
               control={form.control}
@@ -164,7 +151,7 @@ export function ActivityForm({
                   <FormLabel>Category</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -183,15 +170,6 @@ export function ActivityForm({
                 </FormItem>
               )}
             />
-            {/* 
-             * Destination selection field with real-time validation and empty state handling
-             * 
-             * @EmptyState
-             * - When no destinations are available, shows a message "No destinations—add one"
-             * - Provides a button to open the destination form modal directly from the dropdown
-             * - Uses a CustomEvent to communicate with parent component to open destination form
-             * - Improves UX by guiding users through the dependency chain (add destination first)
-             */}
             <FormField
               control={form.control}
               name="destinationId"
@@ -200,7 +178,7 @@ export function ActivityForm({
                   <FormLabel>Destination</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    defaultValue={field.value?.toString()}
+                    value={field.value?.toString()}
                     disabled={isLoadingDestinations}
                   >
                     <FormControl>
@@ -224,10 +202,7 @@ export function ActivityForm({
                             className="w-full"
                             onClick={(e) => {
                               e.preventDefault();
-                              // Close the current form and open destination form
-                              // This would need to be implemented via a callback from parent
                               onOpenChange(false);
-                              // Notify parent to open destination form
                               window.dispatchEvent(new CustomEvent('openDestinationForm'));
                             }}
                           >
@@ -255,8 +230,8 @@ export function ActivityForm({
               )}
             />
             <DialogFooter>
-              <Button type="submit" className="bg-primary hover:bg-primary-800">
-                {isEditing ? "Save Changes" : "Add Activity"}
+              <Button type="submit" className="bg-primary hover:bg-primary-800" disabled={form.formState.isSubmitting || !form.formState.isValid}>
+                {form.formState.isSubmitting ? (isEditing ? "Saving..." : "Adding...") : (isEditing ? "Save Changes" : "Add Activity")}
               </Button>
             </DialogFooter>
           </form>

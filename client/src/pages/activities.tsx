@@ -5,7 +5,7 @@ import { ActivityCard } from "@/components/activities/activity-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Activity, Destination, InsertActivity } from "@shared/schema";
-import { ActivityForm } from "@/components/forms/activity-form";
+import { ActivityForm, ActivityFormValues } from "@/components/forms/activity-form"; // Import ActivityFormValues
 import { DestinationForm } from "@/components/forms/destination-form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, apiRequestWithJson } from "@/lib/queryClient";
@@ -138,11 +138,18 @@ export default function Activities() {
     },
   });
 
-  const handleCreateOrUpdateActivity = (values: InsertActivity): void => {
+  const handleCreateOrUpdateActivity = (values: ActivityFormValues): void => { // Changed InsertActivity to ActivityFormValues
     if (editingActivity) {
-      updateActivity.mutate({ id: editingActivity.id, data: values });
+      // `values` (ActivityFormValues) does not and should not contain `id`.
+      // The `id` for the update comes from `editingActivity.id`.
+      // The `data` payload for the mutation should be `values` directly,
+      // cast to `Partial<InsertActivity>` if necessary, assuming compatibility.
+      updateActivity.mutate({ 
+        id: editingActivity.id, 
+        data: values as Partial<InsertActivity> 
+      });
     } else {
-      createActivity.mutate(values);
+      createActivity.mutate(values as InsertActivity); // Cast to InsertActivity if they are compatible
     }
   };
 
@@ -306,8 +313,8 @@ export default function Activities() {
         open={formOpen}
         onOpenChange={handleFormOpenChange}
         onSubmit={handleCreateOrUpdateActivity}
-        defaultValues={editingActivity || undefined}
-        isEditing={!!editingActivity}
+        defaultValues={editingActivity || undefined} // This remains the same
+        isEditing={!!editingActivity} // This remains the same
       />
 
       {/* Delete Confirmation Dialog */}
