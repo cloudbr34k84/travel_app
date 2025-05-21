@@ -63,7 +63,7 @@ export const destinations = pgTable("destinations", {
 	region: text().notNull(),
 	image: text().notNull(),
 	status: text().default('wishlist').notNull(),
-	description: text().default(').notNull(),
+	description: text().default('').notNull(),
 });
 
 export const session = pgTable("session", {
