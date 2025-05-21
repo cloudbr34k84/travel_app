@@ -1,3 +1,17 @@
+/**
+ * Destinations page component
+ * 
+ * Manages the display and interaction with destination data:
+ * - Lists all destinations with filtering options
+ * - Allows creating, editing, and deleting destinations
+ * 
+ * State management for modal:
+ * - Uses `formOpen` to control the visibility of the destination form modal
+ * - Uses `editingDestination` to store the currently selected destination for editing
+ * - These states work together to safely handle modal open/close and form data population
+ * - A setTimeout delay is used when closing the modal to avoid stale data rendering
+ *   before the modal close animation completes
+ */
 import { useState } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { SearchFilter } from "@/components/ui/search-filter";
@@ -21,8 +35,8 @@ export default function Destinations() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [formOpen, setFormOpen] = useState(false);
   const [editingDestination, setEditingDestination] = useState<Destination | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [destinationToDelete, setDestinationToDelete] = useState<number | null>(null);
 
@@ -70,7 +84,8 @@ export default function Destinations() {
         title: "Success",
         description: "Destination updated successfully",
       });
-      setEditingDestination(null);
+      setFormOpen(false);
+      // The editingDestination will be cleared by the setTimeout in handleFormOpenChange
     },
     onError: () => {
       toast({
@@ -112,6 +127,7 @@ export default function Destinations() {
 
   const handleEdit = (destination: Destination) => {
     setEditingDestination(destination);
+    setFormOpen(true);
   };
 
   const handleDelete = (id: number) => {
@@ -128,7 +144,8 @@ export default function Destinations() {
   const handleFormOpenChange = (open: boolean) => {
     setFormOpen(open);
     if (!open) {
-      setEditingDestination(null);
+      // Allow modal animation to finish before clearing selected destination
+      setTimeout(() => setEditingDestination(null), 300);
     }
   };
 
@@ -180,7 +197,10 @@ export default function Destinations() {
         description="Manage your travel destinations"
         buttonLabel="Add Destination"
         buttonIcon={<Plus className="h-4 w-4" />}
-        onButtonClick={() => setFormOpen(true)}
+        onButtonClick={() => {
+          setEditingDestination(null);
+          setFormOpen(true);
+        }}
       />
 
       <SearchFilter
@@ -238,7 +258,10 @@ export default function Destinations() {
           <p className="text-gray-500">No destinations found</p>
           <Button
             className="mt-4 bg-primary hover:bg-primary-800"
-            onClick={() => setFormOpen(true)}
+            onClick={() => {
+              setEditingDestination(null);
+              setFormOpen(true);
+            }}
           >
             Add Your First Destination
           </Button>
@@ -247,7 +270,7 @@ export default function Destinations() {
 
       {/* Create/Edit Destination Form */}
       <DestinationForm
-        open={formOpen || !!editingDestination}
+        open={formOpen}
         onOpenChange={handleFormOpenChange}
         onSubmit={handleCreateOrUpdateDestination}
         defaultValues={editingDestination || undefined}
