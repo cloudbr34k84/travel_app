@@ -13,6 +13,19 @@ import { queryClient } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
+/**
+ * Manages the state for the accommodation form modal using `formOpen` and `editingAccommodation`.
+ * - `formOpen` (boolean): Controls the visibility of the modal.
+ * - `editingAccommodation` (Accommodation | null): Holds the data of the accommodation being edited.
+ *   It's set when an edit action is triggered and cleared when the modal closes.
+ *
+ * The `setTimeout` in `handleFormOpenChange` is used to delay clearing `editingAccommodation`
+ * after the modal closes. This ensures that the form fields, which might depend on
+ * `editingAccommodation` for their default values, do not clear prematurely while the
+ * modal's closing animation is still in progress. This prevents a flicker or an abrupt
+ * change in the form's content just before it disappears.
+ */
+
 interface FilterOption {
   value: string;
   label: string;
@@ -23,8 +36,8 @@ export default function Accommodations() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [destinationFilter, setDestinationFilter] = useState("all");
-  const [formOpen, setFormOpen] = useState(false);
   const [editingAccommodation, setEditingAccommodation] = useState<Accommodation | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accommodationToDelete, setAccommodationToDelete] = useState<number | null>(null);
   const [accommodationDetailOpen, setAccommodationDetailOpen] = useState(false);
@@ -339,7 +352,7 @@ export default function Accommodations() {
   const handleFormOpenChange = (open: boolean): void => {
     setFormOpen(open);
     if (!open) {
-      setEditingAccommodation(null);
+      setTimeout(() => setEditingAccommodation(null), 300);
     }
   };
 
