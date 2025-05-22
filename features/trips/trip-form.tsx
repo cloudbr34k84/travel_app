@@ -112,7 +112,7 @@ export function TripForm({
     let initialStatusId = 1; // Default statusId, e.g., for "planned"
     if (defaultValues?.statusId) {
         initialStatusId = defaultValues.statusId;
-    } else if (defaultValues?.status) {
+    } else if (defaultValues?.statusId) {
         console.warn("TripForm: defaultValues.status (string) is deprecated. Use defaultValues.statusId (number).");
     }
 
