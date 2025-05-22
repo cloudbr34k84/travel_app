@@ -6,14 +6,23 @@
  */
 // filepath: /root/travel_app/features/accommodations/accommodation-form.tsx
 
+import React, { forwardRef, useImperativeHandle, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import React, { forwardRef, useImperativeHandle, useEffect } from "react";
+
 import { Accommodation, Destination, InsertAccommodation } from "@shared/schema";
 import type { TravelStatus } from "@shared/schema"; // ✅ type-only import
 import { insertAccommodationSchema } from "@shared/schema";
+
 import { Button } from "@shared-components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@shared-components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -23,10 +32,16 @@ import {
   FormMessage,
 } from "@shared-components/ui/form";
 import { Input } from "@shared-components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@shared-components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@shared-components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@shared-components/ui/select";
+
 import { useToast } from "@shared/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Extended schema for accommodation form with additional fields and validations
@@ -111,7 +126,7 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
       } else if (!isEditing) {
         form.reset(defaultEmptyValues);
       }
-    }, [isEditing, defaultValues, form.reset]);
+    }, [isEditing, defaultValues, form]); // Changed form.reset to form
 
     const { toast } = useToast();
 
@@ -266,8 +281,8 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
                   <FormItem>
                     <FormLabel>Status</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      value={field.value?.toString()}
+                      onValueChange={(value) => field.onChange(parseInt(value))} // Changed Number to parseInt
+                      value={field.value?.toString() ?? ""} // Ensured ?? ""
                       disabled={isLoadingTravelStatuses}
                     >
                       <FormControl>
