@@ -203,7 +203,7 @@ export function DestinationForm({
                   <FormLabel>Status</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value?.toString()}
+                    value={field.value?.toString() ?? ""}
                     disabled={isLoadingTravelStatuses}
                   >
                     <FormControl>
@@ -240,3 +240,5 @@ export function DestinationForm({
     </Dialog>
   );
 }
+
+DestinationForm.displayName = "DestinationForm";
