@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form"; // Added SubmitHandler
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Trip, Destination } from "@shared/schema";
@@ -23,14 +23,23 @@ import { cn } from "@shared/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 /**
+ * Type definition for travel status data fetched from the API.
+ */
+interface TravelStatus {
+  id: number;
+  label: string;
+}
+
+/**
  * Type definition for trip form submission values to be sent to the API
  */
 export type TripApiValues = {
   name: string;
   startDate: string; // Format: 'yyyy-MM-dd'
   endDate: string;   // Format: 'yyyy-MM-dd'
-  statusId: number; // Changed from status to statusId
+  statusId: number; 
   id?: number;
+  userId?: number | null; // Added userId to match TripFormValues
 };
 
 /**
@@ -40,7 +49,7 @@ export interface TripFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: TripApiValues) => void;
-  defaultValues?: Partial<Trip>;
+  defaultValues?: Partial<Trip & { status?: string }>; // Allow legacy status for a moment
   isEditing?: boolean;
 }
 
@@ -49,14 +58,14 @@ export interface TripFormProps {
  * Converts string dates from the API to Date objects for the form
  */
 export const tripFormSchema = insertTripSchema.extend({
-  // Override the date fields to use z.date() for form handling
   startDate: z.date({
     required_error: "Start date is required",
   }),
   endDate: z.date({
     required_error: "End date is required",
   }),
-  statusId: z.number().int().positive({ message: "Status is required" }), // Changed from status to statusId
+  statusId: z.number().int().positive({ message: "Status is required" }),
+  // userId is already in insertTripSchema, ensure it's optional or handled
 });
 
 /**
@@ -71,10 +80,33 @@ export function TripForm({
   defaultValues,
   isEditing = false,
 }: TripFormProps) {
-  /**
-   * Fetches travel statuses from the API.
-   */
-  const { data: statusesData, isLoading: isLoadingStatuses } = useQuery<Array<{ id: number; name: string }>>({
+  const prepareDefaultValues = (): TripFormValues => {
+    let initialStatusId = 1; // Default statusId, e.g., for "planned"
+    if (defaultValues?.statusId) {
+      initialStatusId = defaultValues.statusId;
+    } else if (defaultValues && 'status' in defaultValues && typeof defaultValues.status === 'string') {
+      console.warn("TripForm: defaultValues.status (string) is deprecated. Use defaultValues.statusId (number).");
+      const legacyStatus = defaultValues.status.toLowerCase();
+      if (legacyStatus === 'planned') initialStatusId = 1;
+      else if (legacyStatus === 'completed') initialStatusId = 2; // Assuming 2 for completed
+      else if (legacyStatus === 'cancelled') initialStatusId = 3; // Assuming 3 for cancelled
+    }
+
+    return {
+      name: defaultValues?.name || "",
+      startDate: defaultValues?.startDate ? new Date(defaultValues.startDate) : new Date(),
+      endDate: defaultValues?.endDate ? new Date(defaultValues.endDate) : new Date(new Date().setDate(new Date().getDate() + 7)),
+      statusId: initialStatusId,
+      userId: defaultValues?.userId || null, // Ensure userId is part of the form values
+    };
+  };
+
+  const form = useForm<TripFormValues>({
+    resolver: zodResolver(tripFormSchema),
+    defaultValues: prepareDefaultValues(),
+  });
+
+  const { data: statusesData, isLoading: isLoadingStatuses } = useQuery<TravelStatus[]>({ 
     queryKey: ['travel-statuses'],
     queryFn: async () => {
       const response = await fetch('/api/travel-statuses');
@@ -85,62 +117,17 @@ export function TripForm({
     },
   });
 
-  /**
-   * Converts form values with Date objects to API values with string dates
-   * @param values Form values from React Hook Form
-   * @returns Formatted values ready for API submission
-   */
-  const handleSubmit = (values: TripFormValues): void => {
-    // Convert Date objects to strings in the format expected by the API
+  const handleSubmit: SubmitHandler<TripFormValues> = (values) => {
     const formattedValues: TripApiValues = {
       ...values,
       startDate: format(values.startDate, 'yyyy-MM-dd'),
       endDate: format(values.endDate, 'yyyy-MM-dd'),
-      statusId: values.statusId, // Ensure statusId is used
-      // Include id if we're editing
+      statusId: values.statusId,
+      userId: values.userId, // Pass userId
       ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
     };
-    
     onSubmit(formattedValues);
   };
-
-  /**
-   * Prepares default values for the form, converting string dates to Date objects
-   * @returns Form values with proper Date objects
-   */
-  const prepareDefaultValues = (): TripFormValues => {
-    let initialStatusId = 1; // Default statusId, e.g., for "planned"
-    if (defaultValues?.statusId) {
-        initialStatusId = defaultValues.statusId;
-    } else if (defaultValues?.statusId) {
-        console.warn("TripForm: defaultValues.status (string) is deprecated. Use defaultValues.statusId (number).");
-    }
-
-    if (defaultValues) {
-      return {
-        name: defaultValues.name || "",
-        startDate: defaultValues.startDate ? new Date(defaultValues.startDate) : new Date(),
-        endDate: defaultValues.endDate ? new Date(defaultValues.endDate) : new Date(new Date().setDate(new Date().getDate() + 7)),
-        statusId: initialStatusId,
-      };
-    }
-    
-    // Default values for new trip
-    return {
-      name: "",
-      startDate: new Date(),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-      statusId: initialStatusId, // Default statusId for new trips
-    };
-  };
-
-  /**
-   * Initialize the form with typesafe validation using Zod schema
-   */
-  const form = useForm<TripFormValues>({
-    resolver: zodResolver(tripFormSchema),
-    defaultValues: prepareDefaultValues(),
-  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -243,13 +230,13 @@ export function TripForm({
             </div>
             <FormField
               control={form.control}
-              name="statusId" // Changed from status to statusId
+              name="statusId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value, 10))} // Ensure value is parsed to number
-                    defaultValue={field.value?.toString()} // Ensure defaultValue is a string
+                    onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                    defaultValue={field.value?.toString()} 
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -264,7 +251,7 @@ export function TripForm({
                       ) : (
                         statusesData?.map((status) => (
                           <SelectItem key={status.id} value={status.id.toString()}>
-                            {status.name}
+                            {status.label} 
                           </SelectItem>
                         ))
                       )}

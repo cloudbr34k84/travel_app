@@ -11,7 +11,7 @@ import { Building, Smile } from "lucide-react";
  * Defines the expected shape of data for a trip card display
  */
 interface TripCardProps {
-  trip: Trip;                      // Trip data from the API
+  trip: Trip & { statusLabel?: string }; // Add statusLabel to Trip type
   image: string;                   // URL for the trip's primary image
   destinations: string[];          // Array of destination names
   activitiesCount: number;         // Count of activities for this trip
@@ -67,6 +67,11 @@ export function TripCard({
           <h3 className="text-white text-xl font-bold">{trip.name}</h3>
           <p className="text-white/80 text-sm">{destinations.join(" • ")}</p>
         </div>
+        {trip.statusLabel && (
+          <div className="absolute top-4 right-4">
+            <StatusBadge statusLabel={trip.statusLabel} />
+          </div>
+        )}
       </div>
       <CardContent className="p-6">
         <div className="flex items-center mb-4">
