@@ -1,17 +1,17 @@
 import { Card } from "@shared-components/ui/card";
 import { Button } from "@shared-components/ui/button";
 import { StatusBadge } from "@shared-components/ui/status-badge";
-import { MoreHorizontal, MapPin, Smile, Building } from "lucide-react";
+import { MoreHorizontal, Smile, Building } from "lucide-react"; // MapPin was unused
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@shared-components/ui/dropdown-menu";
 import { Destination } from "@shared/schema";
 
 interface DestinationCardProps {
-  destination: Destination;
+  destination: Destination & { statusLabel?: string | null }; 
   activityCount: number;
   accommodationCount: number;
-  onEdit: (destination: Destination) => void;
+  onEdit: (destination: Destination & { statusLabel?: string | null }) => void;
   onDelete: (id: number) => void;
-  onView: (destination: Destination) => void;
+  onView: (destination: Destination & { statusLabel?: string | null }) => void;
 }
 
 export function DestinationCard({
@@ -31,7 +31,11 @@ export function DestinationCard({
           className="w-full h-full object-cover"
         />
         <div className="absolute top-3 right-3">
-          <StatusBadge status={destination.status as "visited" | "planned" | "wishlist"} />
+          {destination.statusLabel ? (
+            <StatusBadge statusLabel={destination.statusLabel} />
+          ) : (
+            <span className="text-xs text-white bg-gray-400 px-2 py-1 rounded-full">Status N/A</span>
+          )}
         </div>
       </div>
       <div className="p-5">

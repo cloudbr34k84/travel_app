@@ -1,8 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Destination } from "@shared/schema";
-import { insertDestinationSchema } from "@shared/schema";
+import { Destination, insertDestinationSchema } from "@shared/schema";
 import { Button } from "@shared-components/ui/button";
 import {
   Form,
@@ -17,39 +16,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@shared-components/ui/dialog";
 import { useEffect } from "react";
 import { Textarea } from "@shared-components/ui/textarea";
+import { useQuery } from "@tanstack/react-query";
 
-/**
- * DestinationForm component.
- *
- * This form is used for both creating and editing destinations.
- * It remains mounted in the DOM even when not visible (controlled by the `open` prop).
- * Because it stays mounted, `react-hook-form`'s `useForm` hook initializes with
- * `defaultValues` only once when the component first mounts.
- *
- * To ensure the form correctly pre-fills with data when editing an *existing*
- * destination (i.e., when the `defaultValues` prop changes after initial mount),
- * a `useEffect` hook is necessary. This effect calls `form.reset()` with the new
- * `defaultValues` (for editing) or with empty defaults (for creating a new entry),
- * effectively re-initializing the form state based on the current props.
- */
+interface TravelStatus {
+  id: number;
+  label: string;
+}
+
 export const destinationFormSchema = insertDestinationSchema.extend({
   image: z.string().url("Please enter a valid image URL").default(""),
-  status: z.enum(["visited", "planned", "wishlist"]).default("wishlist"),
+  statusId: z.number().int().positive({ message: "Please select a status." }),
   description: z.string().optional().default(""),
 });
 
-/**
- * Type definition for destination form values based on the schema
- */
 export type DestinationFormValues = z.infer<typeof destinationFormSchema>;
 
-/**
- * Props interface for the DestinationForm component
- */
 export type DestinationFormProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  defaultValues?: Destination | undefined;
+  defaultValues?: Destination;
   isEditing: boolean;
   onSubmit: (values: DestinationFormValues) => void;
 };
@@ -60,7 +45,7 @@ const defaultEmptyValues: DestinationFormValues = {
   region: "",
   description: "",
   image: "",
-  status: "wishlist",
+  statusId: 0,
 };
 
 export function DestinationForm({
@@ -70,41 +55,33 @@ export function DestinationForm({
   defaultValues,
   isEditing,
 }: DestinationFormProps) {
-  /**
-   * Prepares default values for the form when editing.
-   * This function is called by the useEffect hook.
-   * @returns Properly typed form values for editing.
-   */
-  const prepareDefaultValuesForEdit = (): DestinationFormValues => {
-    if (!defaultValues) {
-      return defaultEmptyValues;
-    }
-    // Ensure status is correctly typed for the form
-    const currentStatus = defaultValues.status as DestinationFormValues['status'];
-    const validStatuses: Array<DestinationFormValues['status']> = ["visited", "planned", "wishlist"];
+  const { data: travelStatuses, isLoading: isLoadingStatuses } = useQuery<TravelStatus[]>({
+    queryKey: ['travel-statuses'],
+    queryFn: async () => {
+      return [
+        { id: 1, label: "Wishlist" },
+        { id: 2, label: "Planned" },
+        { id: 3, label: "Visited" },
+      ];
+    },
+    initialData: [],
+  });
 
-    return {
-      name: defaultValues.name,
-      country: defaultValues.country,
-      region: defaultValues.region,
-      description: defaultValues.description || "", // Removed 'as any' assertion
-      image: defaultValues.image || "",
-      status: validStatuses.includes(currentStatus) ? currentStatus : "wishlist", // Fallback to wishlist if status is invalid
-    };
-  };
-
-  /**
-   * Initialize the form with typesafe validation using Zod schema
-   */
   const form = useForm<DestinationFormValues>({
     resolver: zodResolver(destinationFormSchema),
     defaultValues: defaultEmptyValues,
   });
 
-  // Effect to reset form when defaultValues or editing mode changes
   useEffect(() => {
     if (isEditing && defaultValues) {
-      form.reset(prepareDefaultValuesForEdit());
+      form.reset({
+        name: defaultValues.name,
+        country: defaultValues.country,
+        region: defaultValues.region,
+        description: defaultValues.description || "",
+        image: defaultValues.image || "",
+        statusId: defaultValues.statusId || defaultEmptyValues.statusId,
+      });
     } else {
       form.reset(defaultEmptyValues);
     }
@@ -120,12 +97,6 @@ export function DestinationForm({
     { value: "Antarctica", label: "Antarctica" },
   ];
 
-  const statuses = [
-    { value: "wishlist", label: "Wishlist" },
-    { value: "planned", label: "Planned" },
-    { value: "visited", label: "Visited" },
-  ];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -134,9 +105,7 @@ export function DestinationForm({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit((values: DestinationFormValues) => {
-              onSubmit(values);
-            })}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4"
           >
             <FormField
@@ -196,7 +165,7 @@ export function DestinationForm({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe the destination..." {...field} />
+                    <Textarea placeholder="Describe the destination..." {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -209,7 +178,7 @@ export function DestinationForm({
                 <FormItem>
                   <FormLabel>Image URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/image.jpg" {...field} />
+                    <Input placeholder="https://example.com/image.jpg" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -217,19 +186,23 @@ export function DestinationForm({
             />
             <FormField
               control={form.control}
-              name="status"
+              name="statusId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                    value={field.value ? field.value.toString() : undefined}
+                    disabled={isLoadingStatuses || travelStatuses.length === 0}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a status" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {statuses.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
+                      {travelStatuses.map((status) => (
+                        <SelectItem key={status.id} value={status.id.toString()}>
                           {status.label}
                         </SelectItem>
                       ))}
@@ -240,7 +213,7 @@ export function DestinationForm({
               )}
             />
             <DialogFooter>
-              <Button type="submit" className="bg-primary hover:bg-primary-800">
+              <Button type="submit" className="bg-primary hover:bg-primary-800" disabled={form.formState.isSubmitting}>
                 {isEditing ? "Save Changes" : "Add Destination"}
               </Button>
             </DialogFooter>

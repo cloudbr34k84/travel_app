@@ -11,7 +11,7 @@ export const destinations = pgTable("destinations", {
   region: text("region").notNull(),
   description: text("description").notNull().default(""),
   image: text("image").notNull(),
-  statusId: integer("status_id").notNull(), // 🔄 FK to travel_statuses
+  statusId: integer("status_id").notNull(), // Added statusId field, FK to travel_statuses
 });
 
 export const destinationsRelations = relations(destinations, ({ many, one }) => ({
@@ -24,9 +24,7 @@ export const destinationsRelations = relations(destinations, ({ many, one }) => 
   }),
 }));
 
-export const insertDestinationSchema = createInsertSchema(destinations, {
-  statusId: z.number().int().positive(),
-}).omit({
+export const insertDestinationSchema = createInsertSchema(destinations).omit({
   id: true,
 });
 
@@ -34,7 +32,6 @@ export type InsertDestination = z.infer<typeof insertDestinationSchema>;
 export type Destination = typeof destinations.$inferSelect;
 
 
-// Activity table
 // Activity table
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
