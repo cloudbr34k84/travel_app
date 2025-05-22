@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useEffect } from "react";
-import { Activity, Destination } from "@shared/schema";
+import { Activity, Destination } from "@shared/schema"; // ✅ runtime values
+import type { TravelStatus } from "@shared/schema";     // ✅ type-only import
 import { insertActivitySchema } from "@shared/schema";
 import { Button } from "@shared-components/ui/button";
 import {
@@ -24,6 +25,7 @@ import { useQuery } from "@tanstack/react-query";
  */
 export const activityFormSchema = insertActivitySchema.extend({
   image: z.string().url("Please enter a valid image URL").optional().or(z.literal("")),
+  statusId: z.number().int().positive(),
 });
 
 /**
@@ -38,7 +40,7 @@ export interface ActivityFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: ActivityFormValues) => void;
-  defaultValues?: Activity | undefined;
+  defaultValues?: Activity & { statusId?: number } | undefined;
   isEditing: boolean;
 }
 
@@ -52,6 +54,7 @@ const defaultEmptyValues: ActivityFormValues = {
   category: "",
   destinationId: 0,
   image: "",
+  statusId: 0,
 };
 
 export function ActivityForm({
@@ -81,6 +84,7 @@ export function ActivityForm({
         category: defaultValues.category || "",
         destinationId: Number(defaultValues.destinationId) || 0,
         image: defaultValues.image === null ? "" : defaultValues.image || "",
+        statusId: defaultValues.statusId || 0,
       };
       form.reset(transformedValues);
     } else if (!isEditing) {
@@ -90,6 +94,10 @@ export function ActivityForm({
 
   const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
+  });
+
+  const { data: travelStatuses, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
+    queryKey: ["/api/travel-statuses"],
   });
 
   const categories = [
@@ -208,6 +216,40 @@ export function ActivityForm({
                           >
                             Add Destination
                           </Button>
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="statusId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                    disabled={isLoadingTravelStatuses}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {travelStatuses && travelStatuses.length > 0 ? (
+                          travelStatuses.map((status: TravelStatus) => (
+                      <SelectItem key={status.id} value={status.id.toString()}>
+                        {status.label}
+                      </SelectItem>
+                        ))
+                      ) : (
+                        <div className="px-2 py-4 text-center">
+                          <p className="text-sm text-muted-foreground mb-2">No statuses available</p>
                         </div>
                       )}
                     </SelectContent>

@@ -80,6 +80,9 @@ export interface IStorage {
   addDestinationToTrip(tripDestination: InsertTripDestination): Promise<TripDestination>;
   removeDestinationFromTrip(tripId: number, destinationId: number): Promise<boolean>;
   
+  // Travel Statuses
+  getTravelStatuses(): Promise<{ id: number; label: string }[]>;
+
   // Stats
   getDashboardStats(): Promise<{
     upcomingTripsCount: number;
@@ -534,6 +537,17 @@ export class DatabaseStorage implements IStorage {
       console.error("Error removing destination from trip:", error);
       return false;
     }
+  }
+
+  // Travel Statuses
+  async getTravelStatuses(): Promise<{ id: number; label: string }[]> {
+    const statuses = await db
+      .select({
+        id: travelStatuses.id,
+        label: travelStatuses.label,
+      })
+      .from(travelStatuses);
+    return statuses;
   }
   
   // Dashboard stats

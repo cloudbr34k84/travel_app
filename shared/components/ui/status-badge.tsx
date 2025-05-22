@@ -1,26 +1,23 @@
 import { cn } from "@shared/lib/utils";
 
-export type StatusType = "visited" | "planned" | "wishlist" | "completed" | "cancelled" | "upcoming";
-
 export interface StatusBadgeProps {
-  status: StatusType;
+  statusLabel: string;
   className?: string;
 }
 
-export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const getStatusStyles = (status: StatusType) => {
-    switch (status) {
+export function StatusBadge({ statusLabel, className }: StatusBadgeProps) {
+  const getStatusStyles = (label: string) => {
+    switch (label.toLowerCase()) {
       case "visited":
       case "completed":
         return "bg-green-500 text-white";
       case "planned":
+      case "upcoming":
         return "bg-primary text-white";
       case "wishlist":
         return "bg-accent text-white";
       case "cancelled":
         return "bg-destructive text-white";
-      case "upcoming":
-        return "bg-primary text-white";
       default:
         return "bg-gray-200 text-gray-800";
     }
@@ -30,11 +27,11 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     <span
       className={cn(
         "text-xs font-medium px-2 py-1 rounded-full",
-        getStatusStyles(status),
+        getStatusStyles(statusLabel),
         className
       )}
     >
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)}
     </span>
   );
 }

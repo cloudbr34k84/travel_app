@@ -23,7 +23,8 @@ import { storage } from "./storage";
 import { 
   insertDestinationSchema, insertActivitySchema, insertAccommodationSchema, 
   insertTripSchema, insertTripDestinationSchema,
-  Destination, Activity, Accommodation, Trip, TripDestination
+  Destination, Activity, Accommodation, Trip, TripDestination,
+  travelStatuses // Import travelStatuses table
 } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth } from "./auth";
@@ -336,6 +337,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).end();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete trip" });
+    }
+  });
+
+  // Travel Statuses
+  app.get("/api/travel-statuses", async (req: Request, res: Response) => {
+    try {
+      // Assuming storage.getTravelStatuses() fetches all statuses
+      // and each status object conforms to the travelStatuses schema (id, label, description?)
+      const statuses = await storage.getTravelStatuses(); 
+      res.json(statuses.map(status => ({ id: status.id, label: status.label })));
+    } catch (error) {
+      console.error("Failed to fetch travel statuses:", error);
+      res.status(500).json({ message: "Failed to fetch travel statuses" });
     }
   });
   

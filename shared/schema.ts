@@ -138,6 +138,8 @@ export const travelStatuses = pgTable("travel_statuses", {
   description: text("description"),        // Optional
 });
 
+export type TravelStatus = typeof travelStatuses.$inferSelect;
+
 export const travelStatusesRelations = relations(travelStatuses, ({ many }) => ({
   destinations: many(destinations),
   accommodations: many(accommodations),

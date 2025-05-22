@@ -3,9 +3,10 @@ import { Button } from "@shared-components/ui/button";
 import { MoreHorizontal, MapPin } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@shared-components/ui/dropdown-menu";
 import { Activity, Destination } from "@shared/schema";
+import { StatusBadge } from "@shared-components/ui/status-badge";
 
 interface ActivityCardProps {
-  activity: Activity;
+  activity: Activity & { statusLabel?: string };
   destination: Destination;
   onEdit: (activity: Activity) => void;
   onDelete: (id: number) => void;
@@ -27,7 +28,8 @@ export function ActivityCard({
           alt={activity.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex space-x-2">
+          {activity.statusLabel && <StatusBadge statusLabel={activity.statusLabel} />}
           <span className="text-xs font-medium bg-primary-800 text-white rounded-full px-2 py-1">
             {activity.category}
           </span>
