@@ -9,24 +9,32 @@ export const destinations = pgTable("destinations", {
   name: text("name").notNull(),
   country: text("country").notNull(),
   region: text("region").notNull(),
-  description: text("description").notNull().default(""), // Added description field
+  description: text("description").notNull().default(""),
   image: text("image").notNull(),
-  status: text("status").notNull().default("wishlist"), // wishlist, planned, visited
+  statusId: integer("status_id").notNull(), // 🔄 FK to travel_statuses
 });
 
-export const destinationsRelations = relations(destinations, ({ many }) => ({
+export const destinationsRelations = relations(destinations, ({ many, one }) => ({
   activities: many(activities),
   accommodations: many(accommodations),
   tripDestinations: many(tripDestinations),
+  status: one(travelStatuses, {
+    fields: [destinations.statusId],
+    references: [travelStatuses.id],
+  }),
 }));
 
-export const insertDestinationSchema = createInsertSchema(destinations).omit({
+export const insertDestinationSchema = createInsertSchema(destinations, {
+  statusId: z.number().int().positive(),
+}).omit({
   id: true,
 });
 
 export type InsertDestination = z.infer<typeof insertDestinationSchema>;
 export type Destination = typeof destinations.$inferSelect;
 
+
+// Activity table
 // Activity table
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
@@ -35,6 +43,9 @@ export const activities = pgTable("activities", {
   category: text("category").notNull(),
   destinationId: integer("destination_id").notNull(),
   image: text("image"),
+
+  // 🔄 New: statusId references travel_statuses
+  statusId: integer("status_id").notNull(),
 });
 
 export const activitiesRelations = relations(activities, ({ one }) => ({
@@ -42,14 +53,21 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
     fields: [activities.destinationId],
     references: [destinations.id],
   }),
+  status: one(travelStatuses, {
+    fields: [activities.statusId],
+    references: [travelStatuses.id],
+  }),
 }));
 
-export const insertActivitySchema = createInsertSchema(activities).omit({
+export const insertActivitySchema = createInsertSchema(activities, {
+  statusId: z.number().int().positive(),
+}).omit({
   id: true,
 });
 
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type Activity = typeof activities.$inferSelect;
+
 
 // Accommodation table
 export const accommodations = pgTable("accommodations", {
@@ -58,6 +76,17 @@ export const accommodations = pgTable("accommodations", {
   type: text("type").notNull(),
   destinationId: integer("destination_id").notNull(),
   image: text("image"),
+
+  statusId: integer("status_id").notNull(), // 🔄 FK to travel_statuses
+  priorityLevel: text("priority_level").notNull().default("medium"),
+  notes: text("notes"),
+
+  addressStreet: text("address_street"),
+  addressLine2: text("address_line2"),
+  addressCity: text("address_city"),
+  addressRegion: text("address_region"),
+  addressPostcode: text("address_postcode"),
+  addressCountry: text("address_country"),
 });
 
 export const accommodationsRelations = relations(accommodations, ({ one }) => ({
@@ -65,14 +94,21 @@ export const accommodationsRelations = relations(accommodations, ({ one }) => ({
     fields: [accommodations.destinationId],
     references: [destinations.id],
   }),
+  status: one(travelStatuses, {
+    fields: [accommodations.statusId],
+    references: [travelStatuses.id],
+  }),
 }));
 
-export const insertAccommodationSchema = createInsertSchema(accommodations).omit({
+export const insertAccommodationSchema = createInsertSchema(accommodations, {
+  statusId: z.number().int().positive(),
+}).omit({
   id: true,
 });
 
 export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
 export type Accommodation = typeof accommodations.$inferSelect;
+
 
 // Trip table
 export const trips = pgTable("trips", {
@@ -80,7 +116,7 @@ export const trips = pgTable("trips", {
   name: text("name").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
-  status: text("status").notNull().default("planned"), // planned, completed, cancelled
+  statusId: integer("status_id").notNull(), // FK now
   userId: integer("user_id"),
 });
 
@@ -95,6 +131,18 @@ export const tripsRelations = relations(trips, ({ many, one }) => ({
 export const insertTripSchema = createInsertSchema(trips).omit({
   id: true,
 });
+
+export const travelStatuses = pgTable("travel_statuses", {
+  id: serial("id").primaryKey(),
+  label: text("label").notNull().unique(), // e.g., "wishlist", "planned"
+  description: text("description"),        // Optional
+});
+
+export const travelStatusesRelations = relations(travelStatuses, ({ many }) => ({
+  destinations: many(destinations),
+  accommodations: many(accommodations),
+  trips: many(trips),
+}));
 
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Trip = typeof trips.$inferSelect;
