@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Destinations
   app.get("/api/destinations", async (req: Request, res: Response) => {
     try {
-      const destinations: Destination[] = await storage.getDestinations();
+      const destinations: (Destination & { statusLabel: string | null })[] = await storage.getDestinations();
       res.json(destinations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch destinations" });
@@ -44,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/destinations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
-      const destination: Destination | undefined = await storage.getDestination(id);
+      const destination: (Destination & { statusLabel: string | null }) | undefined = await storage.getDestination(id);
       
       if (!destination) {
         return res.status(404).json({ message: "Destination not found" });
@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/activities", async (req: Request, res: Response) => {
     try {
       const { destinationId } = req.query;
-      let activities: Activity[];
+      let activities: (Activity & { statusLabel: string | null })[];
       
       if (destinationId) {
         activities = await storage.getActivitiesByDestination(parseInt(destinationId as string));
@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/activities/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
-      const activity: Activity | undefined = await storage.getActivity(id);
+      const activity: (Activity & { statusLabel: string | null }) | undefined = await storage.getActivity(id);
       
       if (!activity) {
         return res.status(404).json({ message: "Activity not found" });
@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/accommodations", async (req: Request, res: Response) => {
     try {
       const { destinationId } = req.query;
-      let accommodations: Accommodation[];
+      let accommodations: (Accommodation & { statusLabel: string | null })[];
       
       if (destinationId) {
         accommodations = await storage.getAccommodationsByDestination(parseInt(destinationId as string));
@@ -206,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/accommodations/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
-      const accommodation: Accommodation | undefined = await storage.getAccommodation(id);
+      const accommodation: (Accommodation & { statusLabel: string | null }) | undefined = await storage.getAccommodation(id);
       
       if (!accommodation) {
         return res.status(404).json({ message: "Accommodation not found" });
@@ -269,7 +269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trips
   app.get("/api/trips", async (req: Request, res: Response) => {
     try {
-      const trips: Trip[] = await storage.getTrips();
+      const trips: (Trip & { statusLabel: string | null })[] = await storage.getTrips();
       res.json(trips);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch trips" });
@@ -279,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/trips/:id", async (req: Request, res: Response) => {
     try {
       const id: number = parseInt(req.params.id);
-      const trip: Trip | undefined = await storage.getTrip(id);
+      const trip: (Trip & { statusLabel: string | null }) | undefined = await storage.getTrip(id);
       
       if (!trip) {
         return res.status(404).json({ message: "Trip not found" });
