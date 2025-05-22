@@ -1,5 +1,5 @@
 {
-  "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
+  "include": ["client/src/**/*", "shared/**/*", "server/**/*", "features/accommodations/accommodation-card.tsx", "features/accommodations/accommodation-form.tsx", "features/accommodations/accommodations.tsx", "features/activities/activity-card.tsx", "features/activities/activity-form.tsx", "features/activities/activities.tsx", "features/destinations/destination-card.tsx", "features/destinations/destination-form.tsx", "features/destinations/destinations.tsx", "features/trips/trip-form.tsx", "features/trips/trip-card.tsx", "features/trips/trip-builder.tsx", "features/trips/trips.tsx", "features/dashboard/dashboard.tsx", "features/profile/profile.tsx", "features/settings/settings.tsx", "features/auth/auth-page.tsx"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,
@@ -16,8 +16,12 @@
     "baseUrl": ".",
     "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
+    "@/*": ["client/src/*"],
+    "@features/*": ["features/*"],
+    "@shared/*": ["shared/*"],
+    "@shared-components/*": ["shared/components/*"],
+    "@shared-hooks/*": ["shared/hooks/*"],
+    "@shared-lib/*": ["shared/lib/*"]
     }
   }
 }

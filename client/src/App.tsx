@@ -1,22 +1,22 @@
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Sidebar } from "@/components/common/sidebar";
-import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/lib/protected-route";
+import { queryClient } from "../../shared/lib/queryClient";
+import { Toaster } from "@shared-components/ui/toaster";
+import { TooltipProvider } from "@shared-components/ui/tooltip";
+import { Sidebar } from "@shared-components/common/sidebar";
+import { AuthProvider } from "@shared/hooks/use-auth";
+import { ProtectedRoute } from "@shared/lib/protected-route";
 
-import Dashboard from "@/pages/dashboard";
-import Destinations from "@/pages/destinations";
-import Trips from "@/pages/trips";
-import TripBuilder from "@/pages/trip-builder";
-import Activities from "@/pages/activities";
-import Accommodations from "@/pages/accommodations";
-import Profile from "@/pages/profile";
-import Settings from "@/pages/settings";
-import AuthPage from "@/pages/auth-page";
-import NotFound from "@/pages/not-found";
+import Dashboard from "@features/dashboard/dashboard";
+import Destinations from "@features/destinations/destinations";
+import Trips from "@features/trips/trips";
+import TripBuilder from "@features/trips/trip-builder";
+import Activities from "@features/activities/activities";
+import Accommodations from "@features/accommodations/accommodations";
+import Profile from "@features/profile/profile";
+import Settings from "@features/settings/settings";
+import AuthPage from "@features/auth/auth-page";
+import NotFound from "@shared/not-found";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
