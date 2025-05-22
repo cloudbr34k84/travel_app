@@ -24,7 +24,7 @@ interface TravelStatus {
 }
 
 export const destinationFormSchema = insertDestinationSchema.extend({
-  image: z.string().url("Please enter a valid image URL").default(""),
+  image: z.string().url("Please enter a valid image URL").optional().or(z.literal("")),
   statusId: z.number().int().positive({ message: "Please select a status." }),
   description: z.string().optional().default(""),
 });
@@ -70,22 +70,23 @@ export function DestinationForm({
   const form = useForm<DestinationFormValues>({
     resolver: zodResolver(destinationFormSchema),
     defaultValues: defaultEmptyValues,
+    mode: "onChange",
   });
 
   useEffect(() => {
     if (isEditing && defaultValues) {
       form.reset({
-        name: defaultValues.name,
-        country: defaultValues.country,
-        region: defaultValues.region,
+        name: defaultValues.name || "",
+        country: defaultValues.country || "",
+        region: defaultValues.region || "",
         description: defaultValues.description || "",
-        image: defaultValues.image || "",
-        statusId: defaultValues.statusId || defaultEmptyValues.statusId,
+        image: defaultValues.image === null ? "" : defaultValues.image || "",
+        statusId: defaultValues.statusId || 0,
       });
-    } else {
+    } else if (!isEditing) {
       form.reset(defaultEmptyValues);
     }
-  }, [isEditing, defaultValues, form.reset]);
+  }, [isEditing, defaultValues, form]);
 
   const regions = [
     { value: "Africa", label: "Africa" },
@@ -105,7 +106,9 @@ export function DestinationForm({
         </DialogHeader>
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit((values: DestinationFormValues) => {
+              onSubmit(values);
+            })}
             className="space-y-4"
           >
             <FormField

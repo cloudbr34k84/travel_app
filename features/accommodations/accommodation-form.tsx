@@ -258,7 +258,7 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
                   <FormItem>
                     <FormLabel>Status</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      onValueChange={(value) => field.onChange(Number(value))}
                       value={field.value?.toString()}
                       disabled={isLoadingTravelStatuses}
                     >

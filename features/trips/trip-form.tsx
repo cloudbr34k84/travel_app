@@ -1,7 +1,9 @@
-import { useForm, SubmitHandler } from "react-hook-form"; // Added SubmitHandler
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Trip, Destination } from "@shared/schema";
+import { useEffect } from "react";
+import { Trip } from "@shared/schema";
+import type { TravelStatus } from "@shared/schema";
 import { insertTripSchema } from "@shared/schema";
 import { Button } from "@shared-components/ui/button";
 import {
@@ -23,39 +25,20 @@ import { cn } from "@shared/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 /**
- * Type definition for travel status data fetched from the API.
- */
-interface TravelStatus {
-  id: number;
-  label: string;
-}
-
-/**
  * Type definition for trip form submission values to be sent to the API
  */
 export type TripApiValues = {
   name: string;
   startDate: string; // Format: 'yyyy-MM-dd'
   endDate: string;   // Format: 'yyyy-MM-dd'
-  statusId: number; 
+  statusId: number;
   id?: number;
-  userId?: number | null; // Added userId to match TripFormValues
+  userId?: number | null;
 };
 
 /**
- * Props interface for the TripForm component
- */
-export interface TripFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (values: TripApiValues) => void;
-  defaultValues?: Partial<Trip & { status?: string }>; // Allow legacy status for a moment
-  isEditing?: boolean;
-}
-
-/**
- * Extended schema for trip form with additional fields and validations
- * Converts string dates from the API to Date objects for the form
+ * Extended schema for trip form with additional fields and validations.
+ * Converts string dates from the API to Date objects for the form.
  */
 export const tripFormSchema = insertTripSchema.extend({
   startDate: z.date({
@@ -65,13 +48,34 @@ export const tripFormSchema = insertTripSchema.extend({
     required_error: "End date is required",
   }),
   statusId: z.number().int().positive({ message: "Status is required" }),
-  // userId is already in insertTripSchema, ensure it's optional or handled
 });
 
 /**
  * Type definition for trip form values based on the schema
  */
 export type TripFormValues = z.infer<typeof tripFormSchema>;
+
+/**
+ * Props interface for the TripForm component
+ */
+export interface TripFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (values: TripApiValues) => void;
+  defaultValues?: Partial<Trip>;
+  isEditing?: boolean;
+}
+
+/**
+ * Default empty values for the trip form.
+ */
+const defaultEmptyValues: TripFormValues = {
+  name: "",
+  startDate: new Date(),
+  endDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+  statusId: 0,
+  userId: null,
+};
 
 export function TripForm({
   open,
@@ -80,35 +84,35 @@ export function TripForm({
   defaultValues,
   isEditing = false,
 }: TripFormProps) {
-  const prepareDefaultValues = (): TripFormValues => {
-    let initialStatusId = 1; // Default statusId, e.g., for "planned"
-    if (defaultValues?.statusId) {
-      initialStatusId = defaultValues.statusId;
-    } else if (defaultValues && 'status' in defaultValues && typeof defaultValues.status === 'string') {
-      console.warn("TripForm: defaultValues.status (string) is deprecated. Use defaultValues.statusId (number).");
-      const legacyStatus = defaultValues.status.toLowerCase();
-      if (legacyStatus === 'planned') initialStatusId = 1;
-      else if (legacyStatus === 'completed') initialStatusId = 2; // Assuming 2 for completed
-      else if (legacyStatus === 'cancelled') initialStatusId = 3; // Assuming 3 for cancelled
-    }
-
-    return {
-      name: defaultValues?.name || "",
-      startDate: defaultValues?.startDate ? new Date(defaultValues.startDate) : new Date(),
-      endDate: defaultValues?.endDate ? new Date(defaultValues.endDate) : new Date(new Date().setDate(new Date().getDate() + 7)),
-      statusId: initialStatusId,
-      userId: defaultValues?.userId || null, // Ensure userId is part of the form values
-    };
-  };
-
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripFormSchema),
-    defaultValues: prepareDefaultValues(),
+    defaultValues: defaultEmptyValues,
+    mode: "onChange",
   });
 
-  const { data: statusesData, isLoading: isLoadingStatuses } = useQuery<TravelStatus[]>({ 
+  /**
+   * Effect to reset the form when `defaultValues` change or `isEditing` status changes.
+   */
+  useEffect(() => {
+    if (isEditing && defaultValues) {
+      const startDate = defaultValues.startDate ? new Date(defaultValues.startDate) : defaultEmptyValues.startDate;
+      const endDate = defaultValues.endDate ? new Date(defaultValues.endDate) : defaultEmptyValues.endDate;
+      
+      form.reset({
+        name: defaultValues.name || defaultEmptyValues.name,
+        startDate: startDate,
+        endDate: endDate,
+        statusId: defaultValues.statusId || defaultEmptyValues.statusId,
+        userId: defaultValues.userId !== undefined ? defaultValues.userId : defaultEmptyValues.userId,
+      });
+    } else if (!isEditing) {
+      form.reset(defaultEmptyValues);
+    }
+  }, [isEditing, defaultValues, form.reset]);
+
+  const { data: statusesData, isLoading: isLoadingStatuses } = useQuery<TravelStatus[]>({
     queryKey: ['travel-statuses'],
-    queryFn: async () => {
+    queryFn: async (): Promise<TravelStatus[]> => {
       const response = await fetch('/api/travel-statuses');
       if (!response.ok) {
         throw new Error('Failed to fetch statuses');
@@ -117,13 +121,13 @@ export function TripForm({
     },
   });
 
-  const handleSubmit: SubmitHandler<TripFormValues> = (values) => {
+  const handleFormSubmit: SubmitHandler<TripFormValues> = (values) => {
     const formattedValues: TripApiValues = {
       ...values,
       startDate: format(values.startDate, 'yyyy-MM-dd'),
       endDate: format(values.endDate, 'yyyy-MM-dd'),
       statusId: values.statusId,
-      userId: values.userId, // Pass userId
+      userId: values.userId,
       ...(isEditing && defaultValues?.id ? { id: defaultValues.id } : {})
     };
     onSubmit(formattedValues);
@@ -136,7 +140,7 @@ export function TripForm({
           <DialogTitle>{isEditing ? "Edit Trip" : "Add New Trip"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -236,7 +240,8 @@ export function TripForm({
                   <FormLabel>Status</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value, 10))}
-                    defaultValue={field.value?.toString()} 
+                    value={field.value?.toString()}
+                    disabled={isLoadingStatuses}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -251,7 +256,7 @@ export function TripForm({
                       ) : (
                         statusesData?.map((status) => (
                           <SelectItem key={status.id} value={status.id.toString()}>
-                            {status.label} 
+                            {status.label}
                           </SelectItem>
                         ))
                       )}
@@ -262,8 +267,14 @@ export function TripForm({
               )}
             />
             <DialogFooter>
-              <Button type="submit" className="bg-primary hover:bg-primary-800">
-                {isEditing ? "Save Changes" : "Add Trip"}
+              <Button 
+                type="submit" 
+                className="bg-primary hover:bg-primary-800"
+                disabled={form.formState.isSubmitting || !form.formState.isValid}
+              >
+                {form.formState.isSubmitting
+                  ? isEditing ? "Saving..." : "Adding..."
+                  : isEditing ? "Save Changes" : "Add Trip"}
               </Button>
             </DialogFooter>
           </form>
