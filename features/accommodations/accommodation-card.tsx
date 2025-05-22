@@ -3,9 +3,10 @@ import { Button } from "@shared-components/ui/button";
 import { MoreHorizontal, MapPin, Building } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@shared-components/ui/dropdown-menu";
 import { Accommodation, Destination } from "@shared/schema";
+import { StatusBadge } from "@shared-components/ui/status-badge";
 
 interface AccommodationCardProps {
-  accommodation: Accommodation;
+  accommodation: Accommodation & { statusLabel?: string };
   destination: Destination;
   onEdit: (accommodation: Accommodation) => void;
   onDelete: (id: number) => void;
@@ -27,7 +28,8 @@ export function AccommodationCard({
           alt={accommodation.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex items-center space-x-2">
+          {accommodation.statusLabel && <StatusBadge statusLabel={accommodation.statusLabel} />}
           <span className="text-xs font-medium bg-amber-100 text-amber-800 rounded-full px-2 py-1">
             {accommodation.type}
           </span>

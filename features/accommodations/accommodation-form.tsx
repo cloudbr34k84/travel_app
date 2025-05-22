@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import React, { forwardRef, useImperativeHandle, useEffect } from "react";
 import { Accommodation, Destination, InsertAccommodation } from "@shared/schema";
+import type { TravelStatus } from "@shared/schema"; // ✅ type-only import
 import { insertAccommodationSchema } from "@shared/schema";
 import { Button } from "@shared-components/ui/button";
 import {
@@ -24,6 +25,7 @@ import { useToast } from "@shared/hooks/use-toast";
  */
 export const accommodationFormSchema = insertAccommodationSchema.extend({
   image: z.string().url("Please enter a valid image URL").optional().or(z.literal('')),
+  statusId: z.number().int().positive(),
 });
 
 /**
@@ -61,6 +63,7 @@ const defaultEmptyValues: AccommodationFormValues = {
   type: "",
   destinationId: 0,
   image: "",
+  statusId: 0,
 };
 
 // Define a type for the ref exposed by the form
@@ -94,6 +97,7 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
           ...defaultValues,
           image: defaultValues.image === null ? "" : defaultValues.image,
           destinationId: Number(defaultValues.destinationId) || 0,
+          statusId: defaultValues.statusId || 0,
         };
         form.reset(transformedValues);
       } else if (!isEditing) {
@@ -145,6 +149,10 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
 
     const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
       queryKey: ["/api/destinations"],
+    });
+
+    const { data: travelStatuses, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
+      queryKey: ["/api/travel-statuses"],
     });
 
     const accommodationTypes = [
@@ -235,6 +243,42 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
                         ) : (
                           <SelectItem value="no-destinations" disabled>
                             No destinations available. Add one first.
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="statusId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      value={field.value?.toString()}
+                      disabled={isLoadingTravelStatuses}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingTravelStatuses ? (
+                          <SelectItem value="loading" disabled>Loading statuses...</SelectItem>
+                        ) : travelStatuses && travelStatuses.length > 0 ? (
+                          travelStatuses.map((status: TravelStatus) => (
+                            <SelectItem key={status.id} value={status.id.toString()}>
+                              {status.label}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-statuses" disabled>
+                            No statuses available.
                           </SelectItem>
                         )}
                       </SelectContent>
