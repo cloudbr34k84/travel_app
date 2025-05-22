@@ -3,7 +3,15 @@
  * @description This file contains the TripForm component, used for adding or editing trips.
  * The Zod schema (tripFormSchema) is defined locally to ensure compatibility with Vite's Fast Refresh.
  * If the schema needs to be reused elsewhere, move it to `@shared/schemas` and import it here.
+ *
+ * This form utilizes dropdown components (Select) for fields like 'status'.
+ * These dropdowns require careful consideration of their positioning context.
+ * If a dropdown opens in an unexpected direction (e.g., upwards), explicitly setting
+ * `side="bottom"` on the `SelectContent` component can enforce downward opening.
+ * The underlying component likely uses a portal, but layout constraints of the modal
+ * or proximity to viewport edges can still affect the automatic placement.
  */
+
 // filepath: /root/travel_app/features/trips/trip-form.tsx
 
 import { useEffect } from "react";
@@ -259,7 +267,7 @@ export function TripForm({
                         <SelectValue placeholder="Select a status" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent side="bottom">
                       {isLoadingTravelStatuses ? (
                         <SelectItem value="loading" disabled>
                           Loading statuses...

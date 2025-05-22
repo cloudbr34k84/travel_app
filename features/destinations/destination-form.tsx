@@ -5,6 +5,14 @@
  * to ensure compatibility with Vite's Fast Refresh. If this schema needs to be reused
  * elsewhere (e.g., for server-side validation or in tests), it should be moved to
  * `@shared/schemas` and imported here, rather than being exported from this component file.
+ *
+ * This form includes dropdown components (Select) that rely on proper positioning.
+ * If dropdowns appear to open in an unintended direction (e.g., upwards instead of downwards),
+ * ensure that the `SelectContent` component has appropriate props like `side="bottom"`
+ * and that parent containers do not impose restrictive `overflow` or height styles
+ * that could mislead the positioning logic. The dropdowns typically use a portal
+ * to render outside the immediate DOM tree, minimizing issues with local stacking contexts,
+ * but viewport proximity can still influence their placement.
  */
 // filepath: /root/travel_app/features/destinations/destination-form.tsx
 import { useForm } from "react-hook-form";
@@ -211,7 +219,7 @@ export function DestinationForm({
                         <SelectValue placeholder="Select a status" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent side="bottom"> {/* Added side="bottom" */}
                       {isLoadingTravelStatuses ? (
                         <SelectItem value="loading" disabled>
                           Loading statuses...
