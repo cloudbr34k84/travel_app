@@ -22,7 +22,8 @@ import {
   accommodations, type Accommodation, type InsertAccommodation,
   trips, type Trip, type InsertTrip,
   tripDestinations, type TripDestination, type InsertTripDestination,
-  users, type User, type InsertUser
+  users, type User, type InsertUser,
+  travelStatuses
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, count, sql, gt } from "drizzle-orm";
@@ -44,32 +45,32 @@ export interface IStorage {
   deleteUser(id: number): Promise<boolean>;
   
   // Destinations
-  getDestinations(): Promise<Destination[]>;
-  getDestination(id: number): Promise<Destination | undefined>;
+  getDestinations(): Promise<(Destination & { statusLabel: string | null })[]>;
+  getDestination(id: number): Promise<(Destination & { statusLabel: string | null }) | undefined>;
   createDestination(destination: InsertDestination): Promise<Destination>;
   updateDestination(id: number, destination: Partial<InsertDestination>): Promise<Destination | undefined>;
   deleteDestination(id: number): Promise<boolean>;
   
   // Activities
-  getActivities(): Promise<Activity[]>;
-  getActivity(id: number): Promise<Activity | undefined>;
-  getActivitiesByDestination(destinationId: number): Promise<Activity[]>;
+  getActivities(): Promise<(Activity & { statusLabel: string | null })[]>;
+  getActivity(id: number): Promise<(Activity & { statusLabel: string | null }) | undefined>;
+  getActivitiesByDestination(destinationId: number): Promise<(Activity & { statusLabel: string | null })[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
   updateActivity(id: number, activity: Partial<InsertActivity>): Promise<Activity | undefined>;
   deleteActivity(id: number): Promise<boolean>;
   
   // Accommodations
-  getAccommodations(): Promise<Accommodation[]>;
-  getAccommodation(id: number): Promise<Accommodation | undefined>;
-  getAccommodationsByDestination(destinationId: number): Promise<Accommodation[]>;
+  getAccommodations(): Promise<(Accommodation & { statusLabel: string | null })[]>;
+  getAccommodation(id: number): Promise<(Accommodation & { statusLabel: string | null }) | undefined>;
+  getAccommodationsByDestination(destinationId: number): Promise<(Accommodation & { statusLabel: string | null })[]>;
   createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation>;
   updateAccommodation(id: number, accommodation: Partial<InsertAccommodation>): Promise<Accommodation | undefined>;
   deleteAccommodation(id: number): Promise<boolean>;
   
   // Trips
-  getTrips(): Promise<Trip[]>;
-  getTripsByUser(userId: number): Promise<Trip[]>;
-  getTrip(id: number): Promise<Trip | undefined>;
+  getTrips(): Promise<(Trip & { statusLabel: string | null })[]>;
+  getTripsByUser(userId: number): Promise<(Trip & { statusLabel: string | null })[]>;
+  getTrip(id: number): Promise<(Trip & { statusLabel: string | null }) | undefined>;
   createTrip(trip: InsertTrip): Promise<Trip>;
   updateTrip(id: number, trip: Partial<InsertTrip>): Promise<Trip | undefined>;
   deleteTrip(id: number): Promise<boolean>;
@@ -155,12 +156,38 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Destinations
-  async getDestinations(): Promise<Destination[]> {
-    return await db.select().from(destinations);
+  async getDestinations(): Promise<(Destination & { statusLabel: string | null })[]> {
+    const result = await db
+      .select({
+        id: destinations.id,
+        name: destinations.name,
+        country: destinations.country,
+        region: destinations.region,
+        description: destinations.description,
+        image: destinations.image,
+        statusId: destinations.statusId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(destinations)
+      .leftJoin(travelStatuses, eq(destinations.statusId, travelStatuses.id));
+    return result;
   }
   
-  async getDestination(id: number): Promise<Destination | undefined> {
-    const [destination] = await db.select().from(destinations).where(eq(destinations.id, id));
+  async getDestination(id: number): Promise<(Destination & { statusLabel: string | null }) | undefined> {
+    const [destination] = await db
+      .select({
+        id: destinations.id,
+        name: destinations.name,
+        country: destinations.country,
+        region: destinations.region,
+        description: destinations.description,
+        image: destinations.image,
+        statusId: destinations.statusId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(destinations)
+      .leftJoin(travelStatuses, eq(destinations.statusId, travelStatuses.id))
+      .where(eq(destinations.id, id));
     return destination;
   }
   
@@ -200,17 +227,57 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Activities
-  async getActivities(): Promise<Activity[]> {
-    return await db.select().from(activities);
+  async getActivities(): Promise<(Activity & { statusLabel: string | null })[]> {
+    const result = await db
+      .select({
+        id: activities.id,
+        name: activities.name,
+        description: activities.description,
+        category: activities.category,
+        destinationId: activities.destinationId,
+        image: activities.image,
+        statusId: activities.statusId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(activities)
+      .leftJoin(travelStatuses, eq(activities.statusId, travelStatuses.id));
+    return result;
   }
   
-  async getActivity(id: number): Promise<Activity | undefined> {
-    const [activity] = await db.select().from(activities).where(eq(activities.id, id));
+  async getActivity(id: number): Promise<(Activity & { statusLabel: string | null }) | undefined> {
+    const [activity] = await db
+      .select({
+        id: activities.id,
+        name: activities.name,
+        description: activities.description,
+        category: activities.category,
+        destinationId: activities.destinationId,
+        image: activities.image,
+        statusId: activities.statusId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(activities)
+      .leftJoin(travelStatuses, eq(activities.statusId, travelStatuses.id))
+      .where(eq(activities.id, id));
     return activity;
   }
   
-  async getActivitiesByDestination(destinationId: number): Promise<Activity[]> {
-    return await db.select().from(activities).where(eq(activities.destinationId, destinationId));
+  async getActivitiesByDestination(destinationId: number): Promise<(Activity & { statusLabel: string | null })[]> {
+    const result = await db
+      .select({
+        id: activities.id,
+        name: activities.name,
+        description: activities.description,
+        category: activities.category,
+        destinationId: activities.destinationId,
+        image: activities.image,
+        statusId: activities.statusId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(activities)
+      .leftJoin(travelStatuses, eq(activities.statusId, travelStatuses.id))
+      .where(eq(activities.destinationId, destinationId));
+    return result;
   }
   
   async createActivity(activity: InsertActivity): Promise<Activity> {
@@ -248,17 +315,78 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Accommodations
-  async getAccommodations(): Promise<Accommodation[]> {
-    return await db.select().from(accommodations);
+  async getAccommodations(): Promise<(Accommodation & { statusLabel: string | null })[]> {
+    const result = await db
+      .select({
+        id: accommodations.id,
+        name: accommodations.name,
+        type: accommodations.type,
+        destinationId: accommodations.destinationId,
+        image: accommodations.image,
+        statusId: accommodations.statusId,
+        priorityLevel: accommodations.priorityLevel,
+        notes: accommodations.notes,
+        addressStreet: accommodations.addressStreet,
+        addressLine2: accommodations.addressLine2,
+        addressCity: accommodations.addressCity,
+        addressRegion: accommodations.addressRegion,
+        addressPostcode: accommodations.addressPostcode,
+        addressCountry: accommodations.addressCountry,
+        statusLabel: travelStatuses.label,
+      })
+      .from(accommodations)
+      .leftJoin(travelStatuses, eq(accommodations.statusId, travelStatuses.id));
+    return result;
   }
   
-  async getAccommodation(id: number): Promise<Accommodation | undefined> {
-    const [accommodation] = await db.select().from(accommodations).where(eq(accommodations.id, id));
+  async getAccommodation(id: number): Promise<(Accommodation & { statusLabel: string | null }) | undefined> {
+    const [accommodation] = await db
+      .select({
+        id: accommodations.id,
+        name: accommodations.name,
+        type: accommodations.type,
+        destinationId: accommodations.destinationId,
+        image: accommodations.image,
+        statusId: accommodations.statusId,
+        priorityLevel: accommodations.priorityLevel,
+        notes: accommodations.notes,
+        addressStreet: accommodations.addressStreet,
+        addressLine2: accommodations.addressLine2,
+        addressCity: accommodations.addressCity,
+        addressRegion: accommodations.addressRegion,
+        addressPostcode: accommodations.addressPostcode,
+        addressCountry: accommodations.addressCountry,
+        statusLabel: travelStatuses.label,
+      })
+      .from(accommodations)
+      .leftJoin(travelStatuses, eq(accommodations.statusId, travelStatuses.id))
+      .where(eq(accommodations.id, id));
     return accommodation;
   }
   
-  async getAccommodationsByDestination(destinationId: number): Promise<Accommodation[]> {
-    return await db.select().from(accommodations).where(eq(accommodations.destinationId, destinationId));
+  async getAccommodationsByDestination(destinationId: number): Promise<(Accommodation & { statusLabel: string | null })[]> {
+    const result = await db
+      .select({
+        id: accommodations.id,
+        name: accommodations.name,
+        type: accommodations.type,
+        destinationId: accommodations.destinationId,
+        image: accommodations.image,
+        statusId: accommodations.statusId,
+        priorityLevel: accommodations.priorityLevel,
+        notes: accommodations.notes,
+        addressStreet: accommodations.addressStreet,
+        addressLine2: accommodations.addressLine2,
+        addressCity: accommodations.addressCity,
+        addressRegion: accommodations.addressRegion,
+        addressPostcode: accommodations.addressPostcode,
+        addressCountry: accommodations.addressCountry,
+        statusLabel: travelStatuses.label,
+      })
+      .from(accommodations)
+      .leftJoin(travelStatuses, eq(accommodations.statusId, travelStatuses.id))
+      .where(eq(accommodations.destinationId, destinationId));
+    return result;
   }
   
   async createAccommodation(accommodation: InsertAccommodation): Promise<Accommodation> {
@@ -296,16 +424,53 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Trips
-  async getTrips(): Promise<Trip[]> {
-    return await db.select().from(trips);
+  async getTrips(): Promise<(Trip & { statusLabel: string | null })[]> {
+    const result = await db
+      .select({
+        id: trips.id,
+        name: trips.name,
+        startDate: trips.startDate,
+        endDate: trips.endDate,
+        statusId: trips.statusId,
+        userId: trips.userId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(trips)
+      .leftJoin(travelStatuses, eq(trips.statusId, travelStatuses.id));
+    return result;
   }
   
-  async getTripsByUser(userId: number): Promise<Trip[]> {
-    return await db.select().from(trips).where(eq(trips.userId, userId));
+  async getTripsByUser(userId: number): Promise<(Trip & { statusLabel: string | null })[]> {
+    const result = await db
+      .select({
+        id: trips.id,
+        name: trips.name,
+        startDate: trips.startDate,
+        endDate: trips.endDate,
+        statusId: trips.statusId,
+        userId: trips.userId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(trips)
+      .leftJoin(travelStatuses, eq(trips.statusId, travelStatuses.id))
+      .where(eq(trips.userId, userId));
+    return result;
   }
   
-  async getTrip(id: number): Promise<Trip | undefined> {
-    const [trip] = await db.select().from(trips).where(eq(trips.id, id));
+  async getTrip(id: number): Promise<(Trip & { statusLabel: string | null }) | undefined> {
+    const [trip] = await db
+      .select({
+        id: trips.id,
+        name: trips.name,
+        startDate: trips.startDate,
+        endDate: trips.endDate,
+        statusId: trips.statusId,
+        userId: trips.userId,
+        statusLabel: travelStatuses.label,
+      })
+      .from(trips)
+      .leftJoin(travelStatuses, eq(trips.statusId, travelStatuses.id))
+      .where(eq(trips.id, id));
     return trip;
   }
   
@@ -378,13 +543,28 @@ export class DatabaseStorage implements IStorage {
     activitiesCount: number;
     accommodationsCount: number;
   }> {
+    // Get the ID for the "planned" status
+    const [plannedStatus] = await db
+      .select({ id: travelStatuses.id })
+      .from(travelStatuses)
+      .where(eq(travelStatuses.label, "planned"));
+
+    let plannedStatusId: number | undefined = undefined;
+    if (plannedStatus) {
+      plannedStatusId = plannedStatus.id;
+    } else {
+      // Handle the case where "planned" status doesn't exist, though it should.
+      // You might throw an error or return counts with upcomingTripsCount as 0.
+      console.error("Critical: 'planned' status not found in travel_statuses table.");
+    }
+
     // Count upcoming trips (planned trips with start date in the future)
     const [upcomingTripsResult] = await db
       .select({ count: count() })
       .from(trips)
       .where(
         and(
-          eq(trips.status, "planned"),
+          plannedStatusId !== undefined ? eq(trips.statusId, plannedStatusId) : sql<boolean>`false`,
           gt(trips.startDate, new Date().toISOString().split('T')[0])
         )
       );
