@@ -1,3 +1,12 @@
+/**
+ * @file DestinationForm.tsx
+ * @description This file contains the DestinationForm component, which is used for adding or editing destinations.
+ * The Zod schema (destinationFormSchema) for form validation is defined locally within this file
+ * to ensure compatibility with Vite's Fast Refresh. If this schema needs to be reused
+ * elsewhere (e.g., for server-side validation or in tests), it should be moved to
+ * `@shared/schemas` and imported here, rather than being exported from this component file.
+ */
+// filepath: /root/travel_app/features/destinations/destination-form.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,7 +32,7 @@ interface TravelStatus {
   label: string;
 }
 
-export const destinationFormSchema = insertDestinationSchema.extend({
+const destinationFormSchema = insertDestinationSchema.extend({
   image: z.string().url("Please enter a valid image URL").optional().or(z.literal("")),
   statusId: z.number().int().positive({ message: "Please select a status." }),
   description: z.string().optional().default(""),

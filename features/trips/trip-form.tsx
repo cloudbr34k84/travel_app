@@ -1,3 +1,12 @@
+/**
+/**
+ * @file TripForm.tsx
+ * @description This file contains the TripForm component, used for adding or editing trips.
+ * The Zod schema (tripFormSchema) is defined locally to ensure compatibility with Vite's Fast Refresh.
+ * If the schema needs to be reused elsewhere, move it to `@shared/schemas` and import it here.
+ */
+// filepath: /root/travel_app/features/trips/trip-form.tsx
+
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,7 +49,7 @@ export type TripApiValues = {
  * Extended schema for trip form with additional fields and validations.
  * Converts string dates from the API to Date objects for the form.
  */
-export const tripFormSchema = insertTripSchema.extend({
+const tripFormSchema = insertTripSchema.extend({
   startDate: z.date({
     required_error: "Start date is required",
   }),

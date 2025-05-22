@@ -1,3 +1,11 @@
+/**
+ * @file AccommodationForm.tsx
+ * @description This file contains the AccommodationForm component, used for adding or editing accommodations.
+ * The Zod schema (accommodationFormSchema) is declared as a local constant to avoid breaking Vite's Fast Refresh.
+ * If needed in other parts of the codebase, move it to `@shared/schemas` instead of exporting from this file.
+ */
+// filepath: /root/travel_app/features/accommodations/accommodation-form.tsx
+
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,7 +31,7 @@ import { useToast } from "@shared/hooks/use-toast";
 /**
  * Extended schema for accommodation form with additional fields and validations
  */
-export const accommodationFormSchema = insertAccommodationSchema.extend({
+const accommodationFormSchema = insertAccommodationSchema.extend({
   image: z.string().url("Please enter a valid image URL").optional().or(z.literal('')),
   statusId: z.number().int().positive(),
 });
