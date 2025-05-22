@@ -1,5 +1,4 @@
 /**
-/**
  * @file TripForm.tsx
  * @description This file contains the TripForm component, used for adding or editing trips.
  * The Zod schema (tripFormSchema) is defined locally to ensure compatibility with Vite's Fast Refresh.
@@ -119,8 +118,8 @@ export function TripForm({
     }
   }, [isEditing, defaultValues, form.reset]);
 
-  const { data: statusesData, isLoading: isLoadingStatuses } = useQuery<TravelStatus[]>({
-    queryKey: ['travel-statuses'],
+  const { data: statusesData, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
+    queryKey: ['/api/travel-statuses'],
     queryFn: async (): Promise<TravelStatus[]> => {
       const response = await fetch('/api/travel-statuses');
       if (!response.ok) {
@@ -248,9 +247,9 @@ export function TripForm({
                 <FormItem>
                   <FormLabel>Status</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                    onValueChange={(value) => field.onChange(parseInt(value))}
                     value={field.value?.toString()}
-                    disabled={isLoadingStatuses}
+                    disabled={isLoadingTravelStatuses}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -258,7 +257,7 @@ export function TripForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {isLoadingStatuses ? (
+                      {isLoadingTravelStatuses ? (
                         <SelectItem value="loading" disabled>
                           Loading statuses...
                         </SelectItem>

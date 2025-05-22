@@ -1,11 +1,32 @@
+/**
+ * @file ActivityForm.tsx
+ * 
+ * This file defines the `ActivityForm` component, a reusable form for creating
+ * and editing activities within the travel application. It utilizes `react-hook-form`
+ * for form management and `zod` for schema validation.
+ * 
+ * The form schema (`activityFormSchema`) is declared locally within this file
+ * rather than being imported from a shared location. This is a deliberate
+ * design choice to ensure compatibility with Hot Module Replacement (HMR)
+ * and Fast Refresh. When schemas are imported, changes to them might not
+ * always trigger a fast refresh of the components using them, leading to
+ * inconsistencies during development. Declaring the schema locally mitigates
+ * this issue.
+ */
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect } from "react";
-import { Activity, Destination } from "@shared/schema"; // ✅ runtime values
+import { Activity, Destination, insertActivitySchema } from "@shared/schema"; // ✅ runtime values
 import type { TravelStatus } from "@shared/schema";     // ✅ type-only import
-import { insertActivitySchema } from "@shared/schema";
 import { Button } from "@shared-components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@shared-components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,15 +36,20 @@ import {
   FormMessage,
 } from "@shared-components/ui/form";
 import { Input } from "@shared-components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@shared-components/ui/select";
 import { Textarea } from "@shared-components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@shared-components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@shared-components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
 /**
  * Extended schema for activity form with additional fields and validations
  */
-export const activityFormSchema = insertActivitySchema.extend({
+const activityFormSchema = insertActivitySchema.extend({
   image: z.string().url("Please enter a valid image URL").optional().or(z.literal("")),
   statusId: z.number().int().positive(),
 });
@@ -90,7 +116,7 @@ export function ActivityForm({
     } else if (!isEditing) {
       form.reset(defaultEmptyValues);
     }
-  }, [isEditing, defaultValues, form.reset]);
+  }, [isEditing, defaultValues, form]);
 
   const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
@@ -159,7 +185,7 @@ export function ActivityForm({
                   <FormLabel>Category</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value}
+                    value={field.value?.toString() ?? ""}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -186,7 +212,7 @@ export function ActivityForm({
                   <FormLabel>Destination</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value?.toString()}
+                    value={field.value?.toString() ?? ""}
                     disabled={isLoadingDestinations}
                   >
                     <FormControl>
@@ -232,7 +258,7 @@ export function ActivityForm({
                   <FormLabel>Status</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value?.toString()}
+                    value={field.value?.toString() ?? ""}
                     disabled={isLoadingTravelStatuses}
                   >
                     <FormControl>
@@ -282,3 +308,5 @@ export function ActivityForm({
     </Dialog>
   );
 }
+
+ActivityForm.displayName = "ActivityForm";

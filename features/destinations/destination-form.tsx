@@ -64,16 +64,15 @@ export function DestinationForm({
   defaultValues,
   isEditing,
 }: DestinationFormProps) {
-  const { data: travelStatuses, isLoading: isLoadingStatuses } = useQuery<TravelStatus[]>({
-    queryKey: ['travel-statuses'],
+  const { data: travelStatuses, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
+    queryKey: ['/api/travel-statuses'],
     queryFn: async () => {
-      return [
-        { id: 1, label: "Wishlist" },
-        { id: 2, label: "Planned" },
-        { id: 3, label: "Visited" },
-      ];
+      const response = await fetch('/api/travel-statuses');
+      if (!response.ok) {
+        throw new Error('Failed to fetch travel statuses');
+      }
+      return response.json();
     },
-    initialData: [],
   });
 
   const form = useForm<DestinationFormValues>({
@@ -203,9 +202,9 @@ export function DestinationForm({
                 <FormItem>
                   <FormLabel>Status</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value, 10))}
-                    value={field.value ? field.value.toString() : undefined}
-                    disabled={isLoadingStatuses || travelStatuses.length === 0}
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                    disabled={isLoadingTravelStatuses}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -213,11 +212,17 @@ export function DestinationForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {travelStatuses.map((status) => (
-                        <SelectItem key={status.id} value={status.id.toString()}>
-                          {status.label}
+                      {isLoadingTravelStatuses ? (
+                        <SelectItem value="loading" disabled>
+                          Loading statuses...
                         </SelectItem>
-                      ))}
+                      ) : (
+                        travelStatuses?.map((status) => (
+                          <SelectItem key={status.id} value={status.id.toString()}>
+                            {status.label}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
