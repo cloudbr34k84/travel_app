@@ -9,6 +9,15 @@ export const accommodations = pgTable("accommodations", {
 	type: text().notNull(),
 	destinationId: integer("destination_id").notNull(),
 	image: text(),
+	statusId: integer("status_id").notNull(),
+	priorityLevel: text("priority_level").default('medium').notNull(),
+	notes: text(),
+	addressStreet: text("address_street"),
+	addressLine2: text("address_line2"),
+	addressCity: text("address_city"),
+	addressRegion: text("address_region"),
+	addressPostcode: text("address_postcode"),
+	addressCountry: text("address_country"),
 });
 
 export const activities = pgTable("activities", {
@@ -18,6 +27,7 @@ export const activities = pgTable("activities", {
 	category: text().notNull(),
 	destinationId: integer("destination_id").notNull(),
 	image: text(),
+	statusId: integer("status_id").notNull(),
 });
 
 export const tripDestinations = pgTable("trip_destinations", {
@@ -31,8 +41,8 @@ export const trips = pgTable("trips", {
 	name: text().notNull(),
 	startDate: date("start_date").notNull(),
 	endDate: date("end_date").notNull(),
-	status: text().default('planned').notNull(),
 	userId: integer("user_id"),
+	statusId: integer("status_id").notNull(),
 });
 
 export const users = pgTable("users", {
@@ -62,9 +72,17 @@ export const destinations = pgTable("destinations", {
 	country: text().notNull(),
 	region: text().notNull(),
 	image: text().notNull(),
-	status: text().default('wishlist').notNull(),
-	description: text().default('').notNull(),
+	description: text().default(').notNull(),
+	statusId: integer("status_id").notNull(),
 });
+
+export const travelStatuses = pgTable("travel_statuses", {
+	id: serial().primaryKey().notNull(),
+	label: text().notNull(),
+	description: text(),
+}, (table) => [
+	unique("travel_statuses_label_unique").on(table.label),
+]);
 
 export const session = pgTable("session", {
 	sid: varchar().primaryKey().notNull(),
