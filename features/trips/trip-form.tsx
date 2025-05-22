@@ -6,14 +6,18 @@
  */
 // filepath: /root/travel_app/features/trips/trip-form.tsx
 
+import { useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useEffect } from "react";
+
 import { Trip } from "@shared/schema";
 import type { TravelStatus } from "@shared/schema";
 import { insertTripSchema } from "@shared/schema";
+
 import { Button } from "@shared-components/ui/button";
+import { Calendar } from "@shared-components/ui/calendar";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@shared-components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -23,12 +27,11 @@ import {
   FormMessage,
 } from "@shared-components/ui/form";
 import { Input } from "@shared-components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@shared-components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@shared-components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@shared-components/ui/popover";
-import { Calendar } from "@shared-components/ui/calendar";
-import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@shared-components/ui/select";
 import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+
 import { cn } from "@shared/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
@@ -116,7 +119,7 @@ export function TripForm({
     } else if (!isEditing) {
       form.reset(defaultEmptyValues);
     }
-  }, [isEditing, defaultValues, form.reset]);
+  }, [isEditing, defaultValues, form]);
 
   const { data: statusesData, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
     queryKey: ['/api/travel-statuses'],
@@ -248,7 +251,7 @@ export function TripForm({
                   <FormLabel>Status</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value?.toString()}
+                    value={field.value?.toString() ?? ""}
                     disabled={isLoadingTravelStatuses}
                   >
                     <FormControl>
@@ -291,3 +294,5 @@ export function TripForm({
     </Dialog>
   );
 }
+
+TripForm.displayName = "TripForm";
