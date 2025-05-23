@@ -73,7 +73,7 @@ export const accommodations = pgTable("accommodations", {
   type: text("type").notNull(),
   destinationId: integer("destination_id").notNull(),
   image: text("image"),
-
+  description: text("description").notNull().default(""),
   statusId: integer("status_id").notNull(), // 🔄 FK to travel_statuses
   priorityLevel: text("priority_level").notNull().default("medium"),
   notes: text("notes"),
@@ -111,7 +111,6 @@ export type Accommodation = typeof accommodations.$inferSelect;
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  /** Description provided by the user for this trip */
   description: text("description").notNull().default(""),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
