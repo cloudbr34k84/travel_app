@@ -32,6 +32,7 @@ import {
   FormMessage,
 } from "@shared-components/ui/form";
 import { Input } from "@shared-components/ui/input";
+import { Textarea } from "@shared-components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -49,6 +50,7 @@ import { useQuery } from "@tanstack/react-query";
 const accommodationFormSchema = insertAccommodationSchema.extend({
   image: z.string().url("Please enter a valid image URL").optional().or(z.literal('')),
   statusId: z.number().int().positive(),
+  description: z.string().min(1, "Description is required"),
 });
 
 /**
@@ -87,6 +89,7 @@ const defaultEmptyValues: AccommodationFormValues = {
   destinationId: 0,
   image: "",
   statusId: 0,
+  description: "", // Added description field with empty string default
 };
 
 // Define a type for the ref exposed by the form
@@ -319,6 +322,23 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
                     <FormControl>
                       <Input 
                         placeholder="https://example.com/image.jpg" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Enter a description of the accommodation..." 
+                        className="min-h-[120px]"
                         {...field} 
                       />
                     </FormControl>

@@ -41,6 +41,9 @@ export function AccommodationCard({
           <MapPin className="h-3 w-3 mr-1" />
           {destination.name}, {destination.country}
         </div>
+        {accommodation.description && (
+          <p className="text-sm text-gray-600 line-clamp-2">{accommodation.description}</p>
+        )}
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between">
         <Button 

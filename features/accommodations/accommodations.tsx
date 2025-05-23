@@ -565,6 +565,12 @@ export default function Accommodations() {
                       )}
                     </div>
                   </div>
+                  
+                  {/* Description Section */}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                    <p className="mt-1 text-sm text-gray-700">{selectedAccommodation.description || "No description available"}</p>
+                  </div>
                 </div>
               </div>
               
