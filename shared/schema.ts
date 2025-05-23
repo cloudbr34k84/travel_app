@@ -111,6 +111,8 @@ export type Accommodation = typeof accommodations.$inferSelect;
 export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  /** Description provided by the user for this trip */
+  description: text("description").notNull().default(""),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
   statusId: integer("status_id").notNull(), // FK now

@@ -37,6 +37,7 @@ import {
 import { Input } from "@shared-components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@shared-components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@shared-components/ui/select";
+import { Textarea } from "@shared-components/ui/textarea";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 
@@ -48,6 +49,7 @@ import { useQuery } from "@tanstack/react-query";
  */
 export type TripApiValues = {
   name: string;
+  description: string;
   startDate: string; // Format: 'yyyy-MM-dd'
   endDate: string;   // Format: 'yyyy-MM-dd'
   statusId: number;
@@ -66,6 +68,7 @@ const tripFormSchema = insertTripSchema.extend({
   endDate: z.date({
     required_error: "End date is required",
   }),
+  description: z.string().min(1, { message: "Description is required" }),
   statusId: z.number().int().positive({ message: "Status is required" }),
 });
 
@@ -90,6 +93,7 @@ export interface TripFormProps {
  */
 const defaultEmptyValues: TripFormValues = {
   name: "",
+  description: "",
   startDate: new Date(),
   endDate: new Date(new Date().setDate(new Date().getDate() + 7)),
   statusId: 0,
@@ -119,6 +123,7 @@ export function TripForm({
       
       form.reset({
         name: defaultValues.name || defaultEmptyValues.name,
+        description: defaultValues.description || defaultEmptyValues.description,
         startDate: startDate,
         endDate: endDate,
         statusId: defaultValues.statusId || defaultEmptyValues.statusId,
@@ -168,6 +173,22 @@ export function TripForm({
                   <FormLabel>Trip Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Summer Vacation" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter a description..." 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

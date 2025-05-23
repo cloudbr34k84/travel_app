@@ -432,6 +432,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: trips.id,
         name: trips.name,
+        description: trips.description,
         startDate: trips.startDate,
         endDate: trips.endDate,
         statusId: trips.statusId,
@@ -448,6 +449,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: trips.id,
         name: trips.name,
+        description: trips.description,
         startDate: trips.startDate,
         endDate: trips.endDate,
         statusId: trips.statusId,
@@ -465,6 +467,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: trips.id,
         name: trips.name,
+        description: trips.description,
         startDate: trips.startDate,
         endDate: trips.endDate,
         statusId: trips.statusId,

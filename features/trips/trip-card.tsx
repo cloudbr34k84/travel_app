@@ -66,6 +66,7 @@ export function TripCard({
           )}
           <h3 className="text-white text-xl font-bold">{trip.name}</h3>
           <p className="text-white/80 text-sm">{destinations.join(" • ")}</p>
+          {trip.description && <p className="text-white/70 text-sm mt-1 line-clamp-2">{trip.description}</p>}
         </div>
         {trip.statusLabel && (
           <div className="absolute top-4 right-4">
@@ -74,6 +75,9 @@ export function TripCard({
         )}
       </div>
       <CardContent className="p-6">
+        {trip.description && (
+          <p className="text-muted-foreground mb-4 line-clamp-2">{trip.description}</p>
+        )}
         <div className="flex items-center mb-4">
           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
             <Calendar className="h-4 w-4 text-gray-500" />
