@@ -336,6 +336,7 @@ export class DatabaseStorage implements IStorage {
         addressPostcode: accommodations.addressPostcode,
         addressCountry: accommodations.addressCountry,
         statusLabel: travelStatuses.label,
+        description: accommodations.description,
       })
       .from(accommodations)
       .leftJoin(travelStatuses, eq(accommodations.statusId, travelStatuses.id));
@@ -360,6 +361,7 @@ export class DatabaseStorage implements IStorage {
         addressPostcode: accommodations.addressPostcode,
         addressCountry: accommodations.addressCountry,
         statusLabel: travelStatuses.label,
+        description: accommodations.description,
       })
       .from(accommodations)
       .leftJoin(travelStatuses, eq(accommodations.statusId, travelStatuses.id))
@@ -385,6 +387,7 @@ export class DatabaseStorage implements IStorage {
         addressPostcode: accommodations.addressPostcode,
         addressCountry: accommodations.addressCountry,
         statusLabel: travelStatuses.label,
+        description: accommodations.description,
       })
       .from(accommodations)
       .leftJoin(travelStatuses, eq(accommodations.statusId, travelStatuses.id))
