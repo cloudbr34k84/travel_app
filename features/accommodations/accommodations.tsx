@@ -203,6 +203,7 @@ export default function Accommodations() {
         title: "Success",
         description: "Accommodation updated successfully",
       });
+      setFormOpen(false);
       setEditingAccommodation(null);
     },
     onError: (error: Error) => {
