@@ -15,7 +15,7 @@
  * but viewport proximity can still influence their placement.
  */
 // filepath: /root/travel_app/features/destinations/destination-form.tsx
-import { useForm } from "react-hook-form";
+import { useForm, Path } from "react-hook-form"; // Added Path
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Destination, insertDestinationSchema } from "@shared/schema";
@@ -31,9 +31,10 @@ import {
 import { Input } from "@shared-components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@shared-components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@shared-components/ui/dialog";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react"; // Added useRef
 import { Textarea } from "@shared-components/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
+import { parseServerFieldErrors } from "@shared/lib/utils"; // Added parseServerFieldErrors
 
 interface TravelStatus {
   id: number;
@@ -54,6 +55,7 @@ export type DestinationFormProps = {
   defaultValues?: Destination;
   isEditing: boolean;
   onSubmit: (values: DestinationFormValues) => void;
+  serverError?: unknown; // Added serverError prop
 };
 
 const defaultEmptyValues: DestinationFormValues = {
@@ -71,6 +73,7 @@ export function DestinationForm({
   onSubmit,
   defaultValues,
   isEditing,
+  serverError, // Destructure serverError
 }: DestinationFormProps) {
   const { data: travelStatuses, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
     queryKey: ['/api/travel-statuses'],
@@ -103,6 +106,26 @@ export function DestinationForm({
       form.reset(defaultEmptyValues);
     }
   }, [isEditing, defaultValues, form]);
+
+  // Effect to set server-side errors on the form
+  const prevServerErrorRef = useRef<unknown>(null);
+  useEffect(() => {
+    if (serverError && serverError !== prevServerErrorRef.current) {
+      const fieldErrors = parseServerFieldErrors(serverError);
+      if (fieldErrors) {
+        Object.entries(fieldErrors).forEach(([fieldName, message]) => {
+          // Check if fieldName is a valid Path<DestinationFormValues> or a general error key
+          if (fieldName in defaultEmptyValues || fieldName === 'general' || fieldName === 'root.serverError') {
+            form.setError(fieldName as Path<DestinationFormValues>, { type: 'server', message });
+          } else {
+            // Fallback for errors that don't match a specific field
+            form.setError("root.serverError", { type: "server", message: message || "An unexpected server error occurred." });
+          }
+        });
+      }
+    }
+    prevServerErrorRef.current = serverError;
+  }, [serverError, form, prevServerErrorRef]);
 
   const regions = [
     { value: "Africa", label: "Africa" },
@@ -237,6 +260,12 @@ export function DestinationForm({
                 </FormItem>
               )}
             />
+            {/* Display general server errors not specific to a field */}
+            {form.formState.errors.root?.serverError && (
+                <FormItem>
+                    <FormMessage>{form.formState.errors.root.serverError.message}</FormMessage>
+                </FormItem>
+            )}
             <DialogFooter>
               <Button type="submit" className="bg-primary hover:bg-primary-800" disabled={form.formState.isSubmitting}>
                 {isEditing ? "Save Changes" : "Add Destination"}

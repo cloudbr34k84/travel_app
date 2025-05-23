@@ -14,8 +14,8 @@
 
 // filepath: /root/travel_app/features/trips/trip-form.tsx
 
-import { useEffect } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useEffect, useRef } from "react"; // Added useRef
+import { useForm, SubmitHandler, Path } from "react-hook-form"; // Added Path
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
@@ -41,7 +41,7 @@ import { Textarea } from "@shared-components/ui/textarea";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 
-import { cn } from "@shared/lib/utils";
+import { cn, parseServerFieldErrors } from "@shared/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 /**
@@ -86,6 +86,7 @@ export interface TripFormProps {
   onSubmit: (values: TripApiValues) => void;
   defaultValues?: Partial<Trip>;
   isEditing?: boolean;
+  serverError?: any; // New prop to pass server errors
 }
 
 /**
@@ -106,6 +107,7 @@ export function TripForm({
   onSubmit,
   defaultValues,
   isEditing = false,
+  serverError,
 }: TripFormProps) {
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripFormSchema),
@@ -133,6 +135,25 @@ export function TripForm({
       form.reset(defaultEmptyValues);
     }
   }, [isEditing, defaultValues, form]);
+
+  // Effect to set server-side errors on the form
+  const prevServerErrorRef = useRef<any>(null);
+  useEffect(() => {
+    if (serverError && serverError !== prevServerErrorRef.current) {
+      const fieldErrors = parseServerFieldErrors(serverError);
+      if (fieldErrors) {
+        Object.entries(fieldErrors).forEach(([fieldName, message]) => {
+          if (fieldName in defaultEmptyValues || fieldName === 'general' || fieldName === 'root.serverError') {
+            form.setError(fieldName as Path<TripFormValues>, { type: 'server', message });
+          } else {
+            // Fallback for errors that don't match a specific field
+            form.setError("root.serverError", { type: "server", message: message || "An unexpected server error occurred." });
+          }
+        });
+      }
+    }
+    prevServerErrorRef.current = serverError;
+  }, [serverError, form, prevServerErrorRef]);
 
   const { data: statusesData, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
     queryKey: ['/api/travel-statuses'],

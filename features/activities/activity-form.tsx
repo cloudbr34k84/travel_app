@@ -13,8 +13,8 @@
  * inconsistencies during development. Declaring the schema locally mitigates
  * this issue.
  */
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useRef } from "react"; // Added useRef
+import { useForm, Path } from "react-hook-form"; // Added Path
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Activity, Destination, insertActivitySchema } from "@shared/schema"; // ✅ runtime values
@@ -45,6 +45,7 @@ import {
 } from "@shared-components/ui/select";
 import { Textarea } from "@shared-components/ui/textarea";
 import { useQuery } from "@tanstack/react-query";
+import { parseServerFieldErrors } from "@shared/lib/utils"; // Added parseServerFieldErrors
 
 /**
  * Extended schema for activity form with additional fields and validations
@@ -68,6 +69,7 @@ export interface ActivityFormProps {
   onSubmit: (values: ActivityFormValues) => void;
   defaultValues?: Activity & { statusId?: number } | undefined;
   isEditing: boolean;
+  serverError?: unknown; // Added serverError prop
 }
 
 /**
@@ -89,6 +91,7 @@ export function ActivityForm({
   onSubmit,
   defaultValues,
   isEditing,
+  serverError, // Destructure serverError
 }: ActivityFormProps) {
   /**
    * Initialize the form with typesafe validation using Zod schema
@@ -117,6 +120,26 @@ export function ActivityForm({
       form.reset(defaultEmptyValues);
     }
   }, [isEditing, defaultValues, form]);
+
+  // Effect to set server-side errors on the form
+  const prevServerErrorRef = useRef<unknown>(null);
+  useEffect(() => {
+    if (serverError && serverError !== prevServerErrorRef.current) {
+      const fieldErrors = parseServerFieldErrors(serverError);
+      if (fieldErrors) {
+        Object.entries(fieldErrors).forEach(([fieldName, message]) => {
+          // Check if fieldName is a valid Path<ActivityFormValues> or a general error key
+          if (fieldName in defaultEmptyValues || fieldName === 'general' || fieldName === 'root.serverError') {
+            form.setError(fieldName as Path<ActivityFormValues>, { type: 'server', message });
+          } else {
+            // Fallback for errors that don't match a specific field
+            form.setError("root.serverError", { type: "server", message: message || "An unexpected server error occurred." });
+          }
+        });
+      }
+    }
+    prevServerErrorRef.current = serverError;
+  }, [serverError, form, prevServerErrorRef]);
 
   const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
@@ -297,6 +320,12 @@ export function ActivityForm({
                 </FormItem>
               )}
             />
+            {/* Display general server errors not specific to a field */}
+            {form.formState.errors.root?.serverError && (
+                <FormItem>
+                    <FormMessage>{form.formState.errors.root.serverError.message}</FormMessage>
+                </FormItem>
+            )}
             <DialogFooter>
               <Button type="submit" className="bg-primary hover:bg-primary-800" disabled={form.formState.isSubmitting || !form.formState.isValid}>
                 {form.formState.isSubmitting ? (isEditing ? "Saving..." : "Adding...") : (isEditing ? "Save Changes" : "Add Activity")}

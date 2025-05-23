@@ -6,8 +6,8 @@
  */
 // filepath: /root/travel_app/features/accommodations/accommodation-form.tsx
 
-import React, { forwardRef, useImperativeHandle, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { forwardRef, useEffect, useRef } from "react"; // Added useRef
+import { useForm, Controller, Path } from "react-hook-form"; // Added Path
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
@@ -43,6 +43,7 @@ import {
 
 import { useToast } from "@shared/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { parseServerFieldErrors } from "@shared/lib/utils"; // Added import
 
 /**
  * Extended schema for accommodation form with additional fields and validations
@@ -68,6 +69,7 @@ export type AccommodationFormValues = z.infer<typeof accommodationFormSchema>;
  * @property isEditing - Flag indicating whether the form is in edit mode
  * @property isSubmitting - Flag indicating whether a submission is in progress (optional, managed by parent)
  * @property onError - Optional callback for handling server-side validation errors
+ * @property serverError - Optional server error object to populate form errors
  */
 export interface AccommodationFormProps {
   open: boolean;
@@ -76,7 +78,8 @@ export interface AccommodationFormProps {
   defaultValues?: Accommodation | undefined;
   isEditing: boolean;
   isSubmitting?: boolean;
-  onError?: (error: Error) => void;
+  onError?: (error: Error) => void; // This might be removable if serverError handles all cases
+  serverError?: unknown; // Added serverError prop
 }
 
 /**
@@ -93,12 +96,13 @@ const defaultEmptyValues: AccommodationFormValues = {
 };
 
 // Define a type for the ref exposed by the form
-type AccommodationFormRef = {
-  parseServerValidationErrors: (error: Error) => boolean;
-};
+// type AccommodationFormRef = {
+//   parseServerValidationErrors: (error: Error) => boolean;
+// };
+// Removed AccommodationFormRef as parseServerValidationErrors is being removed
 
 // Use a named function for the forwardRef to improve debugging
-export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationFormProps>(
+export const AccommodationForm = forwardRef<HTMLFormElement, AccommodationFormProps>( // Changed ref type as useImperativeHandle is removed
   function AccommodationForm(props, ref) {
     const {
       open,
@@ -107,6 +111,7 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
       defaultValues,
       isEditing,
       isSubmitting = false,
+      serverError, // Destructured serverError
     } = props;
 
     const form = useForm<AccommodationFormValues>({
@@ -129,49 +134,32 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
       } else if (!isEditing) {
         form.reset(defaultEmptyValues);
       }
-    }, [isEditing, defaultValues, form]); // Changed form.reset to form
+    }, [isEditing, defaultValues, form]);
 
     const { toast } = useToast();
 
-    const parseServerValidationErrors = (error: Error): boolean => {
-      try {
-        if (!error.message) return false;
-        const errorMatch = error.message.match(/^(\d+): (.+)$/);
-        if (!errorMatch) return false;
-        const [, statusCode, message] = errorMatch;
-        if (statusCode !== "400") return false;
-
-        try {
-          const errorData = JSON.parse(message);
-          const fieldErrors = errorData.fieldErrors || errorData.errors;
-          if (!fieldErrors || typeof fieldErrors !== 'object') return false;
-
-          let errorsFound = false;
-          Object.entries(fieldErrors).forEach(([field, errorMessages]) => {
-            if (Array.isArray(errorMessages) && errorMessages.length > 0) {
-              setError(field as keyof AccommodationFormValues, {
-                message: errorMessages[0] as string,
-              });
-              errorsFound = true;
-            } else if (typeof errorMessages === 'string') {
-              setError(field as keyof AccommodationFormValues, {
-                message: errorMessages,
-              });
-              errorsFound = true;
+    // Effect to set server-side errors on the form
+    const prevServerErrorRef = useRef<unknown>(null);
+    useEffect(() => {
+      if (serverError && serverError !== prevServerErrorRef.current) {
+        const fieldErrors = parseServerFieldErrors(serverError);
+        if (fieldErrors) {
+          Object.entries(fieldErrors).forEach(([fieldName, message]) => {
+            // Ensure fieldName is a valid key of AccommodationFormValues
+            // This check might need to be more robust depending on how server errors are structured
+            if (fieldName in defaultEmptyValues || fieldName === 'general' || fieldName === 'root.serverError') {
+              form.setError(fieldName as Path<AccommodationFormValues>, { type: 'server', message });
+            } else {
+              // Optionally handle or log unexpected field names
+              console.warn(`Unknown field error: ${fieldName}`);
+               // Fallback to a general error if the field is not directly on the form
+              form.setError("root.serverError" as Path<AccommodationFormValues>, { type: 'server', message: `Error for ${fieldName}: ${message}` });
             }
           });
-          return errorsFound;
-        } catch (jsonError) {
-          return false;
         }
-      } catch (parseError) {
-        return false;
+        prevServerErrorRef.current = serverError;
       }
-    };
-
-    useImperativeHandle(ref, () => ({
-      parseServerValidationErrors,
-    }));
+    }, [serverError, form, setError]); // Added setError to dependencies
 
     const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
       queryKey: ["/api/destinations"],
@@ -203,7 +191,13 @@ export const AccommodationForm = forwardRef<AccommodationFormRef, AccommodationF
             <DialogTitle>{isEditing ? "Edit Accommodation" : "Add New Accommodation"}</DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4" ref={ref}>
+              {/* Added ref to the form element if still needed, otherwise can be removed if forwardRef is not for the form itself */}
+              {form.formState.errors.root?.serverError && (
+                <FormItem>
+                  <FormMessage>{form.formState.errors.root.serverError.message}</FormMessage>
+                </FormItem>
+              )}
               <FormField
                 control={form.control}
                 name="name"
