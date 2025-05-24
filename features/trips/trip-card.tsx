@@ -18,6 +18,8 @@ interface TripCardProps {
   accommodationsCount: number;     // Count of accommodations for this trip
   daysToTrip?: number;             // Optional: days until trip starts
   onView: (id: number) => void;    // Callback for viewing trip details
+  onEdit?: (id: number) => void;   // Optional: Callback for editing trip
+  onDelete?: (id: number) => void; // Optional: Callback for deleting trip
 }
 
 export function TripCard({

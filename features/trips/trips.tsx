@@ -71,26 +71,12 @@ export default function Trips() {
     },
   });
 
-  // Use the correct type for the form submission values
-  const handleCreateOrUpdateTrip = (values: TripApiValues): void => {
-    // Convert to InsertTrip format expected by the mutations
-    const tripData: InsertTrip = {
-      name: values.name,
-      startDate: values.startDate,  // Already in the correct string format
-      endDate: values.endDate,      // Already in the correct string format
-      status: values.status,
-    };
-    
-    if (editingTrip) {
-      updateTrip.mutate({ id: editingTrip.id, data: tripData });
-    } else {
-      createTrip.mutate(tripData);
-    }
+  const handleView = (tripId: number): void => {
+    navigate(`/trips/${tripId}`);
   };
 
-  const handleEdit = (trip: Trip): void => {
-    setEditingTrip(trip);
-    setFormOpen(true);
+  const handleEdit = (tripId: number): void => {
+    navigate(`/trips/${tripId}?edit=true`);
   };
 
   const handleDelete = (id: number): void => {
@@ -104,13 +90,6 @@ export default function Trips() {
     }
   };
 
-  const handleFormOpenChange = (open: boolean): void => {
-    setFormOpen(open);
-    if (!open) {
-      setEditingTrip(null);
-    }
-  };
-
   /**
    * Filter trips based on search term and status filter
    * @returns Array of filtered Trip objects or empty array if no trips exist
@@ -120,8 +99,8 @@ export default function Trips() {
     const matchesSearch: boolean = search === "" || 
       trip.name.toLowerCase().includes(search.toLowerCase());
     
-    // Match trip status against selected status filter
-    const matchesStatus: boolean = statusFilter === "all" || trip.status === statusFilter;
+    // Match trip status against selected status filter  
+    const matchesStatus: boolean = statusFilter === "all" || trip.statusId.toString() === statusFilter;
     
     // Trip must match both conditions to be included
     return matchesSearch && matchesStatus;
@@ -164,9 +143,9 @@ export default function Trips() {
    */
   const getDaysToTrip = (trip: Trip): number | string => {
     // Handle completed or cancelled trips with status strings
-    if (trip.status === "completed") {
+    if (trip.statusId === 3) { // Assuming 3 is completed status
       return "Completed";
-    } else if (trip.status === "cancelled") {
+    } else if (trip.statusId === 4) { // Assuming 4 is cancelled status
       return "Cancelled";
     }
     
@@ -206,7 +185,7 @@ export default function Trips() {
         description="Manage your travel plans and adventures"
         buttonLabel="Create New Trip"
         buttonIcon={<Plus className="h-4 w-4" />}
-        onButtonClick={() => setFormOpen(true)}
+        onButtonClick={() => navigate("/trips/new")}
       />
 
       <SearchFilter
@@ -241,7 +220,7 @@ export default function Trips() {
       ) : sortedTrips?.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedTrips.map((trip: Trip) => {
-            const isUpcoming = new Date(trip.startDate) > new Date() && trip.status === "planned";
+            const isUpcoming = new Date(trip.startDate) > new Date() && trip.statusId === 1; // Assuming 1 is planned status
             return (
               <TripCard
                 key={trip.id}
@@ -254,13 +233,9 @@ export default function Trips() {
                   typeof getDaysToTrip(trip) === 'number' ? getDaysToTrip(trip) as number : undefined
                   : undefined
                 }
-                onView={(id) => {
-                  // This would navigate to trip details
-                  toast({
-                    title: "Coming Soon",
-                    description: "Trip details view is under development",
-                  });
-                }}
+                onView={() => handleView(trip.id)}
+                onEdit={() => handleEdit(trip.id)}
+                onDelete={() => handleDelete(trip.id)}
               />
             );
           })}
@@ -270,21 +245,14 @@ export default function Trips() {
           <p className="text-gray-500">No trips found</p>
           <Button
             className="mt-4 bg-primary hover:bg-primary-800"
-            onClick={() => setFormOpen(true)}
+            onClick={() => navigate("/trips/new")}
           >
             Plan Your First Trip
           </Button>
         </div>
       )}
 
-      {/* Create/Edit Trip Form */}
-      <TripForm
-        open={formOpen}
-        onOpenChange={handleFormOpenChange}
-        onSubmit={handleCreateOrUpdateTrip}
-        defaultValues={editingTrip || undefined}
-        isEditing={!!editingTrip}
-      />
+
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
