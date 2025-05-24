@@ -53,46 +53,7 @@ export default function Destinations() {
     queryKey: ["/api/accommodations"],
   });
 
-  // Create destination mutation
-  const createDestination = useMutation({
-    mutationFn: (newDestination: InsertDestination) => apiRequest("POST", "/api/destinations", newDestination),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/destinations"] });
-      toast({
-        title: "Success",
-        description: "Destination created successfully",
-      });
-      setFormOpen(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create destination",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Update destination mutation
-  const updateDestination = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<InsertDestination> }) => apiRequest("PUT", `/api/destinations/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/destinations"] });
-      toast({
-        title: "Success",
-        description: "Destination updated successfully",
-      });
-      setFormOpen(false);
-      // The editingDestination will be cleared by the setTimeout in handleFormOpenChange
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update destination",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Delete destination mutation
   const deleteDestination = useMutation({
@@ -115,18 +76,7 @@ export default function Destinations() {
     },
   });
 
-  const handleCreateOrUpdateDestination = (values: InsertDestination) => {
-    if (editingDestination) {
-      updateDestination.mutate({ id: editingDestination.id, data: values });
-    } else {
-      createDestination.mutate(values);
-    }
-  };
 
-  const handleEdit = (destination: Destination) => {
-    setEditingDestination(destination);
-    setFormOpen(true);
-  };
 
   const handleDelete = (id: number) => {
     setDestinationToDelete(id);
@@ -139,13 +89,7 @@ export default function Destinations() {
     }
   };
 
-  const handleFormOpenChange = (open: boolean) => {
-    setFormOpen(open);
-    if (!open) {
-      // Allow modal animation to finish before clearing selected destination
-      setTimeout(() => setEditingDestination(null), 300);
-    }
-  };
+
 
   // Filter destinations based on search and filters
   const filteredDestinations: Destination[] = destinations?.filter((destination: Destination) => {
@@ -154,7 +98,7 @@ export default function Destinations() {
       destination.country.toLowerCase().includes(search.toLowerCase());
     
     const matchesRegion = regionFilter === "all" || destination.region === regionFilter;
-    const matchesStatus = statusFilter === "all" || destination.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || destination.statusId.toString() === statusFilter;
     
     return matchesSearch && matchesRegion && matchesStatus;
   }) || [];
@@ -263,14 +207,7 @@ export default function Destinations() {
         </div>
       )}
 
-      {/* Create/Edit Destination Form */}
-      <DestinationForm
-        open={formOpen}
-        onOpenChange={handleFormOpenChange}
-        onSubmit={handleCreateOrUpdateDestination}
-        defaultValues={editingDestination || undefined}
-        isEditing={!!editingDestination}
-      />
+
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

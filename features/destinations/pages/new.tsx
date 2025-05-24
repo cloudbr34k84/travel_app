@@ -5,7 +5,7 @@
  * instead of a modal, providing better navigation and user experience.
  */
 
-import { useNavigate } from "wouter";
+import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { PageHeader } from "@shared-components/common/page-header";
 import { Button } from "@shared-components/ui/button";
@@ -45,7 +45,6 @@ const destinationFormSchema = insertDestinationSchema.extend({
 type FormValues = z.infer<typeof destinationFormSchema>;
 
 export default function NewDestinationPage() {
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const { data: travelStatuses, isLoading: isLoadingTravelStatuses } = useQuery<TravelStatus[]>({
@@ -78,7 +77,7 @@ export default function NewDestinationPage() {
         title: "Success",
         description: "Destination created successfully",
       });
-      navigate('/destinations');
+      window.location.href = '/destinations';
     },
     onError: (error) => {
       const fieldErrors = parseServerFieldErrors(error);
@@ -113,14 +112,12 @@ export default function NewDestinationPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/destinations')}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Destinations
-        </Button>
+        <Link href="/destinations">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Destinations
+          </Button>
+        </Link>
         <PageHeader
           title="Add New Destination"
           description="Create a new travel destination"
@@ -247,13 +244,11 @@ export default function NewDestinationPage() {
             />
 
             <div className="flex gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/destinations')}
-              >
-                Cancel
-              </Button>
+              <Link href="/destinations">
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </Link>
               <Button
                 type="submit"
                 className="bg-primary hover:bg-primary-800"
