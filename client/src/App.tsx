@@ -95,7 +95,13 @@ function Router() {
         </ProtectedLayout>
       )} />
       
-      <ProtectedRoute path="/trip-builder" component={() => (
+      <ProtectedRoute path="/trips/new" component={() => (
+        <ProtectedLayout>
+          <TripBuilder />
+        </ProtectedLayout>
+      )} />
+      
+      <ProtectedRoute path="/trips/:id" component={() => (
         <ProtectedLayout>
           <TripBuilder />
         </ProtectedLayout>

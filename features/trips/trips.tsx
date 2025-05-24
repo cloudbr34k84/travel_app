@@ -1,11 +1,10 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Calendar } from "lucide-react";
-import { Trip, Destination, InsertTrip, Activity, Accommodation } from "@shared/schema";
-import { TripForm } from "@features/trips/trip-form";
-import { TripApiValues } from "@features/trips/trip-form";
+import { Plus, Calendar, Edit, Eye } from "lucide-react";
+import { Trip, Destination, Activity, Accommodation } from "@shared/schema";
 import { useToast } from "@shared/hooks/use-toast";
 import { apiRequest } from "@shared/lib/queryClient";
 import { queryClient } from "@shared/lib/queryClient";
@@ -23,10 +22,9 @@ interface FilterOption {
 
 export default function Trips() {
   const { toast } = useToast();
+  const [location, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tripToDelete, setTripToDelete] = useState<number | null>(null);
 
@@ -50,45 +48,7 @@ export default function Trips() {
     queryKey: ["/api/accommodations"],
   });
 
-  // Create trip mutation
-  const createTrip = useMutation({
-    mutationFn: (newTrip: InsertTrip) => apiRequest("POST", "/api/trips", newTrip),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-      toast({
-        title: "Success",
-        description: "Trip created successfully",
-      });
-      setFormOpen(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create trip",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Update trip mutation
-  const updateTrip = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<InsertTrip> }) => apiRequest("PUT", `/api/trips/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-      toast({
-        title: "Success",
-        description: "Trip updated successfully",
-      });
-      setEditingTrip(null);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update trip",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Delete trip mutation
   const deleteTrip = useMutation({

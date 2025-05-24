@@ -393,8 +393,46 @@ export default function TripBuilder() {
                 placeholder="Summer Vacation"
                 value={tripName}
                 onChange={(e) => setTripName(e.target.value)}
+                disabled={!isEditing}
               />
             </div>
+
+            {/* Show description field for existing trips or when creating new */}
+            {!isNewTrip && (
+              <div className="space-y-2">
+                <Label htmlFor="tripDescription">Description</Label>
+                <Textarea
+                  id="tripDescription"
+                  placeholder="Describe your trip..."
+                  value={tripDescription}
+                  onChange={(e) => setTripDescription(e.target.value)}
+                  disabled={!isEditing}
+                />
+              </div>
+            )}
+
+            {/* Show status field for existing trips */}
+            {!isNewTrip && (
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={statusId.toString()}
+                  onValueChange={(value) => setStatusId(parseInt(value))}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {travelStatuses?.map((status) => (
+                      <SelectItem key={status.id} value={status.id.toString()}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label>Start Date</Label>
@@ -402,6 +440,7 @@ export default function TripBuilder() {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
+                    disabled={!isEditing}
                     className={cn(
                       "w-full justify-start text-left font-normal",
                       !startDate && "text-muted-foreground"
@@ -411,14 +450,16 @@ export default function TripBuilder() {
                     {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
+                {isEditing && (
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                )}
               </Popover>
             </div>
             
@@ -428,6 +469,7 @@ export default function TripBuilder() {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
+                    disabled={!isEditing}
                     className={cn(
                       "w-full justify-start text-left font-normal",
                       !endDate && "text-muted-foreground"
@@ -437,14 +479,16 @@ export default function TripBuilder() {
                     {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                  />
-                </PopoverContent>
+                {isEditing && (
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                )}
               </Popover>
             </div>
             
@@ -457,6 +501,40 @@ export default function TripBuilder() {
                   "Select dates to calculate duration"
                 )}
               </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-4 space-y-2">
+              {isNewTrip && (
+                <Button 
+                  onClick={handleCreateTrip}
+                  disabled={createTrip.isPending}
+                  className="w-full"
+                >
+                  {createTrip.isPending ? "Creating..." : "Create Trip"}
+                </Button>
+              )}
+              
+              {isExistingTrip && isEditing && (
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleUpdateTrip}
+                    disabled={updateTrip.isPending}
+                    className="flex-1"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {updateTrip.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={toggleEditMode}
+                    className="flex-1"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Mode
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
