@@ -16,12 +16,28 @@
  *   { name: "Jane Smith", email: "jane@example.com" }
  * ];
  * 
+ * // Basic table without clickable rows
  * <CommonTable columns={columns} data={data} />
+ * 
+ * // Table with clickable rows that navigate to view pages
+ * <CommonTable 
+ *   columns={columns} 
+ *   data={data} 
+ *   getRowLink={(row) => `/users/${row.id}`}
+ * />
  * 
  * @usage
  * - columns: Array of column definitions with header text and accessor functions
  * - data: Array of row objects to display
  * - className: Optional additional styling classes
+ * - getRowLink: Optional function that returns a URL for row navigation when clicked
+ * 
+ * @clickable_rows
+ * When getRowLink is provided:
+ * - Each row becomes clickable with pointer cursor and hover effects
+ * - Clicking navigates to the URL returned by getRowLink(row)
+ * - Interactive elements within cells (buttons, links) should use stopPropagation 
+ *   to prevent triggering row navigation
  * 
  * @future_extensions
  * - Add sorting functionality by extending column definitions
@@ -52,18 +68,28 @@ interface CommonTableProps {
   columns: CommonTableColumn[];
   data: any[];
   className?: string;
+  getRowLink?: (row: any) => string;
 }
 
 /**
  * CommonTable Component
  * 
- * Renders a dynamic table with configurable columns and data
+ * Renders a dynamic table with configurable columns and data.
+ * Supports optional clickable rows for navigation.
  */
 const CommonTable: React.FC<CommonTableProps> = ({ 
   columns, 
   data, 
-  className 
+  className,
+  getRowLink
 }) => {
+  const handleRowClick = (row: any) => {
+    if (getRowLink) {
+      const url = getRowLink(row);
+      window.location.href = url;
+    }
+  };
+
   return (
     <div className={cn("w-full", className)}>
       <Table>
@@ -88,7 +114,13 @@ const CommonTable: React.FC<CommonTableProps> = ({
             </TableRow>
           ) : (
             data.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
+              <TableRow 
+                key={rowIndex}
+                onClick={() => handleRowClick(row)}
+                className={cn(
+                  getRowLink && "cursor-pointer hover:bg-gray-50 transition-colors"
+                )}
+              >
                 {columns.map((column, colIndex) => (
                   <TableCell key={colIndex}>
                     {column.accessor(row)}
