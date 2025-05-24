@@ -81,7 +81,7 @@
 /* Responsive layout utilities */
 @layer utilities {
   .content-safe-area {
-    @apply pt-16 pb-20 sm:pt-0 sm:pb-6; /* Top padding for mobile header and bottom padding for mobile nav */
+    @apply pt-8 pb-16 sm:pt-0 sm:pb-4; /* Reduced top and bottom padding */
   }
   
   .mobile-nav-height {
@@ -89,7 +89,7 @@
   }
   
   .page-container {
-    @apply px-4 sm:px-6 md:px-8; /* Consistent padding for all pages */
+    @apply px-3 sm:px-4 md:px-6; /* Reduced left and right padding */
   }
 }
 
