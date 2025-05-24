@@ -74,7 +74,7 @@ export default function Destinations() {
     { header: 'Name', accessor: (row: any) => row.name },
     { header: 'Country', accessor: (row: any) => row.country },
     { header: 'Region', accessor: (row: any) => row.region },
-    { header: 'Status', accessor: (row: any) => row.statusName || 'Unknown' },
+    { header: 'Status', accessor: (row: any) => row.statusLabel || 'Unknown' },
     { header: 'Activities', accessor: (row: any) => row.activityCount || 0 },
     { header: 'Accommodations', accessor: (row: any) => row.accommodationCount || 0 },
   ];

@@ -82,12 +82,14 @@ export default function Activities() {
    * Column definitions for CommonTable component
    * - Defines table structure with headers and data accessors
    * - destinationId is resolved to destination name using destinations lookup
+   * - statusLabel is displayed directly from the backend join
    */
   const columns = [
     { header: 'ID', accessor: (row: any) => row.id },
     { header: 'Name', accessor: (row: any) => row.name },
     { header: 'Description', accessor: (row: any) => row.description || 'No description' },
     { header: 'Category', accessor: (row: any) => row.category },
+    { header: 'Status', accessor: (row: any) => row.statusLabel || 'Unknown' },
     { header: 'Destination', accessor: (row: any) => row.destinationName || 'Unknown' },
   ];
 
