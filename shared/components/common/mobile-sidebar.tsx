@@ -125,7 +125,6 @@ export function MobileSidebar() {
                   </Link>
                 )}
               </div>
-            </div>
           </div>
         </SheetContent>
       </Sheet>
