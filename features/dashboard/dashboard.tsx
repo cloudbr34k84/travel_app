@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
-import { PageHeader } from "@shared/components/common/page-header";
-import { StatCard } from "@shared/components/common/stat-card";
+import { PageHeader } from "@shared-components/common/page-header";
+import { StatCard } from "@shared-components/common/stat-card";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@shared-components/ui/card";
 import { Link } from "wouter";
@@ -23,198 +22,100 @@ export default function Dashboard() {
   }
 
   // Fetch dashboard stats
-  const { data: stats, isLoading: isLoadingStats } = useQuery<DashboardStats>({
+  const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
   });
 
-  // Fetch trips
-  const { data: trips, isLoading: isLoadingTrips } = useQuery<Trip[]>({
+  // Fetch upcoming trips
+  const { data: trips } = useQuery<Trip[]>({
     queryKey: ["/api/trips"],
   });
 
-  // Fetch destinations
-  const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[]>({
+  // Fetch destinations for display
+  const { data: destinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
   });
 
-  /**
-   * Handle new trip creation from the form
-   * Converts form values with Date objects to API values with string dates
-   * @param values Form values from TripForm
-   */
-  const handleCreateTrip = async (values: TripApiValues): Promise<void> => {
-    try {
-      // No need to format dates as they're already formatted in the form component
-      await apiRequest("POST", "/api/trips", values);
-      
-      toast({
-        title: "Success",
-        description: "Trip created successfully",
-      });
-      
-      // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/trips"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-      setTripFormOpen(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create trip",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Get next upcoming trip
-  const getNextTrip = (): Trip | null => {
-    if (!trips || trips.length === 0) return null;
-    
-    const today = new Date();
-    const upcomingTrips = trips.filter((trip: Trip) => {
-      const startDate = new Date(trip.startDate);
-      return startDate > today && trip.status === "planned";
-    });
-    
-    if (upcomingTrips.length === 0) return null;
-    
-    // Sort by start date (closest first)
-    upcomingTrips.sort((a: Trip, b: Trip) => {
-      return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-    });
-    
-    return upcomingTrips[0];
-  };
-
-  // Get recent completed trips
-  const getRecentTrips = (): Trip[] => {
-    if (!trips || trips.length === 0) return [];
-    
-    const completedTrips = trips.filter((trip: Trip) => trip.status === "completed");
-    
-    // Sort by end date (most recent first)
-    completedTrips.sort((a: Trip, b: Trip) => {
-      return new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
-    });
-    
-    return completedTrips.slice(0, 4);
-  };
-
-  // Get destinations for a trip
-  const getTripDestinations = (trip: Trip): string[] => {
-    // This would normally use the trip-destinations relationship,
-    // but for simplicity in this example, we'll just return the first destination
-    if (!destinations || destinations.length === 0) return [];
-    return [destinations[0].name];
-  };
-
-  // Calculate days to next trip
-  const getDaysToTrip = (trip: Trip): number => {
-    const today = new Date();
+  // Get the next upcoming trip
+  const nextTrip = trips?.find((trip: Trip) => {
     const startDate = new Date(trip.startDate);
-    const timeDiff = startDate.getTime() - today.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
-  };
+    const today = new Date();
+    return startDate > today && trip.statusId === 2; // Assuming 2 is planned status
+  });
 
-  const nextTrip = getNextTrip();
-  const recentTrips = getRecentTrips();
+  // Get recent trips (last 3)
+  const recentTrips = trips?.slice(0, 3) || [];
 
   return (
     <div className="p-6">
-      <PageHeader
-        title="Dashboard"
+      <PageHeader 
+        title="Dashboard" 
         description="Welcome back! Here's an overview of your travel plans."
-        buttonLabel="Create New Trip"
-        buttonIcon={<Plus className="h-4 w-4" />}
-        onButtonClick={() => setTripFormOpen(true)}
       />
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
-          icon={<Building />}
-          iconColor="text-primary"
-          iconBgColor="bg-blue-100"
-          label="Upcoming Trips"
-          value={isLoadingStats ? "..." : stats?.upcomingTripsCount || 0}
+          title="Upcoming Trips"
+          value={stats?.upcomingTripsCount || 0}
+          description="Planned adventures"
+          icon={<Calendar className="h-6 w-6" />}
         />
         <StatCard
-          icon={<MapPin />}
-          iconColor="text-accent-400"
-          iconBgColor="bg-amber-100"
-          label="Destinations"
-          value={isLoadingStats ? "..." : stats?.destinationsCount || 0}
+          title="Destinations"
+          value={stats?.destinationsCount || 0}
+          description="Places to explore"
+          icon={<MapPin className="h-6 w-6" />}
         />
         <StatCard
-          icon={<Smile />}
-          iconColor="text-green-600"
-          iconBgColor="bg-green-100"
-          label="Activities"
-          value={isLoadingStats ? "..." : stats?.activitiesCount || 0}
+          title="Activities"
+          value={stats?.activitiesCount || 0}
+          description="Things to do"
+          icon={<Smile className="h-6 w-6" />}
         />
         <StatCard
-          icon={<Building />}
-          iconColor="text-purple-600"
-          iconBgColor="bg-purple-100"
-          label="Accommodations"
-          value={isLoadingStats ? "..." : stats?.accommodationsCount || 0}
+          title="Accommodations"
+          value={stats?.accommodationsCount || 0}
+          description="Places to stay"
+          icon={<Building className="h-6 w-6" />}
         />
       </div>
 
-      {/* Recent Trips and Upcoming Trip */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Upcoming Trip */}
-        <div className="bg-white rounded-lg shadow col-span-1">
-          <div className="p-6 border-b border-gray-border">
-            <h2 className="text-lg font-semibold text-gray-text">Next Trip</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Next Trip Card */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-lg font-semibold">Next Trip</h3>
           </div>
           {nextTrip ? (
             <>
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400"
-                  alt={nextTrip.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-6">
-                  <span className="text-white text-xs font-medium bg-primary rounded-full px-2 py-1 inline-block mb-2 w-fit">
-                    {getDaysToTrip(nextTrip) === 0 ? "Today" : 
-                     getDaysToTrip(nextTrip) === 1 ? "Tomorrow" : 
-                     `In ${getDaysToTrip(nextTrip)} days`}
-                  </span>
-                  <h3 className="text-white text-xl font-bold">{nextTrip.name}</h3>
-                  <p className="text-white/80 text-sm">
-                    {getTripDestinations(nextTrip).join(" • ")}
-                  </p>
-                </div>
-              </div>
               <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      {format(new Date(nextTrip.startDate), "MMM d")} - {format(new Date(nextTrip.endDate), "MMM d, yyyy")}
-                    </p>
-                    <p className="text-sm font-medium text-gray-text">
-                      {Math.ceil((new Date(nextTrip.endDate).getTime() - new Date(nextTrip.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-xl font-semibold">{nextTrip.name}</h4>
+                  <StatusBadge status="planned" />
                 </div>
                 
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                    <Smile className="h-4 w-4 text-gray-500" />
+                <div className="flex items-center text-gray-600 mb-2">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <span className="text-sm">
+                    {format(new Date(nextTrip.startDate), "MMM d")} - {format(new Date(nextTrip.endDate), "MMM d, yyyy")}
+                  </span>
+                </div>
+                
+                <div className="flex items-center text-gray-600 mb-4">
+                  <Clock className="h-4 w-4 mr-2" />
+                  <span className="text-sm">
+                    {Math.ceil((new Date(nextTrip.startDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days to go
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 text-center py-4 border-t border-gray-100">
+                  <div>
+                    <p className="text-sm text-gray-500">Destinations</p>
+                    <p className="text-sm font-medium text-gray-text">2 cities</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Activities</p>
                     <p className="text-sm font-medium text-gray-text">8 planned</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                    <Building className="h-4 w-4 text-gray-500" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Accommodations</p>
@@ -244,45 +145,30 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Recent Trips List */}
-        <div className="bg-white rounded-lg shadow col-span-1 lg:col-span-2">
-          <div className="p-6 border-b border-gray-border flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-text">Recent Trips</h2>
-            <Link href="/trips">
-              <div className="text-primary text-sm font-medium hover:text-primary-800 cursor-pointer">
-                View All
-              </div>
-            </Link>
+        {/* Recent Trips */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Recent Trips</h3>
+              <Link href="/trips">
+                <Button variant="outline" size="sm">
+                  View All
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="divide-y divide-gray-border">
+          <div className="divide-y divide-gray-200">
             {recentTrips.length > 0 ? (
               recentTrips.map((trip: Trip) => (
-                <div key={trip.id} className="p-4 flex">
-                  <img
-                    src="https://images.unsplash.com/photo-1506929562872-bb421503ef21?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=120"
-                    alt={trip.name}
-                    className="w-24 h-16 object-cover rounded-md mr-4"
-                  />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium text-gray-text">{trip.name}</h3>
-                        <p className="text-sm text-gray-500">
-                          {format(new Date(trip.startDate), "MMM d")} - {format(new Date(trip.endDate), "MMM d, yyyy")}
-                        </p>
-                      </div>
-                      <StatusBadge status={trip.status as "completed"} />
+                <div key={trip.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">{trip.name}</h4>
+                      <p className="text-sm text-gray-500">
+                        {format(new Date(trip.startDate), "MMM d")} - {format(new Date(trip.endDate), "MMM d, yyyy")}
+                      </p>
                     </div>
-                    <div className="flex items-center mt-2 text-xs text-gray-500">
-                      <span className="flex items-center mr-3">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        {getTripDestinations(trip).length} destinations
-                      </span>
-                      <span className="flex items-center mr-3">
-                        <Smile className="h-3 w-3 mr-1" />
-                        7 activities
-                      </span>
-                    </div>
+                    <StatusBadge status={trip.statusId === 1 ? "wishlist" : trip.statusId === 2 ? "planned" : trip.statusId === 3 ? "completed" : "cancelled"} />
                   </div>
                 </div>
               ))
@@ -294,8 +180,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      
-
     </div>
   );
 }
