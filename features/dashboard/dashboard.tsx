@@ -1,23 +1,18 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { PageHeader } from "@shared/components/common/page-header";
 import { StatCard } from "@shared/components/common/stat-card";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@shared/components/ui/card";
+import { Card, CardContent } from "@shared-components/ui/card";
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { StatusBadge } from "@shared/components/common/status-badge";
+import { StatusBadge } from "@shared-components/common/status-badge";
 import { Building, MapPin, Smile, Calendar, Clock, Plus } from "lucide-react";
-import { Trip, Destination, InsertTrip } from "@shared/schema";
-import { Button } from "@shared/components/ui/button";
-import { TripForm } from "@features/trips/trip-form";
-import { TripApiValues } from "@features/trips/trip-form";
-import { useToast } from "@shared/hooks/use-toast";
-import { apiRequest } from "@shared/lib/queryClient";
-import { queryClient } from "@shared/lib/queryClient";
+import { Trip, Destination } from "@shared/schema";
+import { Button } from "@shared-components/ui/button";
 
 export default function Dashboard() {
-  const { toast } = useToast();
-  const [tripFormOpen, setTripFormOpen] = useState(false);
+  const [location, navigate] = useLocation();
 
   // Define interface for dashboard stats
   interface DashboardStats {
@@ -241,7 +236,7 @@ export default function Dashboard() {
               <p className="text-gray-500 mb-4">No upcoming trips planned</p>
               <Button 
                 className="bg-primary hover:bg-primary-800"
-                onClick={() => setTripFormOpen(true)}
+                onClick={() => navigate("/trips/new")}
               >
                 Plan a New Trip
               </Button>
@@ -300,11 +295,7 @@ export default function Dashboard() {
         </div>
       </div>
       
-      <TripForm
-        open={tripFormOpen}
-        onOpenChange={setTripFormOpen}
-        onSubmit={handleCreateTrip}
-      />
+
     </div>
   );
 }

@@ -30,6 +30,8 @@ export function TripCard({
   accommodationsCount,
   daysToTrip,
   onView,
+  onEdit,
+  onDelete,
 }: TripCardProps) {
   /**
    * Format trip dates for display using date-fns

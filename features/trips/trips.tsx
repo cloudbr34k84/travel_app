@@ -173,9 +173,10 @@ export default function Trips() {
 
   const statusOptions: FilterOption[] = [
     { value: "all", label: "All Status" },
-    { value: "planned", label: "Planned" },
-    { value: "completed", label: "Completed" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "1", label: "Wishlist" },
+    { value: "2", label: "Planned" },
+    { value: "3", label: "Completed" },
+    { value: "4", label: "Cancelled" },
   ];
 
   return (
