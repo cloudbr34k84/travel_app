@@ -357,7 +357,7 @@ export default function Accommodations() {
                       {destinations && (
                         <p className="mt-1">
                           {(() => {
-                            const dest = getDestinationForAccommodation(selectedAccommodation.destinationId);
+                            const dest = destinations?.find(dest => dest.id === selectedAccommodation.destinationId);
                             return dest ? `${dest.name}, ${dest.country}` : 'Unknown destination';
                           })()}
                         </p>

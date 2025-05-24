@@ -129,6 +129,17 @@ export default function Destinations() {
     return matchesSearch && matchesRegion && matchesStatus;
   }) || [];
 
+  // Count activities and accommodations for each destination
+  const getActivityCount = (destinationId: number): number => {
+    if (!activities) return 0;
+    return activities.filter((activity: Activity) => activity.destinationId === destinationId).length;
+  };
+
+  const getAccommodationCount = (destinationId: number): number => {
+    if (!accommodations) return 0;
+    return accommodations.filter((accommodation: Accommodation) => accommodation.destinationId === destinationId).length;
+  };
+
   /**
    * Prepare enriched data for table display
    * - Resolves statusId to status name
@@ -141,17 +152,6 @@ export default function Destinations() {
     activityCount: getActivityCount(destination.id),
     accommodationCount: getAccommodationCount(destination.id),
   })) || [];
-
-  // Count activities and accommodations for each destination
-  const getActivityCount = (destinationId: number): number => {
-    if (!activities) return 0;
-    return activities.filter((activity: Activity) => activity.destinationId === destinationId).length;
-  };
-
-  const getAccommodationCount = (destinationId: number): number => {
-    if (!accommodations) return 0;
-    return accommodations.filter((accommodation: Accommodation) => accommodation.destinationId === destinationId).length;
-  };
 
   const regionOptions = [
     { value: "all", label: "All Regions" },
