@@ -21,7 +21,6 @@ export function Sidebar() {
   const links = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/trips", label: "Trips", icon: Building },
-    { path: "/trip-builder", label: "Trip Builder", icon: Plus },
     { path: "/destinations", label: "Destinations", icon: MapPin },
     { path: "/activities", label: "Activities", icon: Smile },
     { path: "/accommodations", label: "Accommodations", icon: Building },
