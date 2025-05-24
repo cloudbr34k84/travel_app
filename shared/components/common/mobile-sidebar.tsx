@@ -51,21 +51,26 @@ export function MobileSidebar() {
   return (
     <div className="sm:hidden">
       {/* Fixed top header with hamburger menu */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 shadow-sm z-30 flex items-center justify-between px-4">
-        <div className="flex items-center">
-          <Globe className="h-8 w-8 text-primary mr-2" />
-          <span className="text-gray-700 font-semibold text-lg">TravelPlanner</span>
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 shadow-sm z-30 flex items-center px-4">
+        <div className="flex items-center w-full">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-10 w-10 mr-3">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+          </Sheet>
+          <div className="flex items-center">
+            <Globe className="h-8 w-8 text-primary mr-2" />
+            <span className="text-gray-700 font-semibold text-lg">TravelPlanner</span>
+          </div>
         </div>
-        
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-10 w-10">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-[80%] max-w-[300px]">
-            <div className="flex flex-col h-full">
+      </div>
+      
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="p-0 w-[80%] max-w-[300px]">
+          <div className="flex flex-col h-full">
               {/* Mobile Sidebar Header */}
               <div className="flex items-center h-16 border-b border-gray-200 px-4">
                 <div className="flex items-center space-x-2">
