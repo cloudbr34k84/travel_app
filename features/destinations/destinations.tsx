@@ -53,6 +53,40 @@ export default function Destinations() {
     queryKey: ["/api/accommodations"],
   });
 
+  // Fetch travel statuses for status resolution
+  const { data: travelStatuses } = useQuery({
+    queryKey: ["/api/travel-statuses"],
+  });
+
+  /**
+   * Column definitions for CommonTable component
+   * - Defines table structure with headers and data accessors
+   * - Resolves foreign keys to human-readable values
+   * - statusId is resolved to status name using travelStatuses lookup
+   */
+  const columns = [
+    { header: 'ID', accessor: (row) => row.id },
+    { header: 'Name', accessor: (row) => row.name },
+    { header: 'Country', accessor: (row) => row.country },
+    { header: 'Region', accessor: (row) => row.region },
+    { header: 'Status', accessor: (row) => row.statusName || 'Unknown' },
+    { header: 'Activities', accessor: (row) => row.activityCount || 0 },
+    { header: 'Accommodations', accessor: (row) => row.accommodationCount || 0 },
+  ];
+
+  /**
+   * Prepare enriched data for table display
+   * - Resolves statusId to status name
+   * - Adds activity and accommodation counts
+   * - Provides fallback values for missing data
+   */
+  const destinationsWithEnrichedData = destinations?.map(destination => ({
+    ...destination,
+    statusName: travelStatuses?.find(status => status.id === destination.statusId)?.label || 'Unknown',
+    activityCount: getActivityCount(destination.id),
+    accommodationCount: getAccommodationCount(destination.id),
+  })) || [];
+
 
 
   // Delete destination mutation

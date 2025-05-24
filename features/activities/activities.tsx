@@ -55,6 +55,31 @@ export default function Activities() {
     queryKey: ["/api/destinations"],
   });
 
+  /**
+   * Column definitions for CommonTable component
+   * - Defines table structure with headers and data accessors
+   * - destinationId is resolved to destination name using destinations lookup
+   */
+  const columns = [
+    { header: 'ID', accessor: (row) => row.id },
+    { header: 'Name', accessor: (row) => row.name },
+    { header: 'Description', accessor: (row) => row.description || 'No description' },
+    { header: 'Category', accessor: (row) => row.category },
+    { header: 'Destination', accessor: (row) => row.destinationName || 'Unknown' },
+  ];
+
+  /**
+   * Prepare enriched data for table display
+   * - Resolves destinationId to destination name with country
+   * - Provides fallback values for missing destination data
+   */
+  const activitiesWithDestinationNames = activities?.map(activity => ({
+    ...activity,
+    destinationName: destinations?.find(dest => dest.id === activity.destinationId)
+      ? `${destinations.find(dest => dest.id === activity.destinationId)?.name}, ${destinations.find(dest => dest.id === activity.destinationId)?.country}`
+      : 'Unknown destination',
+  })) || [];
+
   // Delete activity mutation
   const deleteActivityMutation = useMutation({
     mutationFn: (id: number) => 

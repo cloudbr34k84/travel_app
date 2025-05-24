@@ -68,6 +68,31 @@ export default function Accommodations() {
   });
 
   /**
+   * Column definitions for CommonTable component
+   * - Defines table structure with headers and data accessors
+   * - destinationId is resolved to destination name using destinations lookup
+   */
+  const columns = [
+    { header: 'ID', accessor: (row: any) => row.id },
+    { header: 'Name', accessor: (row: any) => row.name },
+    { header: 'Type', accessor: (row: any) => row.type },
+    { header: 'Description', accessor: (row: any) => row.description || 'No description' },
+    { header: 'Destination', accessor: (row: any) => row.destinationName || 'Unknown' },
+  ];
+
+  /**
+   * Prepare enriched data for table display
+   * - Resolves destinationId to destination name with country
+   * - Provides fallback values for missing destination data
+   */
+  const accommodationsWithDestinationNames = accommodations?.map(accommodation => ({
+    ...accommodation,
+    destinationName: destinations?.find(dest => dest.id === accommodation.destinationId)
+      ? `${destinations.find(dest => dest.id === accommodation.destinationId)?.name}, ${destinations.find(dest => dest.id === accommodation.destinationId)?.country}`
+      : 'Unknown destination',
+  })) || [];
+
+  /**
    * Delete accommodation mutation with enhanced error handling
    * 
    * @description This mutation handles the API request for deleting accommodations

@@ -31,7 +31,7 @@
  */
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
+import { cn } from "@shared/lib/utils"
 
 // Import the existing table components
 import {
