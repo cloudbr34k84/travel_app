@@ -21,7 +21,7 @@ import { Link } from "wouter";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
 import { DestinationCard } from "@features/destinations/destination-card";
-import CommonTable from "@/components/common/CommonTable";
+import CommonTable from "@shared/components/common/CommonTable";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Destination, Activity, Accommodation } from "@shared/schema";

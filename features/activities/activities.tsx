@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
-import CommonTable from "@/components/common/CommonTable";
+import CommonTable from "@shared/components/common/CommonTable";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Activity, Destination } from "@shared/schema";
