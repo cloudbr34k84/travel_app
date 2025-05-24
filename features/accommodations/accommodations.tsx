@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
 import { AccommodationCard } from "@features/accommodations/accommodation-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom"; // Added for navigation
 import { Plus } from "lucide-react";
 import { Accommodation, Destination, InsertAccommodation } from "@shared/schema";
-import { AccommodationForm, AccommodationFormProps } from "@features/accommodations/accommodation-form";
+// import { AccommodationForm, AccommodationFormProps } from "@features/accommodations/accommodation-form"; // Removed
 import { DestinationForm } from "@features/destinations/destination-form";
 import { useToast } from "@shared/hooks/use-toast";
 import { apiRequest, apiRequestWithJson } from "@shared/lib/queryClient";
@@ -14,16 +15,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@shared-components/ui/button";
 
 /**
- * Manages the state for the accommodation form modal using `formOpen` and `editingAccommodation`.
- * - `formOpen` (boolean): Controls the visibility of the modal.
- * - `editingAccommodation` (Accommodation | null): Holds the data of the accommodation being edited.
- *   It's set when an edit action is triggered and cleared when the modal closes.
- *
- * The `setTimeout` in `handleFormOpenChange` is used to delay clearing `editingAccommodation`
- * after the modal closes. This ensures that the form fields, which might depend on
- * `editingAccommodation` for their default values, do not clear prematurely while the
- * modal's closing animation is still in progress. This prevents a flicker or an abrupt
- * change in the form's content just before it disappears.
+ * This component displays a list of accommodations and allows users to search and filter them.
+ * Add and Edit operations are handled by navigating to separate pages:
+ * - Add Accommodation: Navigates to `/accommodations/new`
+ * - Edit Accommodation: Navigates to `/accommodations/:id/edit`
  */
 
 interface FilterOption {
@@ -33,21 +28,15 @@ interface FilterOption {
 
 export default function Accommodations() {
   const { toast } = useToast();
+  const navigate = useNavigate(); // Added for navigation
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [destinationFilter, setDestinationFilter] = useState("all");
-  const [editingAccommodation, setEditingAccommodation] = useState<Accommodation | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accommodationToDelete, setAccommodationToDelete] = useState<number | null>(null);
   const [accommodationDetailOpen, setAccommodationDetailOpen] = useState(false);
   const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
   const [destinationFormOpen, setDestinationFormOpen] = useState(false);
-  
-  // Reference to the accommodation form for handling server validation errors
-  const accommodationFormRef = useRef<{
-    parseServerValidationErrors: (error: Error) => boolean;
-  }>(null);
   
   // Listen for openDestinationForm events to handle destinations modal from dropdown empty state
   useEffect(() => {
@@ -76,184 +65,6 @@ export default function Accommodations() {
   // Fetch destinations
   const { data: destinations } = useQuery<Destination[]>({
     queryKey: ["/api/destinations"],
-  });
-
-  /**
-   * Create accommodation mutation with enhanced error handling
-   * 
-   * @description This mutation handles the API request for creating new accommodations
-   * and provides feedback to the user through toast notifications with specific error messages.
-   * 
-   * @behavior
-   * - Tracks loading state with isPending to disable UI elements during submission
-   * - Shows success toast on successful creation
-   * - Shows detailed error toast on failed creation, extracting error message from the response
-   * - Automatically refreshes accommodation data on success
-   * 
-   * @error-handling
-   * - Parses API error messages from the Error object thrown by apiRequestWithJson
-   * - Extracts status code and message details when available
-   * - Falls back to generic message when specific error details cannot be extracted
-   * - Formats validation errors in a user-friendly way
-   * 
-   * @maintainer-notes
-   * - When server returns validation errors, the format will be extracted from error.message
-   * - To maintain consistent error handling across forms:
-   *   1. Always use this same error extraction pattern in onError callbacks
-   *   2. Ensure backend returns error messages in a consistent format
-   *   3. Consider centralizing this error handling logic if used in multiple forms
-   */
-  const createAccommodation = useMutation({
-    mutationFn: (newAccommodation: InsertAccommodation) => 
-      apiRequestWithJson<InsertAccommodation, Accommodation>("POST", "/api/accommodations", newAccommodation),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/accommodations"] });
-      toast({
-        title: "Success",
-        description: "Accommodation created successfully",
-      });
-      setFormOpen(false);
-    },
-    onError: (error: Error) => {
-      // First, try to parse and map field validation errors to the form fields
-      if (accommodationFormRef.current?.parseServerValidationErrors(error)) {
-        // If validation errors were successfully mapped to form fields, 
-        // just show a generic error toast without field details
-        toast({
-          title: "Validation Error",
-          description: "Please correct the highlighted fields",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // If no field validation errors were mapped, fall back to generic error handling
-      let errorMessage = "Failed to create accommodation";
-      
-      // The apiRequestWithJson function throws errors in format: "Status: Message"
-      if (error.message) {
-        // Check if it's a structured error with status code
-        const errorMatch = error.message.match(/^(\d+): (.+)$/);
-        if (errorMatch) {
-          const [, statusCode, message] = errorMatch;
-          
-          // Format based on status code
-          if (statusCode === "400") {
-            errorMessage = `Validation error: ${message}`;
-          } else if (statusCode === "401" || statusCode === "403") {
-            errorMessage = `Authentication error: ${message}`;
-          } else if (statusCode === "404") {
-            errorMessage = `Not found: ${message}`;
-          } else if (statusCode === "500") {
-            errorMessage = `Server error: ${message}`;
-          } else {
-            // For other status codes, just use the message
-            errorMessage = message;
-          }
-        } else {
-          // If no status pattern found, use the raw error message
-          errorMessage = error.message;
-        }
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    },
-  });
-
-  /**
-   * Update accommodation mutation with enhanced error handling
-   * 
-   * @description This mutation handles the API request for updating existing accommodations
-   * and provides feedback to the user through toast notifications with specific error messages.
-   * 
-   * @behavior
-   * - Tracks loading state with isPending to disable UI elements during submission
-   * - Shows success toast on successful update
-   * - Shows detailed error toast on failed update, extracting error message from the response
-   * - Automatically refreshes accommodation data on success
-   * 
-   * @error-handling
-   * - Parses API error messages from the Error object thrown by apiRequestWithJson
-   * - Extracts status code and message details when available
-   * - Falls back to generic message when specific error details cannot be extracted
-   * - Formats validation errors in a user-friendly way
-   * 
-   * @maintainer-notes
-   * - When server returns validation errors, the format will be extracted from error.message
-   * - To maintain consistent error handling across forms:
-   *   1. Always use this same error extraction pattern in onError callbacks
-   *   2. Ensure backend returns error messages in a consistent format
-   *   3. Consider centralizing this error handling logic if used in multiple forms
-   */
-  interface UpdateAccommodationParams {
-    id: number;
-    data: Partial<InsertAccommodation>;
-  }
-  
-  const updateAccommodation = useMutation({
-    mutationFn: ({ id, data }: UpdateAccommodationParams) => 
-      apiRequestWithJson<Partial<InsertAccommodation>, Accommodation>("PUT", `/api/accommodations/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/accommodations"] });
-      toast({
-        title: "Success",
-        description: "Accommodation updated successfully",
-      });
-      setFormOpen(false);
-      setEditingAccommodation(null);
-    },
-    onError: (error: Error) => {
-      // First, try to parse and map field validation errors to the form fields
-      if (accommodationFormRef.current?.parseServerValidationErrors(error)) {
-        // If validation errors were successfully mapped to form fields, 
-        // just show a generic error toast without field details
-        toast({
-          title: "Validation Error",
-          description: "Please correct the highlighted fields",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // If no field validation errors were mapped, fall back to generic error handling
-      let errorMessage = "Failed to update accommodation";
-      
-      // The apiRequestWithJson function throws errors in format: "Status: Message"
-      if (error.message) {
-        // Check if it's a structured error with status code
-        const errorMatch = error.message.match(/^(\d+): (.+)$/);
-        if (errorMatch) {
-          const [, statusCode, message] = errorMatch;
-          
-          // Format based on status code
-          if (statusCode === "400") {
-            errorMessage = `Validation error: ${message}`;
-          } else if (statusCode === "401" || statusCode === "403") {
-            errorMessage = `Authentication error: ${message}`;
-          } else if (statusCode === "404") {
-            errorMessage = `Not found: ${message}`;
-          } else if (statusCode === "500") {
-            errorMessage = `Server error: ${message}`;
-          } else {
-            // For other status codes, just use the message
-            errorMessage = message;
-          }
-        } else {
-          // If no status pattern found, use the raw error message
-          errorMessage = error.message;
-        }
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    },
   });
 
   /**
@@ -326,17 +137,8 @@ export default function Accommodations() {
     },
   });
 
-  const handleCreateOrUpdateAccommodation = (values: InsertAccommodation): void => {
-    if (editingAccommodation) {
-      updateAccommodation.mutate({ id: editingAccommodation.id, data: values });
-    } else {
-      createAccommodation.mutate(values);
-    }
-  };
-
   const handleEdit = (accommodation: Accommodation): void => {
-    setEditingAccommodation(accommodation);
-    setFormOpen(true);
+    navigate(`/accommodations/${accommodation.id}/edit`); // Updated to navigate
   };
 
   const handleDelete = (id: number): void => {
@@ -347,13 +149,6 @@ export default function Accommodations() {
   const confirmDelete = (): void => {
     if (accommodationToDelete !== null) {
       deleteAccommodation.mutate(accommodationToDelete);
-    }
-  };
-
-  const handleFormOpenChange = (open: boolean): void => {
-    setFormOpen(open);
-    if (!open) {
-      setTimeout(() => setEditingAccommodation(null), 300);
     }
   };
 
@@ -425,7 +220,7 @@ export default function Accommodations() {
         description="Manage your lodging options for your trips"
         buttonLabel="Add Accommodation"
         buttonIcon={<Plus className="h-4 w-4" />}
-        onButtonClick={() => setFormOpen(true)}
+        onButtonClick={() => navigate('/accommodations/new')} // Updated to navigate
       />
 
       <SearchFilter
@@ -481,24 +276,12 @@ export default function Accommodations() {
           <p className="text-gray-500">No accommodations found</p>
           <Button
             className="mt-4 bg-primary hover:bg-primary-800"
-            onClick={() => setFormOpen(true)}
+            onClick={() => navigate('/accommodations/new')} // Updated to navigate
           >
             Add Your First Accommodation
           </Button>
         </div>
       )}
-
-      {/* Create/Edit Accommodation Form */}
-      <AccommodationForm
-        ref={accommodationFormRef}
-        open={formOpen}
-        onOpenChange={handleFormOpenChange}
-        onSubmit={handleCreateOrUpdateAccommodation}
-        onError={(error) => accommodationFormRef.current?.parseServerValidationErrors(error)}
-        defaultValues={editingAccommodation || undefined}
-        isEditing={!!editingAccommodation}
-        isSubmitting={createAccommodation.isPending || updateAccommodation.isPending}
-      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -606,9 +389,9 @@ export default function Accommodations() {
         onOpenChange={(open) => {
           setDestinationFormOpen(open);
           // If the destination form is closed, reopen the accommodation form that was likely closed
-          if (!open) {
-            setFormOpen(true);
-          }
+          // if (!open) {
+          //   setFormOpen(true); // Removed as setFormOpen is no longer defined
+          // }
         }}
         onSubmit={(values) => {
           // Create a new destination
@@ -624,7 +407,7 @@ export default function Accommodations() {
               
               // Close destination form and reopen accommodation form
               setDestinationFormOpen(false);
-              setFormOpen(true);
+              // setFormOpen(true); // Removed as setFormOpen is no longer defined
             })
             .catch(() => {
               toast({
