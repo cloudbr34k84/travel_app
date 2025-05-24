@@ -88,10 +88,7 @@ export default function EditDestinationPage() {
 
   const updateDestination = useMutation({
     mutationFn: async (data: InsertDestination) => {
-      return apiRequest(`/api/destinations/${destinationId}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('PUT', `/api/destinations/${destinationId}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/destinations'] });
@@ -119,7 +116,11 @@ export default function EditDestinationPage() {
   });
 
   const onSubmit = (values: FormValues) => {
-    updateDestination.mutate(values);
+    const submitData = {
+      ...values,
+      image: values.image || ""
+    };
+    updateDestination.mutate(submitData);
   };
 
   if (!destinationId) {

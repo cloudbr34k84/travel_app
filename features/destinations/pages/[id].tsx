@@ -5,7 +5,7 @@
  * and provides navigation options to edit or return to the destinations list.
  */
 
-import { useRoute, useNavigate } from "wouter";
+import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@shared-components/common/page-header";
 import { Button } from "@shared-components/ui/button";
@@ -23,7 +23,6 @@ interface DestinationWithStatus extends Destination {
 
 export default function ViewDestinationPage() {
   const [, params] = useRoute("/destinations/:id");
-  const navigate = useNavigate();
   const destinationId = params?.id ? parseInt(params.id) : null;
 
   const { data: destination, isLoading, error } = useQuery<DestinationWithStatus>({
@@ -95,20 +94,18 @@ export default function ViewDestinationPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/destinations')}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Destinations
-        </Button>
+        <Link href="/destinations">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Destinations
+          </Button>
+        </Link>
         <PageHeader
           title={destination.name}
           description="Destination details"
           buttonLabel="Edit Destination"
           buttonIcon={<Edit className="h-4 w-4" />}
-          onButtonClick={() => navigate(`/destinations/${destination.id}/edit`)}
+          onButtonClick={() => window.location.href = `/destinations/${destination.id}/edit`}
         />
       </div>
 
@@ -213,20 +210,17 @@ export default function ViewDestinationPage() {
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                className="w-full"
-                onClick={() => navigate(`/destinations/${destination.id}/edit`)}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Destination
-              </Button>
-              <Button 
-                variant="outline"
-                className="w-full"
-                onClick={() => navigate('/destinations')}
-              >
-                Back to List
-              </Button>
+              <Link href={`/destinations/${destination.id}/edit`}>
+                <Button className="w-full">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Destination
+                </Button>
+              </Link>
+              <Link href="/destinations">
+                <Button variant="outline" className="w-full">
+                  Back to List
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

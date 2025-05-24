@@ -66,10 +66,7 @@ export default function NewDestinationPage() {
 
   const createDestination = useMutation({
     mutationFn: async (data: InsertDestination) => {
-      return apiRequest('/api/destinations', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('POST', '/api/destinations', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/destinations'] });
@@ -96,7 +93,11 @@ export default function NewDestinationPage() {
   });
 
   const onSubmit = (values: FormValues) => {
-    createDestination.mutate(values);
+    const submitData = {
+      ...values,
+      image: values.image || ""
+    };
+    createDestination.mutate(submitData);
   };
 
   const regions = [
