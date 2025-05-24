@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
-import { ActivityCard } from "@features/activities/activity-card";
+import CommonTable from "@/components/common/CommonTable";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Activity, Destination } from "@shared/schema";
@@ -19,11 +19,34 @@ interface FilterOption {
 }
 
 /**
- * This component displays a list of activities and allows users to search and filter them.
- * Add, View, and Edit operations are handled by navigating to separate pages:
- * - Add Activity: Navigates to \`/activities/new\`
- * - View Activity: Navigates to \`/activities/:id\`
- * - Edit Activity: Navigates to \`/activities/:id/edit\`
+ * Activities Page - Refactored to use CommonTable Component
+ * 
+ * This component displays activities in a table format using the reusable CommonTable component.
+ * Features include search, filtering, and CRUD operations.
+ * 
+ * @component_structure
+ * - Uses CommonTable for data display instead of card layout
+ * - Column definitions specify table headers and data accessors
+ * - resolvedActivities maps destinationId to readable destination names
+ * 
+ * @columns_configuration
+ * The columns array defines table structure:
+ * - ID: Displays activity ID
+ * - Name: Activity name
+ * - Description: Activity description with fallback
+ * - Category: Activity category 
+ * - Destination: Resolved destination name with country
+ * 
+ * @data_resolution
+ * Activities are enriched with destination names by:
+ * - Mapping through activities array
+ * - Looking up destination by destinationId
+ * - Providing fallback "Unknown destination" for missing data
+ * 
+ * @future_extensions
+ * - Add action column with edit/delete buttons
+ * - Implement sorting by clicking column headers
+ * - Add pagination for large datasets
  */
 export default function Activities() {
   const { toast } = useToast();
@@ -61,11 +84,11 @@ export default function Activities() {
    * - destinationId is resolved to destination name using destinations lookup
    */
   const columns = [
-    { header: 'ID', accessor: (row) => row.id },
-    { header: 'Name', accessor: (row) => row.name },
-    { header: 'Description', accessor: (row) => row.description || 'No description' },
-    { header: 'Category', accessor: (row) => row.category },
-    { header: 'Destination', accessor: (row) => row.destinationName || 'Unknown' },
+    { header: 'ID', accessor: (row: any) => row.id },
+    { header: 'Name', accessor: (row: any) => row.name },
+    { header: 'Description', accessor: (row: any) => row.description || 'No description' },
+    { header: 'Category', accessor: (row: any) => row.category },
+    { header: 'Destination', accessor: (row: any) => row.destinationName || 'Unknown' },
   ];
 
   /**
@@ -133,7 +156,8 @@ export default function Activities() {
     return destinations.find((dest: Destination): boolean => dest.id === destinationId);
   };
 
-  const filteredActivities: Activity[] = activities ? activities.filter((activity: Activity): boolean => {
+  // Apply filters to the resolved activities with destination names
+  const filteredActivities = activitiesWithDestinationNames.filter((activity) => {
     const searchLower = search.toLowerCase();
     const activityDescriptionLower = activity.description ? activity.description.toLowerCase() : "";
     
@@ -146,7 +170,7 @@ export default function Activities() {
       activity.destinationId.toString() === destinationFilter;
     
     return matchesSearchCriteria && matchesCategoryCriteria && matchesDestinationCriteria;
-  }) : [];
+  });
 
   const categoryOptions: FilterOption[] = [
     { value: "all", label: "All Categories" },
@@ -203,41 +227,18 @@ export default function Activities() {
       />
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-lg shadow h-72 animate-pulse">
-              <div className="h-44 bg-gray-200 rounded-t-lg"></div>
-              <div className="p-4">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-full"></div>
-              </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-12 bg-gray-200 rounded"></div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : filteredActivities?.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredActivities.map((activity: Activity) => {
-            const destination = getDestinationForActivity(activity.destinationId);
-            return destination ? (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                destination={destination}
-                onDelete={handleDelete}
-              />
-            ) : null;
-          })}
+          </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">No activities found</p>
-          <Link to="/activities/new">
-            <Button className="mt-4 bg-primary hover:bg-primary-800">
-              Add Your First Activity
-            </Button>
-          </Link>
-        </div>
+        <CommonTable columns={columns} data={filteredActivities} />
       )}
 
       {/* Delete Confirmation Dialog */}
