@@ -4,7 +4,7 @@
  * Renders the AccommodationForm pre-filled with accommodation data.
  */
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useLocation } from 'wouter';
 import { AccommodationForm, AccommodationFormValues } from '@features/accommodations/accommodation-form';
 import { useAccommodation, useUpdateAccommodation } from '@features/accommodations/api/hooks';
 import { PageHeader } from '@shared-components/common/page-header';
@@ -18,7 +18,7 @@ import { Accommodation } from '@shared/schema';
 export default function EditAccommodationPage() {
   const { id } = useParams<{ id: string }>();
   const accommodationId = id ? parseInt(id, 10) : undefined;
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [serverError, setServerError] = React.useState<unknown | null>(null);
 
@@ -29,7 +29,7 @@ export default function EditAccommodationPage() {
   const updateAccommodationMutation = useUpdateAccommodation({
     onSuccess: () => {
       toast({ title: 'Success', description: 'Accommodation updated successfully.' });
-      navigate(`/accommodations/${accommodationId}`); // Navigate to view page after edit
+      setLocation(`/accommodations/${accommodationId}`); // Navigate to view page after edit
     },
     onError: (error) => {
       setServerError(error);

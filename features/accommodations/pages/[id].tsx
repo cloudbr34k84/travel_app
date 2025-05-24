@@ -4,7 +4,7 @@
  * Displays accommodation information in a read-only format.
  */
 import React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'wouter';
 import { useAccommodation, useDeleteAccommodation } from '@features/accommodations/api/hooks';
 import { PageHeader } from '@shared-components/common/page-header';
 import { Button } from '@shared-components/ui/button';
@@ -26,7 +26,7 @@ import { Destination, useDestination } from '@features/destinations/api/hooks'; 
 export default function ViewAccommodationPage() {
   const { id } = useParams<{ id: string }>();
   const accommodationId = id ? parseInt(id, 10) : undefined;
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
 
@@ -41,7 +41,7 @@ export default function ViewAccommodationPage() {
   const deleteAccommodationMutation = useDeleteAccommodation({
     onSuccess: () => {
       toast({ title: 'Success', description: 'Accommodation deleted successfully.' });
-      navigate('/accommodations');
+      setLocation('/accommodations');
     },
     onError: (err) => {
       toast({ title: 'Error', description: `Failed to delete accommodation: ${err.message}`, variant: 'destructive' });
