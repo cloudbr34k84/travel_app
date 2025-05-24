@@ -4,7 +4,7 @@
  * Corresponds to the /activities/:id/edit route.
  */
 import React from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom'; // Changed from wouter
+import { useParams, useLocation, Link } from 'wouter';
 import { ActivityForm, ActivityFormValues } from '@features/activities/activity-form';
 import { useActivity, useUpdateActivity } from '@features/activities/api/hooks'; // Assuming these hooks exist
 import { PageHeader } from '@shared-components/common/page-header';
@@ -17,7 +17,7 @@ import { Loader2, AlertTriangle, ArrowLeft } from 'lucide-react';
 export default function EditActivityPage() {
   const { id } = useParams<{ id: string }>(); // useParams from react-router-dom
   const activityId = id ? parseInt(id, 10) : undefined;
-  const navigate = useNavigate(); // Changed from wouter's useLocation
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [serverError, setServerError] = React.useState<unknown | null>(null);
 
@@ -28,7 +28,7 @@ export default function EditActivityPage() {
   const updateActivityMutation = useUpdateActivity({
     onSuccess: (data) => {
       toast({ title: 'Success', description: 'Activity updated successfully.' });
-      navigate(data?.id ? `/activities/${data.id}` : '/activities'); // Navigate to view or list
+      setLocation(data?.id ? `/activities/${data.id}` : '/activities'); // Navigate to view or list
     },
     onError: (error) => {
       setServerError(error);

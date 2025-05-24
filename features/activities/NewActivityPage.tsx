@@ -4,7 +4,7 @@
  * Corresponds to the /activities/new route.
  */
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // Changed from wouter
+import { useLocation, Link } from 'wouter';
 import { ActivityForm, ActivityFormValues } from '@features/activities/activity-form';
 import { useCreateActivity } from '@features/activities/api/hooks'; // Assuming this hook exists
 import { PageHeader } from '@shared-components/common/page-header';
@@ -14,14 +14,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@shared-components/ui/
 import { ArrowLeft } from 'lucide-react';
 
 export default function NewActivityPage() {
-  const navigate = useNavigate(); // Changed from wouter's useLocation
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [serverError, setServerError] = React.useState<unknown | null>(null);
 
   const createActivityMutation = useCreateActivity({
     onSuccess: (data) => {
       toast({ title: 'Success', description: 'Activity created successfully.' });
-      navigate(data?.id ? `/activities/${data.id}` : '/activities'); // Navigate to view or list
+      setLocation(data?.id ? `/activities/${data.id}` : '/activities'); // Navigate to view or list
     },
     onError: (error) => {
       setServerError(error);
