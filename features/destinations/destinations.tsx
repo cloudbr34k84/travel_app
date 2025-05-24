@@ -197,10 +197,7 @@ export default function Destinations() {
           <p className="text-gray-500">No destinations found</p>
           <Button
             className="mt-4 bg-primary hover:bg-primary-800"
-            onClick={() => {
-              setEditingDestination(null);
-              setFormOpen(true);
-            }}
+            onClick={() => window.location.href = '/destinations/new'}
           >
             Add Your First Destination
           </Button>

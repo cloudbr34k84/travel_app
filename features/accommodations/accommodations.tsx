@@ -3,7 +3,7 @@ import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
 import { AccommodationCard } from "@features/accommodations/accommodation-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom"; // Added for navigation
+import { useLocation } from "wouter"; // Added for navigation
 import { Plus } from "lucide-react";
 import { Accommodation, Destination, InsertAccommodation } from "@shared/schema";
 // import { AccommodationForm, AccommodationFormProps } from "@features/accommodations/accommodation-form"; // Removed
@@ -28,7 +28,7 @@ interface FilterOption {
 
 export default function Accommodations() {
   const { toast } = useToast();
-  const navigate = useNavigate(); // Added for navigation
+  const [location, navigate] = useLocation(); // Added for navigation
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [destinationFilter, setDestinationFilter] = useState("all");

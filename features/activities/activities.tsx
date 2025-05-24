@@ -11,7 +11,7 @@ import { apiRequestWithJson } from "@shared/lib/queryClient";
 import { queryClient } from "@shared/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@shared-components/ui/dialog";
 import { Button } from "@shared-components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 
 interface FilterOption {
   value: string;
@@ -27,7 +27,7 @@ interface FilterOption {
  */
 export default function Activities() {
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [location, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [destinationFilter, setDestinationFilter] = useState("all");
