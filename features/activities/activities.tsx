@@ -28,6 +28,7 @@ interface FilterOption {
  * - Uses CommonTable for data display instead of card layout
  * - Column definitions specify table headers and data accessors
  * - resolvedActivities maps destinationId to readable destination names
+ * - getRowLink prop makes each row clickable to navigate to activity view page
  * 
  * @columns_configuration
  * The columns array defines table structure:
@@ -42,6 +43,10 @@ interface FilterOption {
  * - Mapping through activities array
  * - Looking up destination by destinationId
  * - Providing fallback "Unknown destination" for missing data
+ * 
+ * @clickable_rows
+ * - Each activity row navigates to /activities/{id} when clicked
+ * - Interactive elements within cells should use stopPropagation to prevent row clicks
  * 
  * @future_extensions
  * - Add action column with edit/delete buttons
@@ -240,7 +245,11 @@ export default function Activities() {
           </div>
         </div>
       ) : (
-        <CommonTable columns={columns} data={filteredActivities} />
+        <CommonTable 
+          columns={columns} 
+          data={filteredActivities}
+          getRowLink={(row) => `/activities/${row.id}`}
+        />
       )}
 
       {/* Delete Confirmation Dialog */}

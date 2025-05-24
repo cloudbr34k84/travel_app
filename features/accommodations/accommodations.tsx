@@ -294,7 +294,8 @@ export default function Accommodations() {
               accommodation.destinationId.toString() === destinationFilter;
             
             return matchesSearch && matchesType && matchesDestination;
-          })} 
+          })}
+          getRowLink={(row) => `/accommodations/${row.id}`}
         />
       )}
 

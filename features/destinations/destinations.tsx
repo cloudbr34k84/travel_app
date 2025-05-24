@@ -10,11 +10,16 @@
  * - Column definitions include ID, Name, Country, Region, Status, Activity Count, Accommodation Count
  * - Data is enriched with foreign key lookups (status names) and aggregated counts
  * - Provides fallback values ('Unknown') for missing foreign key relationships
+ * - getRowLink prop makes each row clickable to navigate to destination view page
  * 
  * Data Resolution:
  * - resolvedDestinations maps over fetched destinations to add enriched data
  * - statusId is resolved to status name using travelStatuses lookup
  * - Activity and accommodation counts are calculated for each destination
+ * 
+ * Clickable Rows:
+ * - Each destination row navigates to /destinations/{id} when clicked
+ * - Interactive elements within cells should use stopPropagation to prevent row clicks
  */
 import { useState } from "react";
 import { Link } from "wouter";
@@ -212,7 +217,11 @@ export default function Destinations() {
           </div>
         </div>
       ) : (
-        <CommonTable columns={columns} data={resolvedDestinations} />
+        <CommonTable 
+          columns={columns} 
+          data={resolvedDestinations}
+          getRowLink={(row) => `/destinations/${row.id}`}
+        />
       )}
 
 
