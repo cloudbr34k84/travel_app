@@ -4,21 +4,18 @@ import { MoreHorizontal, MapPin } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@shared-components/ui/dropdown-menu";
 import { Activity, Destination } from "@shared/schema";
 import { StatusBadge } from "@shared-components/ui/status-badge";
+import { Link } from "wouter";
 
 interface ActivityCardProps {
   activity: Activity & { statusLabel?: string };
   destination: Destination;
-  onEdit: (activity: Activity) => void;
   onDelete: (id: number) => void;
-  onView: (activity: Activity) => void;
 }
 
 export function ActivityCard({
   activity,
   destination,
-  onEdit,
   onDelete,
-  onView,
 }: ActivityCardProps) {
   return (
     <Card className="overflow-hidden">
@@ -44,14 +41,15 @@ export function ActivityCard({
         <p className="text-sm text-gray-600 line-clamp-2">{activity.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-primary border-primary hover:bg-primary/10"
-          onClick={() => onView(activity)}
-        >
-          View Details
-        </Button>
+        <Link href={`/activities/${activity.id}`}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-primary border-primary hover:bg-primary/10"
+          >
+            View Details
+          </Button>
+        </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
@@ -59,9 +57,11 @@ export function ActivityCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(activity)}>
-              Edit
-            </DropdownMenuItem>
+            <Link href={`/activities/${activity.id}/edit`}>
+              <DropdownMenuItem>
+                Edit
+              </DropdownMenuItem>
+            </Link>
             <DropdownMenuItem 
               className="text-destructive focus:text-destructive"
               onClick={() => onDelete(activity.id)}

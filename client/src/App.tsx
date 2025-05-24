@@ -18,6 +18,16 @@ import Settings from "@features/settings/settings";
 import AuthPage from "@features/auth/auth-page";
 import NotFound from "@shared/not-found";
 
+// Activity Pages
+import NewActivityPage from "@features/activities/NewActivityPage";
+import ViewActivityPage from "@features/activities/ViewActivityPage";
+import EditActivityPage from "@features/activities/EditActivityPage";
+
+// Accommodation Pages
+import NewAccommodationPage from "@features/accommodations/pages/new";
+import ViewAccommodationPage from "@features/accommodations/pages/[id]";
+import EditAccommodationPage from "@features/accommodations/pages/[id]/edit";
+
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen overflow-hidden bg-background">
@@ -73,10 +83,43 @@ function Router() {
           <Activities />
         </ProtectedLayout>
       )} />
+
+      <ProtectedRoute path="/activities/new" component={() => (
+        <ProtectedLayout>
+          <NewActivityPage />
+        </ProtectedLayout>
+      )} />
+      
+      <ProtectedRoute path="/activities/:id" component={() => (
+        <ProtectedLayout>
+          <ViewActivityPage />
+        </ProtectedLayout>
+      )} />
+      
+      <ProtectedRoute path="/activities/:id/edit" component={() => (
+        <ProtectedLayout>
+          <EditActivityPage />
+        </ProtectedLayout>
+      )} />
       
       <ProtectedRoute path="/accommodations" component={() => (
         <ProtectedLayout>
           <Accommodations />
+        </ProtectedLayout>
+      )} />
+      <ProtectedRoute path="/accommodations/new" component={() => (
+        <ProtectedLayout>
+          <NewAccommodationPage />
+        </ProtectedLayout>
+      )} />
+      <ProtectedRoute path="/accommodations/:id" component={() => (
+        <ProtectedLayout>
+          <ViewAccommodationPage />
+        </ProtectedLayout>
+      )} />
+      <ProtectedRoute path="/accommodations/:id/edit" component={() => (
+        <ProtectedLayout>
+          <EditAccommodationPage />
         </ProtectedLayout>
       )} />
       

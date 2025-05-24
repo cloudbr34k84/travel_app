@@ -4,40 +4,35 @@ import { SearchFilter } from "@shared-components/ui/search-filter";
 import { ActivityCard } from "@features/activities/activity-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { Activity, Destination, InsertActivity } from "@shared/schema";
-import { ActivityForm, ActivityFormValues } from "@features/activities/activity-form"; // Import ActivityFormValues
+import { Activity, Destination } from "@shared/schema";
 import { DestinationForm } from "@features/destinations/destination-form";
 import { useToast } from "@shared/hooks/use-toast";
-import { apiRequest, apiRequestWithJson } from "@shared/lib/queryClient";
+import { apiRequestWithJson } from "@shared/lib/queryClient";
 import { queryClient } from "@shared/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@shared-components/ui/dialog";
 import { Button } from "@shared-components/ui/button";
+import { Link, useNavigate } from "react-router-dom";
 
 interface FilterOption {
   value: string;
   label: string;
 }
 
+/**
+ * This component displays a list of activities and allows users to search and filter them.
+ * Add, View, and Edit operations are handled by navigating to separate pages:
+ * - Add Activity: Navigates to \`/activities/new\`
+ * - View Activity: Navigates to \`/activities/:id\`
+ * - Edit Activity: Navigates to \`/activities/:id/edit\`
+ */
 export default function Activities() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [destinationFilter, setDestinationFilter] = useState("all");
-
-  /**
-   * Manages the "Edit Activity" modal state.
-   * `formOpen` controls the visibility of the modal.
-   * `editingActivity` stores the activity data to be edited.
-   * These states are synchronized:
-   * - When an activity's edit button is clicked, `editingActivity` is set to that activity's data, and `formOpen` is set to true, opening the modal with the correct data.
-   * - When the modal is closed (`formOpen` becomes false), `editingActivity` is set to null after a short delay (`setTimeout`). This delay ensures that the modal's closing animation completes smoothly before the form data is cleared, preventing any visual flicker or display of stale data during the transition.
-   */
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [activityToDelete, setActivityToDelete] = useState<number | null>(null);
-  const [activityDetailOpen, setActivityDetailOpen] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [destinationFormOpen, setDestinationFormOpen] = useState(false);
 
   // Listen for openDestinationForm events to handle destinations modal from dropdown empty state
@@ -69,55 +64,8 @@ export default function Activities() {
     queryKey: ["/api/destinations"],
   });
 
-  // Create activity mutation with proper response type
-  const createActivity = useMutation({
-    mutationFn: (newActivity: InsertActivity) => 
-      apiRequestWithJson<InsertActivity, Activity>("POST", "/api/activities", newActivity),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
-      toast({
-        title: "Success",
-        description: "Activity created successfully",
-      });
-      setFormOpen(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create activity",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Update activity mutation with proper type for payload
-  interface UpdateActivityParams {
-    id: number;
-    data: Partial<InsertActivity>;
-  }
-  
-  const updateActivity = useMutation({
-    mutationFn: ({ id, data }: UpdateActivityParams) => 
-      apiRequestWithJson<Partial<InsertActivity>, Activity>("PUT", `/api/activities/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
-      toast({
-        title: "Success",
-        description: "Activity updated successfully",
-      });
-      setEditingActivity(null);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update activity",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Delete activity mutation
-  const deleteActivity = useMutation({
+  const deleteActivityMutation = useMutation({
     mutationFn: (id: number) => 
       apiRequestWithJson<null, void>("DELETE", `/api/activities/${id}`),
     onSuccess: () => {
@@ -129,34 +77,24 @@ export default function Activities() {
       setDeleteDialogOpen(false);
       setActivityToDelete(null);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      let errorMessage = "Failed to delete activity";
+      if (error.message) {
+        const errorMatch = error.message.match(/^(\\d+): (.+)$/);
+        if (errorMatch) {
+          const [, statusCode, message] = errorMatch;
+          errorMessage = `Error ${statusCode}: ${message}`;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       toast({
         title: "Error",
-        description: "Failed to delete activity",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
-
-  const handleCreateOrUpdateActivity = (values: ActivityFormValues): void => { // Changed InsertActivity to ActivityFormValues
-    if (editingActivity) {
-      // `values` (ActivityFormValues) does not and should not contain `id`.
-      // The `id` for the update comes from `editingActivity.id`.
-      // The `data` payload for the mutation should be `values` directly,
-      // cast to `Partial<InsertActivity>` if necessary, assuming compatibility.
-      updateActivity.mutate({ 
-        id: editingActivity.id, 
-        data: values as Partial<InsertActivity> 
-      });
-    } else {
-      createActivity.mutate(values as InsertActivity); // Cast to InsertActivity if they are compatible
-    }
-  };
-
-  const handleEdit = (activity: Activity): void => {
-    setEditingActivity(activity);
-    setFormOpen(true);
-  };
 
   const handleDelete = (id: number): void => {
     setActivityToDelete(id);
@@ -165,20 +103,8 @@ export default function Activities() {
 
   const confirmDelete = (): void => {
     if (activityToDelete !== null) {
-      deleteActivity.mutate(activityToDelete);
+      deleteActivityMutation.mutate(activityToDelete);
     }
-  };
-
-  const handleFormOpenChange = (open: boolean): void => {
-    setFormOpen(open);
-    if (!open) {
-      setTimeout(() => setEditingActivity(null), 300);
-    }
-  };
-
-  const handleViewActivity = (activity: Activity): void => {
-    setSelectedActivity(activity);
-    setActivityDetailOpen(true);
   };
 
   /**
@@ -189,7 +115,7 @@ export default function Activities() {
     // Search matching - check if search term appears in name or description
     const matchesSearch: boolean = search === "" || 
       activity.name.toLowerCase().includes(search.toLowerCase()) ||
-      activity.description.toLowerCase().includes(search.toLowerCase());
+      (activity.description && activity.description.toLowerCase().includes(search.toLowerCase())); // Added null check for description
     
     // Category filtering
     const matchesCategory: boolean = categoryFilter === "all" || activity.category === categoryFilter;
@@ -245,7 +171,7 @@ export default function Activities() {
         description="Explore and manage activities for your trips"
         buttonLabel="Add Activity"
         buttonIcon={<Plus className="h-4 w-4" />}
-        onButtonClick={() => setFormOpen(true)}
+        onButtonClick={() => navigate('/activities/new')} 
       />
 
       <SearchFilter
@@ -289,9 +215,7 @@ export default function Activities() {
                 key={activity.id}
                 activity={activity}
                 destination={destination}
-                onEdit={handleEdit}
                 onDelete={handleDelete}
-                onView={handleViewActivity}
               />
             ) : null;
           })}
@@ -299,23 +223,13 @@ export default function Activities() {
       ) : (
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="text-gray-500">No activities found</p>
-          <Button
-            className="mt-4 bg-primary hover:bg-primary-800"
-            onClick={() => setFormOpen(true)}
-          >
-            Add Your First Activity
-          </Button>
+          <Link to="/activities/new">
+            <Button className="mt-4 bg-primary hover:bg-primary-800">
+              Add Your First Activity
+            </Button>
+          </Link>
         </div>
       )}
-
-      {/* Create/Edit Activity Form */}
-      <ActivityForm
-        open={formOpen}
-        onOpenChange={handleFormOpenChange}
-        onSubmit={handleCreateOrUpdateActivity}
-        defaultValues={editingActivity || undefined} // This remains the same
-        isEditing={!!editingActivity} // This remains the same
-      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -336,93 +250,20 @@ export default function Activities() {
             <Button
               variant="destructive"
               onClick={confirmDelete}
+              disabled={deleteActivityMutation.isPending}
             >
-              Delete
+              {deleteActivityMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Activity Detail Dialog */}
-      <Dialog open={activityDetailOpen} onOpenChange={setActivityDetailOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          {selectedActivity && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{selectedActivity.name}</DialogTitle>
-              </DialogHeader>
-              
-              <div className="mt-2">
-                {selectedActivity.image && (
-                  <div className="w-full h-56 mb-4 overflow-hidden rounded-md">
-                    <img 
-                      src={selectedActivity.image} 
-                      alt={selectedActivity.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500">Description</h3>
-                    <p className="mt-1">{selectedActivity.description}</p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Category</h3>
-                      <p className="mt-1">{selectedActivity.category}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Destination</h3>
-                      {destinations && (
-                        <p className="mt-1">
-                          {(() => {
-                            const dest = getDestinationForActivity(selectedActivity.destinationId);
-                            return dest ? `${dest.name}, ${dest.country}` : 'Unknown destination';
-                          })()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <DialogFooter className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setActivityDetailOpen(false);
-                    setSelectedActivity(null);
-                  }}
-                >
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    setActivityDetailOpen(false);
-                    handleEdit(selectedActivity);
-                  }}
-                >
-                  Edit
-                </Button>
-              </DialogFooter>
-            </>
-          )}
         </DialogContent>
       </Dialog>
 
       {/* Destination Form Modal (opened from empty destination dropdown) */}
       <DestinationForm
         open={destinationFormOpen}
+        isEditing={false}
         onOpenChange={(open) => {
           setDestinationFormOpen(open);
-          // If the destination form is closed, reopen the activity form that was likely closed
-          if (!open) {
-            setFormOpen(true);
-          }
         } }
         onSubmit={(values) => {
           // Create a new destination
@@ -433,21 +274,21 @@ export default function Activities() {
 
               toast({
                 title: "Success",
-                description: "Destination created successfully. Now you can select it for your activity.",
+                description: "Destination created successfully. You can now select it when creating an activity.",
               });
 
-              // Close destination form and reopen activity form
+              // Close destination form
               setDestinationFormOpen(false);
-              setFormOpen(true);
             })
-            .catch(() => {
+            .catch((error: Error) => {
               toast({
                 title: "Error",
-                description: "Failed to create destination",
+                description: error.message || "Failed to create destination",
                 variant: "destructive",
               });
             });
-        } } isEditing={false}      />
+        } } 
+      />
     </div>
   );
 }

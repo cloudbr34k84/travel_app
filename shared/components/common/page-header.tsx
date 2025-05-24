@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Button } from "@shared-components/ui/button";
+import { Link } from "wouter";
 
 interface PageHeaderProps {
   title: string;
@@ -7,6 +8,7 @@ interface PageHeaderProps {
   buttonLabel?: string;
   buttonIcon?: ReactNode;
   onButtonClick?: () => void;
+  buttonHref?: string;
 }
 
 export function PageHeader({
@@ -15,6 +17,7 @@ export function PageHeader({
   buttonLabel,
   buttonIcon,
   onButtonClick,
+  buttonHref,
 }: PageHeaderProps) {
   return (
     <div className="flex justify-between items-center mb-6">
@@ -25,10 +28,21 @@ export function PageHeader({
         )}
       </div>
       {buttonLabel && (
-        <Button onClick={onButtonClick} className="bg-primary hover:bg-primary-800">
-          {buttonIcon && <span className="mr-2">{buttonIcon}</span>}
-          {buttonLabel}
-        </Button>
+        <>
+          {buttonHref ? (
+            <Link href={buttonHref}>
+              <Button className="bg-primary hover:bg-primary-800">
+                {buttonIcon && <span className="mr-2">{buttonIcon}</span>}
+                {buttonLabel}
+              </Button>
+            </Link>
+          ) : (
+            <Button onClick={onButtonClick} className="bg-primary hover:bg-primary-800">
+              {buttonIcon && <span className="mr-2">{buttonIcon}</span>}
+              {buttonLabel}
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
