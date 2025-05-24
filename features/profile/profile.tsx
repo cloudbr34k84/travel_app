@@ -13,6 +13,7 @@ import { useAuth } from "@shared/hooks/use-auth";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@shared/lib/queryClient";
 import { MapPin, Mail, Phone, Calendar, Edit2, Camera, Loader2 } from "lucide-react";
+import PasswordToggleField from "@shared/components/form/PasswordToggleField";
 
 export default function Profile() {
   const { toast } = useToast();
@@ -412,9 +413,9 @@ export default function Profile() {
                     <form onSubmit={handleSavePassword} className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="currentPassword">Current Password</Label>
-                        <Input 
+                        <PasswordToggleField 
                           id="currentPassword" 
-                          type="password"
+                          name="currentPassword"
                           value={passwordData.currentPassword} 
                           onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                           required
@@ -423,9 +424,9 @@ export default function Profile() {
                       
                       <div className="space-y-2">
                         <Label htmlFor="newPassword">New Password</Label>
-                        <Input 
+                        <PasswordToggleField 
                           id="newPassword" 
-                          type="password"
+                          name="newPassword"
                           value={passwordData.newPassword} 
                           onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
                           required
@@ -437,9 +438,9 @@ export default function Profile() {
                       
                       <div className="space-y-2">
                         <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                        <Input 
+                        <PasswordToggleField 
                           id="confirmPassword" 
-                          type="password"
+                          name="confirmPassword"
                           value={passwordData.confirmPassword} 
                           onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
                           required

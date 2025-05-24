@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared-components/ui/tabs";
 import { Separator } from "@shared-components/ui/separator";
 import { Loader2 } from "lucide-react";
+import PasswordToggleField from "@shared/components/form/PasswordToggleField";
 
 // Login form schema
 const loginSchema = z.object({
@@ -117,13 +118,17 @@ export default function AuthPage() {
                     <FormField
                       control={loginForm.control}
                       name="password"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Enter your password" {...field} />
+                            <PasswordToggleField
+                              {...field}
+                              placeholder="Enter your password"
+                              error={fieldState.error?.message}
+                            />
                           </FormControl>
-                          <FormMessage />
+                          {/* <FormMessage /> Removed as PasswordToggleField handles error display */}
                         </FormItem>
                       )}
                     />
@@ -216,13 +221,17 @@ export default function AuthPage() {
                     <FormField
                       control={registerForm.control}
                       name="password"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Create a password" {...field} />
+                            <PasswordToggleField
+                              {...field}
+                              placeholder="Create a password"
+                              error={fieldState.error?.message}
+                            />
                           </FormControl>
-                          <FormMessage />
+                          {/* <FormMessage /> Removed as PasswordToggleField handles error display */}
                         </FormItem>
                       )}
                     />

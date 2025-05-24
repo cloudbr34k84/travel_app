@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared-components/ui/tabs";
 import { useToast } from "@shared/hooks/use-toast";
 import { Bell, Moon, Sun, Globe, Lock, CreditCard, HelpCircle } from "lucide-react";
+import PasswordToggleField from "@shared/components/form/PasswordToggleField";
 
 export default function Settings() {
   const { toast } = useToast();
@@ -346,17 +347,17 @@ export default function Settings() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input id="currentPassword" type="password" />
+                  <PasswordToggleField id="currentPassword" name="currentPassword" />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="newPassword">New Password</Label>
-                  <Input id="newPassword" type="password" />
+                  <PasswordToggleField id="newPassword" name="newPassword" />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input id="confirmPassword" type="password" />
+                  <PasswordToggleField id="confirmPassword" name="confirmPassword" />
                 </div>
                 
                 <Button 
