@@ -35,20 +35,11 @@ export default function Activities() {
   const [activityToDelete, setActivityToDelete] = useState<number | null>(null);
   const [destinationFormOpen, setDestinationFormOpen] = useState(false);
 
-  // Listen for openDestinationForm events to handle destinations modal from dropdown empty state
   useEffect(() => {
-    /**
-     * Event handler for the openDestinationForm custom event
-     * This allows the destination dropdown empty state to trigger opening the destination form
-     */
     const handleOpenDestinationForm = () => {
       setDestinationFormOpen(true);
     };
-    
-    // Add event listener when component mounts
     window.addEventListener('openDestinationForm', handleOpenDestinationForm);
-    
-    // Remove event listener when component unmounts
     return () => {
       window.removeEventListener('openDestinationForm', handleOpenDestinationForm);
     };
@@ -108,26 +99,6 @@ export default function Activities() {
   };
 
   /**
-   * Filter activities based on search and filter criteria
-   * @returns Array of filtered activities or empty array if no activities exist
-   */
-  const filteredActivities: Activity[] = activities ? activities.filter((activity: Activity): boolean => {
-    // Search matching - check if search term appears in name or description
-    const matchesSearch: boolean = search === "" || 
-      activity.name.toLowerCase().includes(search.toLowerCase()) ||
-      (activity.description && activity.description.toLowerCase().includes(search.toLowerCase())); // Added null check for description
-    
-    // Category filtering
-    const matchesCategory: boolean = categoryFilter === "all" || activity.category === categoryFilter;
-    
-    // Destination filtering
-    const matchesDestination: boolean = destinationFilter === "all" || 
-      activity.destinationId.toString() === destinationFilter;
-    
-    return matchesSearch && matchesCategory && matchesDestination;
-  }) : [];
-
-  /**
    * Get destination for an activity by ID with proper null handling
    * @param destinationId The ID of the destination to find
    * @returns The destination or undefined if not found
@@ -136,6 +107,21 @@ export default function Activities() {
     if (!destinations) return undefined;
     return destinations.find((dest: Destination): boolean => dest.id === destinationId);
   };
+
+  const filteredActivities: Activity[] = activities ? activities.filter((activity: Activity): boolean => {
+    const searchLower = search.toLowerCase();
+    const activityDescriptionLower = activity.description ? activity.description.toLowerCase() : "";
+    
+    const matchesSearchCriteria: boolean = search === "" || 
+      activity.name.toLowerCase().includes(searchLower) ||
+      activityDescriptionLower.includes(searchLower);
+    
+    const matchesCategoryCriteria: boolean = categoryFilter === "all" || activity.category === categoryFilter;
+    const matchesDestinationCriteria: boolean = destinationFilter === "all" || 
+      activity.destinationId.toString() === destinationFilter;
+    
+    return matchesSearchCriteria && matchesCategoryCriteria && matchesDestinationCriteria;
+  }) : [];
 
   const categoryOptions: FilterOption[] = [
     { value: "all", label: "All Categories" },
@@ -155,12 +141,10 @@ export default function Activities() {
    */
   const destinationOptions: FilterOption[] = [
     { value: "all", label: "All Destinations" },
-    ...(destinations 
-      ? destinations.map((dest: Destination): FilterOption => ({
-          value: dest.id.toString(),
-          label: `${dest.name}, ${dest.country}`,
-        })) 
-      : [] // Return empty array if no destinations exist
+    ...(destinations || []).map((dest: Destination): FilterOption => ({
+        value: dest.id.toString(),
+        label: `${dest.name}, ${dest.country}`,
+      })
     ),
   ];
 
@@ -262,9 +246,7 @@ export default function Activities() {
       <DestinationForm
         open={destinationFormOpen}
         isEditing={false}
-        onOpenChange={(open) => {
-          setDestinationFormOpen(open);
-        } }
+        onOpenChange={setDestinationFormOpen}
         onSubmit={(values) => {
           // Create a new destination
           apiRequestWithJson("POST", "/api/destinations", values)

@@ -4,7 +4,7 @@ import { MoreHorizontal, MapPin } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@shared-components/ui/dropdown-menu";
 import { Activity, Destination } from "@shared/schema";
 import { StatusBadge } from "@shared-components/ui/status-badge";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 
 interface ActivityCardProps {
   activity: Activity & { statusLabel?: string };
