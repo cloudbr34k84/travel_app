@@ -13,13 +13,13 @@
  *   before the modal close animation completes
  */
 import { useState } from "react";
+import { Link } from "wouter";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
 import { DestinationCard } from "@features/destinations/destination-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { Destination, InsertDestination, Activity, Accommodation } from "@shared/schema";
-import { DestinationForm } from "@features/destinations/destination-form";
+import { Destination, Activity, Accommodation } from "@shared/schema";
 import { useToast } from "@shared/hooks/use-toast";
 import { apiRequest, queryClient } from "@shared/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@shared-components/ui/dialog";
@@ -35,8 +35,6 @@ export default function Destinations() {
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [editingDestination, setEditingDestination] = useState<Destination | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [destinationToDelete, setDestinationToDelete] = useState<number | null>(null);
 
@@ -197,10 +195,7 @@ export default function Destinations() {
         description="Manage your travel destinations"
         buttonLabel="Add Destination"
         buttonIcon={<Plus className="h-4 w-4" />}
-        onButtonClick={() => {
-          setEditingDestination(null);
-          setFormOpen(true);
-        }}
+        onButtonClick={() => window.location.href = '/destinations/new'}
       />
 
       <SearchFilter
@@ -247,9 +242,9 @@ export default function Destinations() {
               destination={destination}
               activityCount={getActivityCount(destination.id)}
               accommodationCount={getAccommodationCount(destination.id)}
-              onEdit={handleEdit}
+              onEdit={(destination) => window.location.href = `/destinations/${destination.id}/edit`}
               onDelete={handleDelete}
-              onView={() => {}} // This would navigate to destination details
+              onView={(destination) => window.location.href = `/destinations/${destination.id}`}
             />
           ))}
         </div>

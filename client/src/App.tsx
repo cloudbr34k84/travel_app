@@ -28,6 +28,11 @@ import NewAccommodationPage from "@features/accommodations/pages/new";
 import ViewAccommodationPage from "@features/accommodations/pages/[id]";
 import EditAccommodationPage from "@features/accommodations/pages/[id]/edit";
 
+// Destination Pages
+import NewDestinationPage from "@features/destinations/pages/new";
+import ViewDestinationPage from "@features/destinations/pages/[id]";
+import EditDestinationPage from "@features/destinations/pages/[id]/edit";
+
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen overflow-hidden bg-background">
@@ -63,6 +68,24 @@ function Router() {
       <ProtectedRoute path="/destinations" component={() => (
         <ProtectedLayout>
           <Destinations />
+        </ProtectedLayout>
+      )} />
+      
+      <ProtectedRoute path="/destinations/new" component={() => (
+        <ProtectedLayout>
+          <NewDestinationPage />
+        </ProtectedLayout>
+      )} />
+      
+      <ProtectedRoute path="/destinations/:id" component={() => (
+        <ProtectedLayout>
+          <ViewDestinationPage />
+        </ProtectedLayout>
+      )} />
+      
+      <ProtectedRoute path="/destinations/:id/edit" component={() => (
+        <ProtectedLayout>
+          <EditDestinationPage />
         </ProtectedLayout>
       )} />
       
