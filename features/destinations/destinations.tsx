@@ -201,29 +201,18 @@ export default function Destinations() {
       />
 
       {isLoading ? (
-        <div className="bg-white rounded-lg shadow">
-          <div className="animate-pulse p-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-12 bg-gray-200 rounded"></div>
+              ))}
+            </div>
           </div>
         </div>
-      ) : resolvedDestinations?.length > 0 ? (
-        <div className="bg-white rounded-lg shadow">
-          <CommonTable columns={columns} data={resolvedDestinations} />
-        </div>
       ) : (
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">No destinations found</p>
-          <Button
-            className="mt-4 bg-primary hover:bg-primary-800"
-            onClick={() => window.location.href = '/destinations/new'}
-          >
-            Add Your First Destination
-          </Button>
-        </div>
+        <CommonTable columns={columns} data={resolvedDestinations} />
       )}
 
 
