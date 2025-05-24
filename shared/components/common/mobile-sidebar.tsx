@@ -126,9 +126,9 @@ export function MobileSidebar() {
                 )}
               </div>
             </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Bottom navigation (simpler, with fewer items) */}
       <div className="fixed bottom-0 left-0 right-0 w-full mobile-nav-height bg-white border-t border-gray-200 shadow-lg z-30">
@@ -148,15 +148,7 @@ export function MobileSidebar() {
             </Link>
           ))}
           
-          {/* Mobile drawer menu trigger */}
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <div className="flex flex-col items-center p-1 text-xs cursor-pointer text-gray-700 hover:text-primary">
-                <Menu className="h-6 w-6 mb-1" />
-                <span>Menu</span>
-              </div>
-            </SheetTrigger>
-          </Sheet>
+
         </nav>
       </div>
     </div>
