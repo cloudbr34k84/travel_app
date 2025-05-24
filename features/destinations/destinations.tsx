@@ -2,21 +2,26 @@
  * Destinations page component
  * 
  * Manages the display and interaction with destination data:
- * - Lists all destinations with filtering options
+ * - Lists all destinations with filtering options using CommonTable component
  * - Allows creating, editing, and deleting destinations
  * 
- * State management for modal:
- * - Uses `formOpen` to control the visibility of the destination form modal
- * - Uses `editingDestination` to store the currently selected destination for editing
- * - These states work together to safely handle modal open/close and form data population
- * - A setTimeout delay is used when closing the modal to avoid stale data rendering
- *   before the modal close animation completes
+ * Table Integration:
+ * - Uses CommonTable component for consistent data display
+ * - Column definitions include ID, Name, Country, Region, Status, Activity Count, Accommodation Count
+ * - Data is enriched with foreign key lookups (status names) and aggregated counts
+ * - Provides fallback values ('Unknown') for missing foreign key relationships
+ * 
+ * Data Resolution:
+ * - resolvedDestinations maps over fetched destinations to add enriched data
+ * - statusId is resolved to status name using travelStatuses lookup
+ * - Activity and accommodation counts are calculated for each destination
  */
 import { useState } from "react";
 import { Link } from "wouter";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
 import { DestinationCard } from "@features/destinations/destination-card";
+import CommonTable from "../../client/src/components/common/CommonTable";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Destination, Activity, Accommodation } from "@shared/schema";
@@ -65,27 +70,14 @@ export default function Destinations() {
    * - statusId is resolved to status name using travelStatuses lookup
    */
   const columns = [
-    { header: 'ID', accessor: (row) => row.id },
-    { header: 'Name', accessor: (row) => row.name },
-    { header: 'Country', accessor: (row) => row.country },
-    { header: 'Region', accessor: (row) => row.region },
-    { header: 'Status', accessor: (row) => row.statusName || 'Unknown' },
-    { header: 'Activities', accessor: (row) => row.activityCount || 0 },
-    { header: 'Accommodations', accessor: (row) => row.accommodationCount || 0 },
+    { header: 'ID', accessor: (row: any) => row.id },
+    { header: 'Name', accessor: (row: any) => row.name },
+    { header: 'Country', accessor: (row: any) => row.country },
+    { header: 'Region', accessor: (row: any) => row.region },
+    { header: 'Status', accessor: (row: any) => row.statusName || 'Unknown' },
+    { header: 'Activities', accessor: (row: any) => row.activityCount || 0 },
+    { header: 'Accommodations', accessor: (row: any) => row.accommodationCount || 0 },
   ];
-
-  /**
-   * Prepare enriched data for table display
-   * - Resolves statusId to status name
-   * - Adds activity and accommodation counts
-   * - Provides fallback values for missing data
-   */
-  const destinationsWithEnrichedData = destinations?.map(destination => ({
-    ...destination,
-    statusName: travelStatuses?.find(status => status.id === destination.statusId)?.label || 'Unknown',
-    activityCount: getActivityCount(destination.id),
-    accommodationCount: getAccommodationCount(destination.id),
-  })) || [];
 
 
 
@@ -136,6 +128,19 @@ export default function Destinations() {
     
     return matchesSearch && matchesRegion && matchesStatus;
   }) || [];
+
+  /**
+   * Prepare enriched data for table display
+   * - Resolves statusId to status name
+   * - Adds activity and accommodation counts
+   * - Provides fallback values for missing data
+   */
+  const resolvedDestinations = filteredDestinations?.map(destination => ({
+    ...destination,
+    statusName: travelStatuses?.find((status: any) => status.id === destination.statusId)?.label || 'Unknown',
+    activityCount: getActivityCount(destination.id),
+    accommodationCount: getAccommodationCount(destination.id),
+  })) || [];
 
   // Count activities and accommodations for each destination
   const getActivityCount = (destinationId: number): number => {
