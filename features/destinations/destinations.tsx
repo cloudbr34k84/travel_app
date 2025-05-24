@@ -21,7 +21,7 @@ import { Link } from "wouter";
 import { PageHeader } from "@shared-components/common/page-header";
 import { SearchFilter } from "@shared-components/ui/search-filter";
 import { DestinationCard } from "@features/destinations/destination-card";
-import CommonTable from "../../client/src/components/common/CommonTable";
+import CommonTable from "@/components/common/CommonTable";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Destination, Activity, Accommodation } from "@shared/schema";
@@ -137,7 +137,7 @@ export default function Destinations() {
    */
   const resolvedDestinations = filteredDestinations?.map(destination => ({
     ...destination,
-    statusName: travelStatuses?.find((status: any) => status.id === destination.statusId)?.label || 'Unknown',
+    statusName: (travelStatuses as any)?.find((status: any) => status.id === destination.statusId)?.label || 'Unknown',
     activityCount: getActivityCount(destination.id),
     accommodationCount: getAccommodationCount(destination.id),
   })) || [];
@@ -201,35 +201,18 @@ export default function Destinations() {
       />
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-lg shadow h-80 animate-pulse">
-              <div className="h-48 bg-gray-200 rounded-t-lg"></div>
-              <div className="p-5">
-                <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="flex justify-between mb-4">
-                  <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                </div>
-                <div className="h-8 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-lg shadow">
+          <div className="animate-pulse p-6">
+            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+          </div>
         </div>
-      ) : filteredDestinations?.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDestinations.map((destination: Destination) => (
-            <DestinationCard
-              key={destination.id}
-              destination={destination}
-              activityCount={getActivityCount(destination.id)}
-              accommodationCount={getAccommodationCount(destination.id)}
-              onEdit={(destination) => window.location.href = `/destinations/${destination.id}/edit`}
-              onDelete={handleDelete}
-              onView={(destination) => window.location.href = `/destinations/${destination.id}`}
-            />
-          ))}
+      ) : resolvedDestinations?.length > 0 ? (
+        <div className="bg-white rounded-lg shadow">
+          <CommonTable columns={columns} data={resolvedDestinations} />
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow p-6 text-center">
