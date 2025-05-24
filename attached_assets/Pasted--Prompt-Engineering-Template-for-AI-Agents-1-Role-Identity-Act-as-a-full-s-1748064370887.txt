@@ -1,0 +1,98 @@
+# 🧠 Prompt Engineering Template for AI Agents
+
+---
+
+## 1. 🔧 Role & Identity
+
+Act as a full-stack engineer refactoring a modular React + TypeScript travel app using Tailwind CSS, Drizzle ORM, and Zod validation. The current app uses modal-based CRUD forms and is being transitioned to a page-based structure.
+
+---
+
+## 2. 🎯 Task Objective
+
+Refactor the **Activities** feature to replace all modal-based views for **add**, **edit**, and **view** with dedicated **pages**. These new pages must preserve full functionality and reuse the shared components already used in the main `activities.tsx` page.
+
+---
+
+## 3. 🧱 Context & Constraints
+
+- Tech stack: React (App Router), Tailwind CSS, TypeScript, Drizzle ORM, Zod
+- File structure uses `src/features/activities/`, `src/shared/components`, etc.
+- Shared components for layout and fields (like `BaseFormModal`, `FormFields`, etc.) already exist and must be reused.
+- Current modals are invoked via `useState`/`isOpen` and `defaultValues` passed to `ActivityForm`.
+- Page routing follows `/activities`, `/activities/[id]`, `/activities/new`.
+
+---
+
+## 4. 📋 Detailed Instructions
+
+1. **Remove Modal Usage:**
+   - Eliminate modal logic in `activities.tsx` (e.g., `formOpen`, `editingActivity`).
+   - Replace buttons with `Link` components:
+     - `/activities/new` for Add
+     - `/activities/[id]` for View
+     - `/activities/[id]/edit` for Edit
+
+2. **Create Pages:**
+   - `/activities/new.tsx`: Contains `ActivityForm` in create mode.
+   - `/activities/[id].tsx`: Read-only detail view using shared field display components.
+   - `/activities/[id]/edit.tsx`: Contains `ActivityForm` in edit mode with preloaded data.
+
+3. **Form Logic Adjustments:**
+   - Ensure `ActivityForm` works in both create and edit modes via props or internal logic.
+   - Use Zod for validation, `useFormMutation` for submission, and `parseServerFieldErrors` for server error parsing.
+
+4. **Data Fetching:**
+   - Use `useActivity(id)` to fetch data for view/edit.
+   - Handle loading, error, and not found states gracefully.
+
+5. **UI Consistency:**
+   - Use existing `FormFields`, `StatusDropdown`, `PrioritySelector`, etc.
+   - Maintain consistent layout, spacing, and typography with the rest of the app.
+
+---
+
+## 5. 📄 JSDoc Enforcement
+
+For every new or updated file:
+- Add a file-level JSDoc comment explaining its purpose (e.g., `@file ActivityEditPage - renders form for editing an activity`).
+- Update component-level JSDoc to reflect props, usage, and behavior.
+
+---
+
+## 6. 🔁 Iteration Protocol
+
+- Focus only on the activities feature in this task.
+- Confirm each page functions correctly before fully removing modal logic.
+- Once completed, use this approach for destinations and trips.
+
+---
+
+## 7. ⚠️ Tooling Policy
+
+Use patch-based editing and avoid touching unrelated logic. Use shared utilities and components where possible.
+
+---
+
+## 8. 🔐 Data Integrity & Security
+
+- Validate inputs with Zod.
+- Sanitize data before submission.
+- Confirm behavior for create, update, and view-only use cases.
+
+---
+
+## 9. 🗣️ Response Formatting
+
+Respond with:
+- A list of files modified or created
+- A summary of routing changes
+- Any improvements made to form/component structure
+- Updated JSDoc for new files or exports
+
+---
+
+## 10. ✅ Finalization Expectations
+
+After verifying the activity pages are functional, propose proceeding to the destination feature with the same page-based layout pattern.
+
