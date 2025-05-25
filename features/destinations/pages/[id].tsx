@@ -1,17 +1,17 @@
 /**
- * @file ViewDestinationPage - Page for viewing destination details
- * @description This page displays comprehensive destination information in a read-only view.
- * It includes all destination details, related activities and accommodations count,
- * and provides navigation options to edit or return to the destinations list.
+ * ViewDestinationPage - Comprehensive destination hub page
+ * @description Displays destination details with statistics and actions using EntityDetailsLayout hub variant
+ * Features activity/accommodation counts, enhanced navigation, and dashboard-style layout
+ * @returns JSX.Element - The destination hub page with statistics sidebar
  */
 
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { PageHeader } from "@shared-components/common/page-header";
 import { Button } from "@shared-components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@shared-components/ui/card";
 import { StatusBadge } from "@shared-components/ui/status-badge";
-import { ArrowLeft, Edit, MapPin, Building, Smile } from "lucide-react";
+import { Edit, MapPin, Building, Smile } from "lucide-react";
+import { EntityDetailsLayout } from "@shared/components/common/EntityDetailsLayout";
 import { Destination, Activity, Accommodation } from "@shared/schema";
 
 interface DestinationWithStatus extends Destination {
@@ -91,140 +91,110 @@ export default function ViewDestinationPage() {
   const accommodationCount = accommodations ? 
     accommodations.filter(accommodation => accommodation.destinationId === destination.id).length : 0;
 
+  // Create sidebar with statistics and actions
+  const sidebar = (
+    <>
+      {/* Location Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <MapPin className="h-5 w-5 mr-2 text-primary" />
+            Location
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <label className="text-sm font-medium text-gray-500">Country</label>
+            <p className="text-gray-900">{destination.country}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-500">Region</label>
+            <p className="text-gray-900">{destination.region}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Statistics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Statistics</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Smile className="h-4 w-4 mr-2 text-primary" />
+              <span className="text-sm">Activities</span>
+            </div>
+            <span className="font-semibold">{activityCount}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Building className="h-4 w-4 mr-2 text-primary" />
+              <span className="text-sm">Accommodations</span>
+            </div>
+            <span className="font-semibold">{accommodationCount}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Link href={`/destinations/${destination.id}/edit`}>
+            <Button className="w-full">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Destination
+            </Button>
+          </Link>
+          <Link href="/destinations">
+            <Button variant="outline" className="w-full">
+              Back to List
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </>
+  );
+
+  // Prepare header actions for edit button
+  const headerActions = (
+    <Button asChild variant="outline">
+      <Link href={`/destinations/${destination.id}/edit`}>
+        <Edit className="h-4 w-4 mr-2" />
+        Edit Destination
+      </Link>
+    </Button>
+  );
+
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <Link href="/destinations">
-          <Button variant="ghost" className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Destinations
-          </Button>
-        </Link>
-        <PageHeader
-          title={destination.name}
-          description="Destination details"
-          buttonLabel="Edit Destination"
-          buttonIcon={<Edit className="h-4 w-4" />}
-          onButtonClick={() => window.location.href = `/destinations/${destination.id}/edit`}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Destination Image */}
-          {destination.image && (
-            <Card>
-              <CardContent className="p-0">
-                <div className="relative h-64 md:h-80">
-                  <img
-                    src={destination.image}
-                    alt={`${destination.name}, ${destination.country}`}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                  <div className="absolute top-4 right-4">
-                    {destination.status?.label && (
-                      <StatusBadge statusLabel={destination.status.label} />
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Description */}
-          {destination.description && (
-            <Card>
-              <CardHeader>
-                <CardTitle>About this destination</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 leading-relaxed">
-                  {destination.description}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Location Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MapPin className="h-5 w-5 mr-2 text-primary" />
-                Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Country</label>
-                <p className="text-gray-900">{destination.country}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Region</label>
-                <p className="text-gray-900">{destination.region}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Status</label>
-                <div className="mt-1">
-                  {destination.status?.label ? (
-                    <StatusBadge statusLabel={destination.status.label} />
-                  ) : (
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                      No status
-                    </span>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Smile className="h-4 w-4 mr-2 text-primary" />
-                  <span className="text-sm">Activities</span>
-                </div>
-                <span className="font-semibold">{activityCount}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Building className="h-4 w-4 mr-2 text-primary" />
-                  <span className="text-sm">Accommodations</span>
-                </div>
-                <span className="font-semibold">{accommodationCount}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href={`/destinations/${destination.id}/edit`}>
-                <Button className="w-full">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Destination
-                </Button>
-              </Link>
-              <Link href="/destinations">
-                <Button variant="outline" className="w-full">
-                  Back to List
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+    <EntityDetailsLayout
+      title={destination.name}
+      subtitle="Destination details"
+      image={destination.image}
+      description={destination.description}
+      status={destination.status ? {
+        label: destination.status.label,
+        variant: 'secondary'
+      } : undefined}
+      location={{
+        name: destination.country,
+        country: destination.region
+      }}
+      backButton={{
+        href: '/destinations',
+        label: 'Back to Destinations'
+      }}
+      headerActions={headerActions}
+      sidebar={sidebar}
+      isLoading={isLoading}
+      error={error || !destination ? {
+        title: 'Destination Not Found',
+        message: 'The destination you\'re looking for doesn\'t exist.'
+      } : undefined}
+      variant="hub"
+    />
   );
 }
