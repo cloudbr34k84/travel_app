@@ -1,16 +1,13 @@
 /**
- * @file features/accommodations/pages/[id].tsx
- * @description Page for viewing a single accommodation's details.
- * Displays accommodation information in a read-only format.
+ * ViewAccommodationPage - Displays detailed accommodation information
+ * @description Renders accommodation details with edit/delete capabilities using the shared EntityDetailsLayout
+ * @returns JSX.Element - The accommodation detail page
  */
 import React from 'react';
 import { useParams, Link, useLocation } from 'wouter';
 import { useAccommodation, useDeleteAccommodation } from '@features/accommodations/api/hooks';
-import { PageHeader } from '@shared-components/common/page-header';
 import { Button } from '@shared-components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@shared-components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@shared-components/ui/alert';
-import { Loader2, AlertTriangle, Trash2, Edit } from 'lucide-react';
+import { Loader2, Trash2, Edit } from 'lucide-react';
 import { useToast } from '@shared/hooks/use-toast';
 import {
   Dialog,
@@ -21,7 +18,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@shared-components/ui/dialog";
-import { Destination, useDestination } from '@features/destinations/api/hooks'; // Assuming this hook exists
+import { Destination, useDestination } from '@features/destinations/api/hooks';
+import { EntityDetailsLayout } from '@shared/components/common/EntityDetailsLayout';
 
 export default function ViewAccommodationPage() {
   const { id } = useParams<{ id: string }>();
