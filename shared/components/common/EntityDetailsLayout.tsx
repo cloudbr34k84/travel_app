@@ -144,11 +144,17 @@ export function EntityDetailsLayout({
   if (error) {
     return (
       <div className="p-6">
+        <div className="mb-6">
+          <Link href={backButton.href}>
+            <Button variant="ghost" className="mb-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {backButton.label || 'Back'}
+            </Button>
+          </Link>
+        </div>
         <PageHeader 
           title={error.title}
           description="Could not load details."
-          showBackButton={true}
-          backButtonHref={backButton.href}
         />
         <Alert variant="destructive" className="mt-6">
           <AlertTriangle className="h-4 w-4" />
@@ -170,17 +176,17 @@ export function EntityDetailsLayout({
               {backButton.label || 'Back'}
             </Button>
           </Link>
-          <PageHeader
-            title={title}
-            description={subtitle || "Details and information"}
-            showBackButton={false}
-          >
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-text">{title}</h1>
+              <p className="text-sm text-gray-500">{subtitle || "Details and information"}</p>
+            </div>
             {headerActions && (
               <div className="flex space-x-2">
                 {headerActions}
               </div>
             )}
-          </PageHeader>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -238,18 +244,25 @@ export function EntityDetailsLayout({
   // Simple layout for accommodation/activity pages
   return (
     <div className="p-6">
-      <PageHeader
-        title={title}
-        description={subtitle || "Details and information"}
-        showBackButton={true}
-        backButtonHref={backButton.href}
-      >
-        {headerActions && (
-          <div className="flex space-x-2">
-            {headerActions}
+      <div className="mb-6">
+        <Link href={backButton.href}>
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {backButton.label || 'Back'}
+          </Button>
+        </Link>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-text">{title}</h1>
+            <p className="text-sm text-gray-500">{subtitle || "Details and information"}</p>
           </div>
-        )}
-      </PageHeader>
+          {headerActions && (
+            <div className="flex space-x-2">
+              {headerActions}
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="mt-6 grid gap-6">
         {/* Main Details Card */}
