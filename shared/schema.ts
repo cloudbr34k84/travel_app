@@ -78,9 +78,15 @@ export const destinations = pgTable("destinations", {
   region: text("region").notNull(),
   description: text("description").notNull().default(""),
   image: text("image").notNull(),
-  statusId: integer("status_id").notNull(),
-  priorityId: integer("priority_id").notNull(),
-  userId: integer("user_id"),
+  // If a status is deleted, restrict deletion if destinations are using it.
+  // If a status ID is updated, cascade the update to referencing destinations.
+  statusId: integer("status_id").notNull().references(() => travelStatuses.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
+  // If a priority level is deleted, restrict deletion if destinations are using it.
+  // If a priority level ID is updated, cascade the update to referencing destinations.
+  priorityId: integer("priority_id").notNull().references(() => travelPriorityLevels.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
+  // If a user is deleted, set userId to NULL for their destinations.
+  // If a user ID is updated, cascade the update to referencing destinations.
+  userId: integer("user_id").references(() => users.id, { onDelete: 'set null', onUpdate: 'cascade' }),
 });
 
 export const destinationsRelations = relations(destinations, ({ many, one }) => ({
@@ -131,17 +137,25 @@ export const activities = pgTable("activities", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
-  destinationId: integer("destination_id").notNull(),
+  // If a destination is deleted, cascade delete to its activities.
+  // If a destination ID is updated, cascade the update to referencing activities.
+  destinationId: integer("destination_id").notNull().references(() => destinations.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
   image: text("image"),
-  statusId: integer("status_id").notNull(),
-  priorityId: integer("priority_id").notNull(),
+  // If a status is deleted, restrict deletion if activities are using it.
+  // If a status ID is updated, cascade the update to referencing activities.
+  statusId: integer("status_id").notNull().references(() => travelStatuses.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
+  // If a priority level is deleted, restrict deletion if activities are using it.
+  // If a priority level ID is updated, cascade the update to referencing activities.
+  priorityId: integer("priority_id").notNull().references(() => travelPriorityLevels.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
   addressStreet: text("address_street"),
   addressLine2: text("address_line2"),
   addressCity: text("address_city"),
   addressRegion: text("address_region"),
   addressPostcode: text("address_postcode"),
   addressCountry: text("address_country"),
-  userId: integer("user_id"),
+  // If a user is deleted, set userId to NULL for their activities.
+  // If a user ID is updated, cascade the update to referencing activities.
+  userId: integer("user_id").references(() => users.id, { onDelete: 'set null', onUpdate: 'cascade' }),
 });
 
 export const activitiesRelations = relations(activities, ({ one }) => ({
@@ -193,11 +207,17 @@ export const accommodations = pgTable("accommodations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: text("type").notNull(),
-  destinationId: integer("destination_id").notNull(),
+  // If a destination is deleted, cascade delete to its accommodations.
+  // If a destination ID is updated, cascade the update to referencing accommodations.
+  destinationId: integer("destination_id").notNull().references(() => destinations.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
   image: text("image"),
   description: text("description").notNull().default(""),
-  statusId: integer("status_id").notNull(), // 🔄 FK to travel_statuses
-  priorityId: integer("priority_id").notNull(), // 🔄 FK to travel_priority_levels
+  // If a status is deleted, restrict deletion if accommodations are using it.
+  // If a status ID is updated, cascade the update to referencing accommodations.
+  statusId: integer("status_id").notNull().references(() => travelStatuses.id, { onDelete: 'restrict', onUpdate: 'cascade' }), // 🔄 FK to travel_statuses
+  // If a priority level is deleted, restrict deletion if accommodations are using it.
+  // If a priority level ID is updated, cascade the update to referencing accommodations.
+  priorityId: integer("priority_id").notNull().references(() => travelPriorityLevels.id, { onDelete: 'restrict', onUpdate: 'cascade' }), // 🔄 FK to travel_priority_levels
   notes: text("notes"),
   addressStreet: text("address_street"),
   addressLine2: text("address_line2"),
@@ -205,7 +225,9 @@ export const accommodations = pgTable("accommodations", {
   addressRegion: text("address_region"),
   addressPostcode: text("address_postcode"),
   addressCountry: text("address_country"),
-  userId: integer("user_id"),
+  // If a user is deleted, set userId to NULL for their accommodations.
+  // If a user ID is updated, cascade the update to referencing accommodations.
+  userId: integer("user_id").references(() => users.id, { onDelete: 'set null', onUpdate: 'cascade' }),
 });
 
 export const accommodationsRelations = relations(accommodations, ({ one }) => ({
@@ -258,10 +280,16 @@ export const trips = pgTable("trips", {
   description: text("description").notNull().default(""),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
-  statusId: integer("status_id").notNull(), // FK now references travel_statuses
-  priorityId: integer("priority_id").notNull(), // FK now references travel_priority_levels
+  // If a status is deleted, restrict deletion if trips are using it.
+  // If a status ID is updated, cascade the update to referencing trips.
+  statusId: integer("status_id").notNull().references(() => travelStatuses.id, { onDelete: 'restrict', onUpdate: 'cascade' }), // FK now references travel_statuses
+  // If a priority level is deleted, restrict deletion if trips are using it.
+  // If a priority level ID is updated, cascade the update to referencing trips.
+  priorityId: integer("priority_id").notNull().references(() => travelPriorityLevels.id, { onDelete: 'restrict', onUpdate: 'cascade' }), // FK now references travel_priority_levels
   image: text("image"),
-  userId: integer("user_id"),
+  // If a user is deleted, set userId to NULL for their trips.
+  // If a user ID is updated, cascade the update to referencing trips.
+  userId: integer("user_id").references(() => users.id, { onDelete: 'set null', onUpdate: 'cascade' }),
 });
 
 export const tripsRelations = relations(trips, ({ many, one }) => ({
@@ -305,8 +333,12 @@ export type Trip = typeof trips.$inferSelect;
 // Trip Destinations (to handle the many-to-many relationship)
 export const tripDestinations = pgTable("trip_destinations", {
   id: serial("id").primaryKey(),
-  tripId: integer("trip_id").notNull(),
-  destinationId: integer("destination_id").notNull(),
+  // If a trip is deleted, cascade delete to its entries in trip_destinations.
+  // If a trip ID is updated, cascade the update.
+  tripId: integer("trip_id").notNull().references(() => trips.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
+  // If a destination is deleted, cascade delete to its entries in trip_destinations.
+  // If a destination ID is updated, cascade the update.
+  destinationId: integer("destination_id").notNull().references(() => destinations.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
 });
 
 export const tripDestinationsRelations = relations(tripDestinations, ({ one }) => ({
@@ -320,7 +352,22 @@ export const tripDestinationsRelations = relations(tripDestinations, ({ one }) =
   }),
 }));
 
-export const insertTripDestinationSchema = createInsertSchema(tripDestinations).omit({
+/**
+ * Zod schema for inserting a new record into the `trip_destinations` table.
+ * This schema validates the data before it's used to create a new trip-destination link.
+ * 
+ * Explicit validation for `tripId` and `destinationId` as positive integers is included
+ * to enhance data integrity beyond basic type inference provided by `createInsertSchema`.
+ * 
+ * @note To future maintainers: Always explicitly validate foreign key fields (like `tripId`, `destinationId`)
+ * in insert schemas using `z.number().int().positive()` or similar appropriate Zod validators.
+ * This practice ensures consistency, clarity, and robust validation, even if `drizzle-zod`
+ * might correctly infer the types. It makes the validation rules more transparent.
+ */
+export const insertTripDestinationSchema = createInsertSchema(tripDestinations, {
+  tripId: z.number().int().positive(),
+  destinationId: z.number().int().positive(),
+}).omit({
   id: true,
 });
 
