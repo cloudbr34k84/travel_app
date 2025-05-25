@@ -22,8 +22,27 @@ const fetchDestination = async (id: number): Promise<Destination> => {
 
 /**
  * Hook to fetch a single destination.
- * @param destinationId The ID of the destination.
- * @param options Optional TanStack Query options.
+ * @description This hook fetches a destination by its ID and returns the query result.
+ * It's enabled only when a valid destination ID is provided.
+ * 
+ * @param destinationId The ID of the destination to fetch.
+ * @param options Optional TanStack Query options to customize the query behavior.
+ * @returns A query result object containing data, loading state, and error information.
+ * 
+ * @example
+ * // Fetch a destination with ID 1
+ * const { data: destination, isLoading, error } = useDestination(1);
+ * 
+ * // Access the destination data when loaded
+ * if (isLoading) {
+ *   return <Loading />;
+ * }
+ * 
+ * if (error || !destination) {
+ *   return <ErrorDisplay error={error} />;
+ * }
+ * 
+ * return <DestinationDetails destination={destination} />;
  */
 export const useDestination = (
   destinationId: number | undefined,
@@ -43,16 +62,32 @@ export const useDestination = (
 };
 
 /**
- * Fetches all destinations.
- * @returns A list of all destinations.
- */
-const fetchDestinations = async (): Promise<Destination[]> => {
-  return apiRequestWithJson<null, Destination[]>("GET", DESTINATIONS_QUERY_KEY);
-};
-
-/**
  * Hook to fetch all destinations.
- * @param options Optional TanStack Query options.
+ * @description This hook fetches all destinations and returns the query result.
+ * 
+ * @param options Optional TanStack Query options to customize the query behavior.
+ * @returns A query result object containing data, loading state, and error information.
+ * 
+ * @example
+ * // Fetch all destinations
+ * const { data: destinations, isLoading, error } = useDestinations();
+ * 
+ * // Render a list of destinations when loaded
+ * if (isLoading) {
+ *   return <Loading />;
+ * }
+ * 
+ * if (error || !destinations) {
+ *   return <ErrorDisplay error={error} />;
+ * }
+ * 
+ * return (
+ *   <ul>
+ *     {destinations.map(destination => (
+ *       <li key={destination.id}>{destination.name}</li>
+ *     ))}
+ *   </ul>
+ * );
  */
 export const useDestinations = (
   options?: Partial<UseQueryOptions<Destination[], Error, Destination[], string[]>>

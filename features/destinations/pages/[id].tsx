@@ -6,13 +6,15 @@
  */
 
 import { useRoute, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@shared-components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@shared-components/ui/card";
 import { StatusBadge } from "@shared-components/ui/status-badge";
 import { Edit, MapPin, Building, Smile } from "lucide-react";
 import { EntityDetailsLayout } from "@shared/components/common/EntityDetailsLayout";
 import { Destination, Activity, Accommodation } from "@shared/schema";
+import { useDestination } from "@features/destinations/api/hooks";
+import { useActivities } from "@features/activities/api/hooks";
+import { useAccommodations } from "@features/accommodations/api/hooks";
 
 interface DestinationWithStatus extends Destination {
   status?: {
@@ -25,18 +27,13 @@ export default function ViewDestinationPage() {
   const [, params] = useRoute("/destinations/:id");
   const destinationId = params?.id ? parseInt(params.id) : null;
 
-  const { data: destination, isLoading, error } = useQuery<DestinationWithStatus>({
-    queryKey: ['/api/destinations', destinationId],
-    enabled: !!destinationId,
-  });
+  const { data: destination, isLoading, error } = useDestination(
+    destinationId || undefined
+  );
 
-  const { data: activities } = useQuery<Activity[]>({
-    queryKey: ['/api/activities'],
-  });
-
-  const { data: accommodations } = useQuery<Accommodation[]>({
-    queryKey: ['/api/accommodations'],
-  });
+  const { data: activities } = useActivities();
+  
+  const { data: accommodations } = useAccommodations();
 
   if (!destinationId) {
     return (
