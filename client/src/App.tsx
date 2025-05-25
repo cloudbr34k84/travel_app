@@ -19,9 +19,9 @@ import AuthPage from "@features/auth/auth-page";
 import NotFound from "@shared/not-found";
 
 // Activity Pages
-import NewActivityPage from "@features/activities/NewActivityPage";
-import ViewActivityPage from "@features/activities/ViewActivityPage";
-import EditActivityPage from "@features/activities/EditActivityPage";
+import NewActivityPage from "@features/activities/pages/new";
+import ViewActivityPage from "@features/activities/pages/[id]";
+import EditActivityPage from "@features/activities/pages/[id]/edit";
 
 // Accommodation Pages
 import NewAccommodationPage from "@features/accommodations/pages/new";

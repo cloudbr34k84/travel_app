@@ -1,8 +1,20 @@
 /**
- * ViewDestinationPage - Comprehensive destination hub page
- * @description Displays destination details with statistics and actions using EntityDetailsLayout hub variant
- * Features activity/accommodation counts, enhanced navigation, and dashboard-style layout
- * @returns JSX.Element - The destination hub page with statistics sidebar
+ * ViewDestinationPage - Displays detailed destination information
+ * @description Renders destination details with edit capabilities using the shared EntityDetailsLayout.
+ * Includes a consistent inline action button block with Edit functionality.
+ * 
+ * Action Button Configuration:
+ * - editPath: Navigation path for editing the destination
+ * - showDelete: Boolean flag to display delete button (false for destinations)
+ * - onDelete: Not used for destinations since delete is disabled
+ * 
+ * To maintain this inline pattern:
+ * - Keep button structure consistent with other entity pages
+ * - Use same styling (Edit: default variant, Delete: destructive variant)
+ * - Maintain flex gap-2 layout for proper spacing
+ * - Remove duplicate Edit buttons from sidebar to avoid confusion
+ * 
+ * @returns JSX.Element - The destination detail page
  */
 
 import { useRoute, Link } from "wouter";
@@ -140,12 +152,6 @@ export default function ViewDestinationPage() {
           <CardTitle>Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Link href={`/destinations/${destination.id}/edit`}>
-            <Button className="w-full">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Destination
-            </Button>
-          </Link>
           <Link href="/destinations">
             <Button variant="outline" className="w-full">
               Back to List
@@ -156,14 +162,24 @@ export default function ViewDestinationPage() {
     </>
   );
 
-  // Prepare header actions for edit button
+  // Unified inline action button block configuration
+  const editPath = `/destinations/${destination.id}/edit`;
+  const showDelete = false; // Disable delete functionality for destinations
+  
+  // Prepare header actions with unified button structure
   const headerActions = (
-    <Button asChild variant="outline">
-      <Link href={`/destinations/${destination.id}/edit`}>
-        <Edit className="h-4 w-4 mr-2" />
-        Edit Destination
-      </Link>
-    </Button>
+    <div className="flex gap-2">
+      <Button asChild>
+        <Link href={editPath}>
+          <Edit className="mr-2 h-4 w-4" /> Edit
+        </Link>
+      </Button>
+      {showDelete && (
+        <Button variant="destructive">
+          Delete
+        </Button>
+      )}
+    </div>
   );
 
   return (

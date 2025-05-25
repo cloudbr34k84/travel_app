@@ -1,7 +1,19 @@
 
 /**
  * ViewActivityPage - Displays detailed activity information
- * @description Renders activity details with edit capabilities using the shared EntityDetailsLayout
+ * @description Renders activity details with edit capabilities using the shared EntityDetailsLayout.
+ * Includes a consistent inline action button block with Edit functionality.
+ * 
+ * Action Button Configuration:
+ * - editPath: Navigation path for editing the activity
+ * - showDelete: Boolean flag to display delete button (false for activities)
+ * - onDelete: Not used for activities since delete is disabled
+ * 
+ * To maintain this inline pattern:
+ * - Keep button structure consistent with other entity pages
+ * - Use same styling (Edit: default variant, Delete: destructive variant)
+ * - Maintain flex gap-2 layout for proper spacing
+ * 
  * @route /activities/:id - Corresponds to this route in the application
  * @returns JSX.Element - The activity detail page
  */
@@ -42,14 +54,24 @@ export default function ViewActivityPage() {
     fullWidth: false
   }] : [];
 
-  // Prepare header actions
+  // Unified inline action button block configuration
+  const editPath = activity ? `/activities/${activity.id}/edit` : '';
+  const showDelete = false; // Disable delete functionality for activities
+  
+  // Prepare header actions with unified button structure
   const headerActions = activity ? (
-    <Button asChild variant="outline" size="sm">
-      <Link href={`/activities/${activity.id}/edit`}>
-        <Edit className="h-4 w-4 mr-2" />
-        Edit Activity
-      </Link>
-    </Button>
+    <div className="flex gap-2">
+      <Button asChild>
+        <Link href={editPath}>
+          <Edit className="mr-2 h-4 w-4" /> Edit
+        </Link>
+      </Button>
+      {showDelete && (
+        <Button variant="destructive">
+          Delete
+        </Button>
+      )}
+    </div>
   ) : undefined;
 
   // Prepare additional sections for status information
