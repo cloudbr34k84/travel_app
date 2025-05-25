@@ -101,7 +101,10 @@ export const destinationsRelations = relations(destinations, ({ many, one }) => 
   }),
 }));
 
-export const insertDestinationSchema = createInsertSchema(destinations).omit({
+export const insertDestinationSchema = createInsertSchema(destinations, {
+  statusId: z.number().int().positive(),
+  priorityId: z.number().int().positive(),
+}).omit({
   id: true,
 });
 
@@ -277,7 +280,10 @@ export const tripsRelations = relations(trips, ({ many, one }) => ({
   }),
 }));
 
-export const insertTripSchema = createInsertSchema(trips).omit({
+export const insertTripSchema = createInsertSchema(trips, {
+  statusId: z.number().int().positive(),
+  priorityId: z.number().int().positive(),
+}).omit({
   id: true,
 });
 
